@@ -38,7 +38,7 @@ export function gatherTranslationsToNamespaces(files: string[], config: LangTagC
     return {namespaces, totalKeys};
 }
 
-function digToSection(key: string, translations: Record<string, any>): Record<string, any> {
+function digToSection(key: string | undefined, translations: Record<string, any>): Record<string, any> {
     if (!key) return translations;
     const sp = key.split('.');
     let currentValue = translations[sp[0]];

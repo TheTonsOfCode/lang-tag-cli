@@ -1,8 +1,13 @@
 {
   "name": "lang-tag",
-  "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheTonsOfCode/lang-tag"
+  },
+  "author": "TheTonsOfCode",
+  "license": "MIT",
   "files": [
     "dist"
   ],
@@ -38,5 +43,32 @@
     "vite": "^6.2.0",
     "vite-plugin-dts": "^4.5.3",
     "vitest": "^3.0.9"
-  }
+  },
+  "keywords": [
+    "i18n",
+    "translation",
+    "internationalization",
+    "localization",
+    "typescript",
+    "react",
+    "component-based",
+    "translation-management",
+    "javascript",
+    "lang-tag",
+    "jsx",
+    "tsx",
+    "inline-translations",
+    "translation-keys",
+    "component-translations",
+    "translation-extraction",
+    "namespaces",
+    "type-safe-translations",
+    "i18n-automation",
+    "translation-tags",
+    "language-tags",
+    "translation-structures",
+    "collected-translations",
+    "translation-organization",
+    "translation-library"
+  ]
 }
