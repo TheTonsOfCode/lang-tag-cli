@@ -11,7 +11,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
-        'lang-tag': resolve(__dirname, 'src/index.ts'),
+        'index': resolve(__dirname, 'src/index.ts'),
         'cli/index': resolve(__dirname, 'src/cli/index.ts')
       },
       formats: ['es', 'cjs'],

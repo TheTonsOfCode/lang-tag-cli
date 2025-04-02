@@ -1,6 +1,6 @@
 {
   "name": "lang-tag",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "type": "module",
   "repository": {
     "type": "git",
@@ -14,13 +14,13 @@
   "bin": {
     "langtag": "./dist/cli/index.js"
   },
-  "main": "./dist/lang-tag.umd.cjs",
-  "module": "./dist/lang-tag.js",
+  "main": "./dist/index.umd.cjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/lang-tag.js",
-      "require": "./dist/lang-tag.umd.cjs"
+      "import": "./dist/index.js",
+      "require": "./dist/index.umd.cjs"
     }
   },
   "scripts": {
