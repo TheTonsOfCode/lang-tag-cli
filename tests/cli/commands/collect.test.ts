@@ -1,7 +1,8 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {collectTranslations} from '@/cli/commands/collect';
 import {EXPORTS_FILE_NAME} from '@/cli/constants';
-import {LangTagConfig, readConfig} from '@/cli/config';
+import {LangTagConfig} from '@/cli/config';
+import {readConfig} from '@/cli/commands/utils/read-config';
 import {findLangTags} from '@/cli/processor';
 import {ensureDirectoryExists, readJSON, writeJSON} from '@/cli/commands/utils/file';
 import {readFileSync} from 'fs';

@@ -6,15 +6,11 @@ import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
  * Initialize project with default configuration
  */
 export async function initConfig() {
-    const configContent = `/** @type {import('../src/cli/config.ts').LangTagConfig} */
+    const configContent = `/** @type {import('lang-tag/cli/config.ts').LangTagConfig} */
 const config = {
-    includes: ['src/**/*.{js,ts}'],
+    includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
-    outputDir: 'locales/en',
-    importDir: 'src/lang-libraries',
-    language: 'en',
-    isLibrary: false,
-    translationArgPosition: 1,
+    outputDir: 'public/locales/en',
     onConfigGeneration: (params) => {
         // We do not modify imported configurations
         if (params.isImportedLibrary) return params.config;

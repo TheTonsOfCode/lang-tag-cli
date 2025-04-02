@@ -1,6 +1,7 @@
 import chokidar from 'chokidar';
 import path from 'path';
-import {LangTagConfig, readConfig} from '@/cli/config';
+import {LangTagConfig} from '@/cli/config';
+import {readConfig} from '@/cli/commands/utils/read-config';
 import {collectTranslations} from './collect';
 import {miniChalk} from './utils/mini-chalk';
 import {checkAndRegenerateFileLangTags} from "@/cli/commands/core/regenerate-config.ts";
@@ -48,7 +49,7 @@ export async function watchTranslations() {
 
 async function handleFile(config: LangTagConfig, filePath: string, event: string) {
     // Force check for only js/ts files
-    if (!filePath.match(/\.(js|ts)$/)) {
+    if (!filePath.match(/\.(js|ts|jsx|tsx)$/)) {
         // console.log('Ignored', filePath);
         return
     }

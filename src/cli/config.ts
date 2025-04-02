@@ -31,8 +31,6 @@ export interface LangTagConfig {
     outputDir: string;
 
 
-    // importDir: string;
-
     import: {
         /**
          * Imported libraries definitions
@@ -83,10 +81,10 @@ export interface LangTagConfig {
      */
     // flattenKeys: boolean;
 
-    onConfigGeneration: (params: ConfigGenerationParams) => LangTagTranslationsConfig;
+    onConfigGeneration: (params: LangTagOnConfigGenerationParams) => LangTagTranslationsConfig;
 }
 
-interface ConfigGenerationParams {
+export interface LangTagOnConfigGenerationParams {
     fullPath: string;
 
     // path relative to command invocation
@@ -95,53 +93,4 @@ interface ConfigGenerationParams {
     isImportedLibrary: boolean;
 
     config: LangTagTranslationsConfig;
-}
-
-export const defaultConfig: LangTagConfig = {
-    tagName: 'lang',
-    includes: ['src/**/*.{js,ts}'],
-    excludes: ['node_modules', 'dist', 'build'],
-    outputDir: 'locales/en',
-    import: {
-        dir: 'src/lang-libraries',
-        tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
-        onImport: (relativePath: string, fileGenerationData: any)=> {
-            const exportIndex = (fileGenerationData.index || 0) + 1;
-            fileGenerationData.index = exportIndex;
-            return {
-                fileName: path.basename(relativePath),
-                exportName: `translations${exportIndex}`,
-            };
-        }
-    },
-    isLibrary: false,
-    language: 'en',
-    translationArgPosition: 1,
-    onConfigGeneration: (params: ConfigGenerationParams) => params.config,
-};
-
-export async function readConfig(projectPath: string): Promise<LangTagConfig> {
-    const configPath = resolve(projectPath, CONFIG_FILE_NAME);
-
-    if (!existsSync(configPath)) {
-        throw new Error(`No "${CONFIG_FILE_NAME}" detected`)
-        // return defaultConfig;
-    }
-
-    try {
-        const configModule = await import(pathToFileURL(configPath).href);
-        const userConfig: Partial<LangTagConfig> = configModule.default || {};
-
-        return {
-            ...defaultConfig,
-            ...userConfig,
-            import: {
-                ...defaultConfig.import,
-                ...userConfig.import,
-            }
-        };
-    } catch (error) {
-        messageErrorReadingConfig(error);
-        return defaultConfig;
-    }
 }

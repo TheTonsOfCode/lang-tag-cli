@@ -49,8 +49,9 @@ export default defineConfig({
   },
   plugins: [
     dts({
-      include: ['src/**/*.ts'],
-      exclude: ['src/cli/**/*.ts']
+      include: ['src/index.ts', "src/cli/config.ts"],
+      // include: ['src/**/*.ts'],
+      // exclude: ['src/cli/**/*.ts']
     })
   ]
 });

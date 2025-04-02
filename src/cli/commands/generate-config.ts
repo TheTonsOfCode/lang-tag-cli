@@ -1,4 +1,4 @@
-import { readConfig } from '@/cli/config';
+import {readConfig} from '@/cli/commands/utils/read-config';
 import { checkAndRegenerateFileLangTags } from './core/regenerate-config';
 import { messageLangTagTranslationConfigRegenerated, messageNoChangesMade } from '@/cli/message';
 import { globby } from 'globby';

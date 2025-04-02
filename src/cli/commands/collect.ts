@@ -1,5 +1,5 @@
 import {importLibraries} from "@/cli/commands/core/import-node-modules-libraries";
-import {readConfig} from '@/cli/config';
+import {readConfig} from '@/cli/commands/utils/read-config';
 import {globby} from 'globby';
 import * as process from "node:process";
 import {gatherTranslationsToNamespaces} from "./core/collect-namespaces";
