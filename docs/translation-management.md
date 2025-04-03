@@ -67,8 +67,6 @@ export function i18n<T extends LangTagTranslations>(
     ? config.path.substring(1) 
     : config?.path;
   
-  const prefix = cleanPath ? cleanPath + '.' : '';
-  
   // Rest of implementation using cleanPath
   // ...
 }

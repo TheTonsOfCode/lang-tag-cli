@@ -16,13 +16,11 @@ export function i18n<T extends LangTagTranslations>(
   translations: T,
   config?: LangTagTranslationsConfig
 ) {
-  const prefix = config.path ? config.path + '.' : '';
-
   return {
     // For server-side use cases
     keys() {
       return mapTranslationObjectToFunctions(translations, config, {
-        transform: ({path}) => prefix + path
+        transform: ({path}) => path
       });
     },
 
@@ -31,7 +29,7 @@ export function i18n<T extends LangTagTranslations>(
       const {t} = useTranslation(config?.namespace || '');
       
       return mapTranslationObjectToFunctions(translations, config, {
-        transform: ({path, params}) => t(prefix + path, params)
+        transform: ({path, params}) => t(path, params)
       });
     }
   };
