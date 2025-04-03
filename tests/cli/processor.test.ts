@@ -12,7 +12,7 @@ describe('findLangMatches', () => {
         const matches = findLangTags(commonConfig, content);
 
         expect(matches).toHaveLength(1);
-        expect(matches[0].fullMatch).toBe("lang({ key: 'hello' })");
+        expect(matches[0].fullMatch).toBe(" text = lang({ key: 'hello' })");
         expect(matches[0].content1).toBe("{ key: 'hello' }");
         expect(matches[0].content2).toBeUndefined();
     });
@@ -22,7 +22,7 @@ describe('findLangMatches', () => {
         const matches = findLangTags(commonConfig, content);
 
         expect(matches).toHaveLength(1);
-        expect(matches[0].fullMatch).toBe("lang({ key: 'hello' }, { fallback: 'hi' })");
+        expect(matches[0].fullMatch).toBe(" text = lang({ key: 'hello' }, { fallback: 'hi' })");
         expect(matches[0].content1).toBe("{ key: 'hello' }");
         expect(matches[0].content2).toBe("{ fallback: 'hi' }");
     });
@@ -33,10 +33,10 @@ describe('findLangMatches', () => {
         const matches = findLangTags(commonConfig, content);
 
         expect(matches).toHaveLength(2);
-        expect(matches[0].fullMatch).toBe("lang({ key: 'hello' })");
+        expect(matches[0].fullMatch).toBe(" text1 = lang({ key: 'hello' })");
         expect(matches[0].content1).toBe("{ key: 'hello' }");
         expect(matches[0].content2).toBeUndefined();
-        expect(matches[1].fullMatch).toBe("lang({ key: 'hi' })");
+        expect(matches[1].fullMatch).toBe(" text2 = lang({ key: 'hi' })");
         expect(matches[1].content1).toBe("{ key: 'hi' }");
         expect(matches[1].content2).toBeUndefined();
     });
@@ -56,7 +56,7 @@ describe('replaceLangMatches', () => {
         const matches = findLangTags(commonConfig, content);
 
         const replacements: Map<LangTagMatch, string> = new Map();
-        replacements.set(matches[0], "lang({ key: 'greeting' })");
+        replacements.set(matches[0], " text = lang({ key: 'greeting' })");
 
         const result = replaceLangTags(content, replacements);
 
@@ -69,8 +69,8 @@ describe('replaceLangMatches', () => {
         const matches = findLangTags(commonConfig, content);
 
         const replacements: Map<LangTagMatch, string> = new Map();
-        replacements.set(matches[0], "lang({ key: 'greeting' })");
-        replacements.set(matches[1], "lang({ key: 'salutation' })");
+        replacements.set(matches[0], " text1 = lang({ key: 'greeting' })");
+        replacements.set(matches[1], " text2 = lang({ key: 'salutation' })");
 
         const result = replaceLangTags(content, replacements);
 
@@ -83,8 +83,8 @@ describe('replaceLangMatches', () => {
         const matches = findLangTags(commonConfig, content);
 
         const replacements: Map<LangTagMatch, string> = new Map();
-        replacements.set(matches[0], "lang({ key: 'greeting' })");
-        replacements.set(matches[1], "lang({ key: 'salutation', language: 'en' })");
+        replacements.set(matches[0], " text = lang({ key: 'greeting' })");
+        replacements.set(matches[1], " moreText = lang({ key: 'salutation', language: 'en' })");
 
         const result = replaceLangTags(content, replacements);
 

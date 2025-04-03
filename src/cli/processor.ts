@@ -7,6 +7,7 @@ export interface LangTagMatch {
     fullMatch: string;
     content1: string;
     content2?: string;
+    variableName?: string;
     index: number;
 }
 
@@ -47,15 +48,22 @@ export function extractLangTagData(config: LangTagConfig, match: LangTagMatch, b
 }
 
 export function findLangTags(config: Pick<LangTagConfig, 'tagName'>, content: string): LangTagMatch[] {
-    const pattern = new RegExp(`${config.tagName}\\(\\s*(\\{[^]*?\})\\s*(?:,\\s*(\\{[^]*?\}))?\\s*\\)`, 'g');
+    const tagName = config.tagName;
+    const objectPattern = '\\{[^]*?\\}';
+    const firstCaptureGroup = `(${objectPattern})`;
+    const optionalSecondParam = `(?:,\\s*(${objectPattern}))?`;
+    const optionalVariableAssignment = `(?:\\s*(\\w+)\\s*=\\s*)?`;
+
+    const pattern = new RegExp(`${optionalVariableAssignment}${tagName}\\(\\s*${firstCaptureGroup}\\s*${optionalSecondParam}\\s*\\)`, 'g');
 
     const matches: LangTagMatch[] = [];
     let match;
     while ((match = pattern.exec(content)) !== null) {
         matches.push({
             fullMatch: match[0],
-            content1: match[1],
-            content2: match[2] || undefined,
+            variableName: match[1] || undefined,
+            content1: match[2],
+            content2: match[3] || undefined,
             index: match.index,
         });
     }
