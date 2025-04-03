@@ -6,7 +6,7 @@ import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
  * Initialize project with default configuration
  */
 export async function initConfig() {
-    const configContent = `/** @type {import('lang-tag/dist/cli/config').LangTagConfig} */
+    const configContent = `/** @type {import('lang-tag/cli/config').LangTagConfig} */
 const config = {
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],

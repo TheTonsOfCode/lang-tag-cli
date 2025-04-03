@@ -1,36 +1,32 @@
 {
   "name": "lang-tag",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "type": "module",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/TheTonsOfCode/lang-tag"
   },
   "author": "TheTonsOfCode",
   "license": "MIT",
-  "files": [
-    "dist",
-    "docs"
-  ],
   "bin": {
-    "langtag": "./dist/cli/index.js"
+    "langtag": "./cli/index.js"
   },
-  "main": "./dist/index.umd.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./index.umd.cjs",
+  "module": "./index.js",
+  "types": "./index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.umd.cjs"
+      "import": "./index.js",
+      "require": "./index.umd.cjs"
     }
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && chmod 777 dist/cli/index.js",
-    "preview": "vite preview",
+    "build": "./build.sh",
+    "publish": "./publish.sh",
     "test": "vitest --run",
-    "test:watch": "vitest --watch",
-    "b": "rm -rf dist/ && npm run build && npm link --force && chmod 777 dist/cli/index.js"
+    "test:watch": "vitest --watch"
   },
   "dependencies": {
     "chokidar": "^4.0.3",
