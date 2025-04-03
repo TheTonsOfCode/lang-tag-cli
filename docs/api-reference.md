@@ -1,5 +1,7 @@
 # API Reference
 
+This section provides reference details for the core functions exported by `lang-tag`.
+
 ## mapTranslationObjectToFunctions
 
 This core function transforms translation objects into callable functions:

@@ -69,10 +69,9 @@ npm install lang-tag
 
 For more detailed information, please refer to the documentation files:
 
-- [Getting Started](docs/getting-started.md)
-- [Usage](docs/usage.md)
-- [Integration with Translation Libraries](docs/integration.md)
+- [Getting Started & Basic Usage](docs/getting-started.md)
+- [CLI Usage](docs/cli-usage.md)
 - [Advanced Features](docs/advanced-features.md)
-- [Translation Management](docs/translation-management.md)
+- [Integrations](docs/integrations.md)
+- [Library Support](docs/library-support.md)
 - [API Reference](docs/api-reference.md)
-- [Using Translations in Library Projects](docs/library-usage.md)

@@ -1,6 +1,8 @@
-# Translation Management
+# CLI Usage
 
-## Extracting Translations
+This section details the command-line interface (CLI) commands provided by `lang-tag` for managing your translations and automatically generating configurations.
+
+## Translation Extraction & Management Commands
 
 Lang Tag provides commands to extract and manage translations:
 
@@ -19,13 +21,13 @@ The `collect` command gathers all translations from your source files and merges
 
 The `watch` command monitors your source files for changes and automatically updates translation files when changes are detected.
 
-## Automatic Configuration Generation
+## Automatic Configuration Generation (`onConfigGeneration`)
 
-You can automatically generate configurations for your tags with the `onConfigGeneration` option. Here are two approaches for mixing automatic and manual configurations:
+The `onConfigGeneration` option in your `.lang-tag.config.js` allows you to define a function that automatically determines the `namespace` and `path` configuration for your `lang-tag` calls based on the file's location. This is particularly useful for standardizing translation structures across large projects.
 
-### Example 1: Using '!' Prefix
+### Example 1: Using a '!' Prefix for Manual Overrides
 
-This approach uses a '!' prefix to mark paths that should not be automatically modified:
+This approach uses a '!' prefix in the `path` config within your source file to signal that `onConfigGeneration` should *not* modify this specific tag's configuration.
 
 ```js
 // In .lang-tag.config.js
@@ -62,38 +64,20 @@ export function i18n<T extends LangTagTranslations>(
   translations: T,
   config?: LangTagTranslationsConfig
 ) {
-  // Remove '!' from the path if present
-  const cleanPath = config?.path?.startsWith('!') 
-    ? config.path.substring(1) 
-    : config?.path;
-  
-  // Rest of implementation using cleanPath
-  // ...
+    return mapTranslationObjectToFunctions(
+        translations,
+        config,
+        {transform: ({path}) => {
+            if (path?.startsWith('!')) return path.substring(1);
+            return path;
+        }}
+    );
 }
 ```
 
-Usage example:
+### Example 2: Using a `manual: true` Flag for Manual Overrides
 
-```tsx
-// This translation's path won't be auto-generated
-const manualTranslations = i18n({
-  specialCase: "This needs a specific path"
-}, { 
-  namespace: 'special',
-  path: '!custom.path.structure'  // '!' indicates manual path
-});
-
-// This translation's path will be auto-generated
-const autoTranslations = i18n({
-  regularCase: "This can use auto-generated path"
-}, { 
-  namespace: 'auto'  // No path specified, will be auto-generated
-});
-```
-
-### Example 2: Using config.manual Flag
-
-This approach uses a custom `manual` flag in the configuration:
+This approach adds a custom boolean flag (e.g., `manual: true`) to the configuration object within your source file to prevent `onConfigGeneration` from modifying it.
 
 ```js
 // In .lang-tag.config.js
@@ -128,24 +112,24 @@ module.exports = {
 Usage example:
 
 ```tsx
-// Extended configuration interface
+// Define an extended interface if using TypeScript
 interface OurLangTagConfig extends LangTagTranslationsConfig {
   manual?: boolean;
 }
 
-// This translation's configuration won't be auto-generated
+// This tag's config won't be auto-generated
 const manualTranslations = i18n({
   specialCase: "This needs a specific configuration"
 }, { 
   namespace: 'special',
   path: 'custom.path.structure',
-  manual: true  // Flag to skip auto-generation
-});
+  manual: true // Flag indicates manual config
+} as OurLangTagConfig); // Type assertion might be needed
 
-// This translation's configuration will be auto-generated
+// This tag's config *will* be processed by onConfigGeneration
 const autoTranslations = i18n({
   regularCase: "This can use auto-generated configuration"
 }, { 
-  namespace: 'auto'  // Will be potentially overridden by auto-generation
+  namespace: 'auto' // May be overridden by auto-generation logic
 });
 ``` 

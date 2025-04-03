@@ -1,4 +1,6 @@
-# Integration with Translation Libraries
+# Integrations
+
+This section demonstrates how `lang-tag` can be integrated with popular translation libraries, using `react-i18next` as an example.
 
 ## Example with react-i18next
 
