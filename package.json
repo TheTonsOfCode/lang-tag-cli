@@ -9,7 +9,8 @@
   "author": "TheTonsOfCode",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist",
+    "docs"
   ],
   "bin": {
     "langtag": "./dist/cli/index.js"
