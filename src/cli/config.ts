@@ -47,7 +47,7 @@ export interface LangTagConfig {
         /**
          * You can decide there how imported file gonna be named, as well as name of exported langTag
          */
-        onImport: (relativePath: string, fileGenerationData: any) => {
+        onImport: (relativePath: string, originalExportName: string | undefined, fileGenerationData: any) => {
             fileName: string;
             exportName: string;
         };

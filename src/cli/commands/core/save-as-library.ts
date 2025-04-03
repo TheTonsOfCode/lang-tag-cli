@@ -1,5 +1,5 @@
 import {LangTagConfig} from "@/cli/config.ts";
-import {writeJSON} from "@/cli/commands/utils/file.ts";
+import {readJSON, writeJSON} from "@/cli/commands/utils/file.ts";
 import process from "node:process";
 import {messageErrorInFile, messageWrittenExportsFile} from "@/cli/message";
 import {readFileSync} from "fs";
@@ -10,11 +10,17 @@ import {LangTagExportData, LangTagExportFileData, LangTagExportFiles} from "@/cl
 
 export async function saveAsLibrary(files: string[], config: LangTagConfig) {
 
+    const cwd = process.cwd();
+
+    const packageJson: any = await readJSON(path.resolve(cwd, 'package.json'));
+
+    if (!packageJson) {
+        throw new Error('package.json not found');
+    }
+
     const pos = config.translationArgPosition;
 
     const langTagFiles: LangTagExportFiles = {};
-
-    const cwd = process.cwd();
 
     for (const file of files) {
         const content = readFileSync(file, 'utf-8');
@@ -39,12 +45,14 @@ export async function saveAsLibrary(files: string[], config: LangTagConfig) {
             fileObject.matches.push({
                 translations: tagTranslationsContent,
                 config: tagConfigContent,
+                variableName: match.variableName
             });
         }
     }
 
     const data: LangTagExportData = {
         language: config.language,
+        packageName: packageJson.name || '',
         files: langTagFiles
     };
 

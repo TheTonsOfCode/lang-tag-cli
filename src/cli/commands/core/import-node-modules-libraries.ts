@@ -61,14 +61,17 @@ export async function importLibraries(config: LangTagConfig): Promise<void> {
             const matches = exportData.files[langTagFilePath].matches;
 
             for (let match of matches) {
-                const result = config.import.onImport(langTagFilePath, fileGenerationData);
+                const result = config.import.onImport(
+                    langTagFilePath,
+                    match.variableName,
+                    fileGenerationData
+                );
 
                 let exports = generationFiles[result.fileName];
                 if (!exports) {
                     exports = {}
                     generationFiles[result.fileName] = exports;
                 }
-
 
                 const param1 = config.translationArgPosition === 1 ? match.translations : match.config;
                 const param2 = config.translationArgPosition === 1 ? match.config : match.translations;
