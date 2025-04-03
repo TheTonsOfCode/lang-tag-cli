@@ -1,73 +1,63 @@
-# Lang-tag: Translation Management Library for Component-Based i18n
+# Lang-tag: Component-Colocated Translation Management
 
-A robust solution for managing translations in JavaScript/TypeScript projects with a structured tagging system. This library streamlines managing translations by moving i18n keys directly into the component files where they are used, automating organization based on predefined rules.
+`lang-tag` is a robust solution for managing translations in JavaScript/TypeScript projects, especially those using component-based architectures. It simplifies i18n by allowing you to define translation keys directly within the components where they are used, rather than in separate, namespace-specific files.
 
-### Example lang tag:
+## Core Concept
+
+The primary goal is to colocate translation definitions with their usage. Instead of managing complex key structures and deciding which translation file (`orders.json`, `profile.json`, etc.) a key belongs to, you define translations inline:
+
 ```tsx
-const translations = lang({
-    hello: 'Welcome {{name}}, in our world'
+// Example component using a custom `i18n` tag built with lang-tag
+import { i18n } from '../utils/i18n';
+
+const translations = i18n({
+    greeting: 'Welcome {{name}} to our store!',
+    orderSummary: 'You have {{count}} items in your cart.'
 }, {
-    path: 'components.heros', namespace: 'orders'  // This part can be handled by script
-})
+    // Configuration like path/namespace can often be automated!
+    namespace: 'orders',
+    path: 'components.checkout' 
+});
 
-function MyHeroComppnent() {
-    return <div>
-        {translations.hello({name: 'Joe'})}
-    </div>
+function CheckoutComponent({ name, count }) {
+    // Option 1: Direct function calls
+    // return (
+    //   <p>{translations.greeting({ name })}</p>
+    //   <p>{translations.orderSummary({ count })}</p>
+    // );
+
+    // Option 2: Using a hook (e.g., integrating with react-i18next)
+    const t = translations.useT(); 
+    return (
+        <div>
+            <p>{t.greeting({ name })}</p>
+            <p>{t.orderSummary({ count })}</p>
+        </div>
+    );
 }
-// or you can define your tag to work like this:
-function MyHeroComppnent() {
-    const t = translations.useT(); // And code it for some react-i18next underhood
-    return <div>
-        {t.hello({name: 'Joe'})}
-    </div>
-}
-```
-When you run `lantag collect` it will add translation to `{configuration.outputDir}/orders.json` under the key `components.heros.hello` with value: `Welcome {{name}}, in our world`.
-
-# Overview
-
-Lang Tag helps you manage translations in a type-safe and organized way. It allows you to define translations inline in your code, extract them automatically, and use them efficiently in both client and server environments.
-
-## Key Features
-- Developers write simple translation keys, and the algorithm determines the appropriate namespace or path.
-- The library allows developers to configure how namespaces are automatically overridden or how paths are aggregated within the namespace.
-- The library does not provide a predefined tag but offers simple functions to construct a tagging system according to project needs, avoiding unnecessary dependencies.
-- A developer tool aggregates all translations from the project into a structured i18n directory.
-- This tool also enables the automatic generation of namespace and path configurations within source files.
-- The developer tool can treat project as library which uses lang tags, so it allows to create exportable file containg tags used across library, which can be added into package build,
-then later in main project if you install package with that file, the tool can import tags with default translations and same structure
-ensuring consistency in translation keys and structure
-
-## Example: Common namespaces naming with Next.js
-For instance in a Next.js project, translations are often stored in a structured directory:
-
-```
-/app
-  - orders
-  - profile
-  - users
 ```
 
-Typically, pages and components under these directories load translations from corresponding locale files, such as:
+`lang-tag` provides the building blocks (`mapTranslationObjectToFunctions`) and CLI tools (`langtag`) to make this work seamlessly:
 
-```
-locale/en/orders.json
-locale/en/profile.json
-locale/en/users.json
-```
+*   **Automated Organization:** The `langtag collect` command scans your project for these tags and automatically aggregates the translations into the correct namespace files (e.g., `public/locales/en/orders.json`) based on the tag's configuration or rules you define (`onConfigGeneration`). For the example above, it would place the translations under the key `components.checkout.greeting` and `components.checkout.orderSummary` within `orders.json`.
+*   **Simplified Key Management:** Developers focus on meaningful keys within the component's context, letting the tools handle the final path and namespace.
+*   **Flexibility:** Build your own tag functions (like the `i18n` function shown) tailored to your project's needs and integrate with existing i18n libraries (like `react-i18next`).
+*   **CLI Tooling:** Includes commands to collect translations, watch for changes, and automatically generate configuration within source files.
+*   **Library Support:** Enables creating reusable libraries with embedded translations that consuming applications can easily integrate.
 
-By using this library, developers can write translation keys directly in their components, and the system will determine the correct namespace or path. With the `onConfigGeneration` setting, developers can specify how namespaces should be overridden or how paths should be structured automatically.
-
-# Installation
+## Installation
 
 ```bash
 npm install lang-tag
+# or
+yarn add lang-tag
+# or
+pnpm add lang-tag
 ```
 
 ## Documentation
 
-For more detailed information, please refer to the documentation files:
+For detailed setup, usage, and advanced features, please refer to the documentation:
 
 - [Getting Started & Basic Usage](docs/getting-started.md)
 - [CLI Usage](docs/cli-usage.md)
