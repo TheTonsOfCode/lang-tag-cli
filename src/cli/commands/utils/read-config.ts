@@ -33,7 +33,6 @@ export async function readConfig(projectPath: string): Promise<LangTagConfig> {
 
     if (!existsSync(configPath)) {
         throw new Error(`No "${CONFIG_FILE_NAME}" detected`)
-        // return defaultConfig;
     }
 
     try {
