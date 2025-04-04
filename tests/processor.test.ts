@@ -1,6 +1,6 @@
-import {LangTagConfig} from "@/cli/config";
+import {LangTagConfig} from "@/cli/config.ts";
 import {describe, it, expect} from 'vitest';
-import {findLangTags, LangTagMatch, replaceLangTags} from '@/cli/processor';
+import {findLangTags, LangTagMatch, replaceLangTags} from '@/cli/processor.ts';
 
 const commonConfig: Pick<LangTagConfig, 'tagName'> = {
     tagName: 'lang',

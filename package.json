@@ -24,6 +24,7 @@
   "scripts": {
     "dev": "vite",
     "build": "./build.sh",
+    "pack-test-build": "./pack-test-build.sh",
     "publish": "./publish.sh",
     "test": "vitest --run",
     "test:watch": "vitest --watch"

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { readConfig, defaultConfig } from '@/cli/commands/utils/read-config';
-import { CONFIG_FILE_NAME } from '@/cli/constants';
+import { readConfig, defaultConfig } from '@/cli/commands/utils/read-config.ts';
+import { CONFIG_FILE_NAME } from '@/cli/constants.ts';
 import { resolve } from 'pathe';
 import * as fs from 'fs';
 import { pathToFileURL } from 'url';
-import { messageErrorReadingConfig } from '@/cli/message';
+import { messageErrorReadingConfig } from '@/cli/message.ts';
 
 // Mock dependencies
 vi.mock('fs');
