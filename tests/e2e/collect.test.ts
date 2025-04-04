@@ -55,7 +55,7 @@ describe('collect command e2e tests', () => {
 
     const testConfig = {
         tagName: 'lang',
-        includes: ['src/**/*.ts'],
+        includes: ['src/**/*.{js,jsx,ts,tsx}'],
         excludes: ['node_modules'],
         outputDir: 'locales/en',
         language: 'en',
@@ -102,7 +102,7 @@ describe('collect command e2e tests', () => {
 
     it('should collect translations and create output files', () => {
         // Run the collect command with output
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'inherit'});
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify output files were created
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -580,5 +580,125 @@ describe('collect command e2e tests', () => {
         } catch (error: any) {
             expect(error.message).toContain("Trying to write array into target key")
         }
+    });
+
+    it('should handle duplicate translation keys by keeping the last occurrence', () => {
+        // Create a test file with duplicate keys
+        const duplicateKeysFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations1 = lang({
+                "greeting": "Hello first"
+            }, {"namespace": "common"});
+
+            const translations2 = lang({
+                "greeting": "Hello second"
+            }, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/duplicates.ts'), duplicateKeysFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify only the last occurrence was kept
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        expect(commonTranslations.greeting).toBe("Hello second");
+    });
+
+    it('should handle different file extensions correctly', () => {
+        // Create test files with different extensions
+        const tsxFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                "tsx": "TSX translation"
+            }, {"namespace": "common"});
+        `;
+
+        const jsFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                "js": "JS translation"
+            }, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/test.tsx'), tsxFile);
+        writeFileSync(join(TESTS_TEST_DIR, 'src/test.js'), jsFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify translations from both file types were collected
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        expect(commonTranslations.tsx).toBe("TSX translation");
+        expect(commonTranslations.js).toBe("JS translation");
+    });
+
+    it('should handle malformed JSON in translations gracefully', () => {
+        // Create a test file with malformed JSON
+        const malformedJsonFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                "valid": "Valid translation",
+                "malformed": "Missing closing quote,
+                "object": {unclosed: "object"
+            }, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/malformed.ts'), malformedJsonFile);
+
+        // Run the collect command and expect it to complete without error
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify the file was still processed and valid translations were collected
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        expect(commonTranslations.valid).toBeUndefined();
+    });
+
+    it('should handle very large translation objects', () => {
+        // Create a test file with a large number of translations
+        const largeTranslationsFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                ${Array.from({length: 1000}, (_, i) => `"key${i}": "Translation ${i}"`).join(',\n')}
+            }, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/large.ts'), largeTranslationsFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify all translations were collected
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        
+        // Check a few random keys to verify they were collected
+        expect(commonTranslations.key0).toBe("Translation 0");
+        expect(commonTranslations.key499).toBe("Translation 499");
+        expect(commonTranslations.key999).toBe("Translation 999");
+        
+        // Verify the total number of keys
+        expect(Object.keys(commonTranslations).length).toBeGreaterThan(1000);
     });
 }); 
