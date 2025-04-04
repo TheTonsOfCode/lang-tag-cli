@@ -15,10 +15,10 @@ export function clearTestsEnvironment() {
     }
 }
 
-export function writeTestsConfig(dir: string, testConfig: any) {
+export function writeTestsConfig(dir: string, testConfig: any, onImportString: string) {
     writeFileSync(
         join(dir, '.lang-tag.config.js'),
-        `export default ${JSON.stringify(testConfig, null, 2)}`
+        `export default ${JSON.stringify(testConfig, null, 2).replace('"$ToReplace$"', onImportString)}`
     );
 }
 
@@ -40,6 +40,8 @@ export function prepareMainProjectBase() {
     execSync('npm run pack-test-build', {cwd: TESTS_ROOT_DIR, stdio: 'inherit'});
 
     const RUN_CMD = 'node --loader ts-node/esm ./node_modules/.bin/';
+
+    clearPreparedMainProjectBase();
 
     mkdirSync(MAIN_PROJECT_TEMPLATE, {recursive: true});
 

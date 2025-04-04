@@ -61,11 +61,12 @@ export async function importLibraries(config: LangTagConfig): Promise<void> {
             const matches = exportData.files[langTagFilePath].matches;
 
             for (let match of matches) {
-                const result = config.import.onImport(
-                    langTagFilePath,
-                    match.variableName,
+                const result = config.import.onImport({
+                    packageName: exportData.packageName,
+                    relativePath: langTagFilePath,
+                    originalExportName: match.variableName,
                     fileGenerationData
-                );
+                });
 
                 let exports = generationFiles[result.fileName];
                 if (!exports) {

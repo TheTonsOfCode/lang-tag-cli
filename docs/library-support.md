@@ -139,7 +139,7 @@ Configure imported tags with these settings:
 ```ts
 {
   import: {
-    onImport: (relativePath: string, fileGenerationData: any) => {
+    onImport: ({relativePath, fileGenerationData}) => {
       return {
         fileName: string;  // Output filename for the imported tag
         exportName: string;  // Export name within the file
@@ -175,7 +175,7 @@ module.exports = {
      * Optional function to customize the generated filename and the export name
      * for each imported tag definition.
      */
-    onImport: (relativePath, originalExportName, fileGenerationData) => {
+    onImport: ({relativePath, fileGenerationData}) => {
       // relativePath: Path of the original file within the library package
       // originalExportName: The original export name from the library (if available)
       // fileGenerationData: Contains raw data like translations and config

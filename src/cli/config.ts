@@ -47,7 +47,7 @@ export interface LangTagConfig {
         /**
          * You can decide there how imported file gonna be named, as well as name of exported langTag
          */
-        onImport: (relativePath: string, originalExportName: string | undefined, fileGenerationData: any) => {
+        onImport: (params: LangTagOnImportParams) => {
             fileName: string;
             exportName: string;
         };
@@ -82,6 +82,13 @@ export interface LangTagConfig {
     // flattenKeys: boolean;
 
     onConfigGeneration: (params: LangTagOnConfigGenerationParams) => LangTagTranslationsConfig;
+}
+
+export interface LangTagOnImportParams {
+    packageName: string;
+    relativePath: string;
+    originalExportName: string | undefined;
+    fileGenerationData: any;
 }
 
 export interface LangTagOnConfigGenerationParams {

@@ -9,6 +9,8 @@ import {
     writeTestsConfig
 } from "./utils.ts";
 import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/cli/constants.ts';
+import {LangTagOnImportParams} from "@/cli/config.ts";
+import {basename} from "pathe";
 
 // language=typescript jsx
 const LANG_TAG_DEFINITION = `
@@ -19,6 +21,7 @@ const LANG_TAG_DEFINITION = `
 
 // language=typescript jsx
 const FILE_WITH_LANG_TAGS = `
+    // @ts-ignore
     import {lang} from "./lang-tag";
 
     const translations1 = lang({"hello": "Hello World"}, {"namespace": "common"});
@@ -30,6 +33,7 @@ const FILE_WITH_LANG_TAGS = `
 
 // language=typescript jsx
 const FILE_WITH_LANG_TAGS_TRANSLATIONS_POSITIONS_SWAPPED = `
+    // @ts-ignore
     import {lang} from "./lang-tag";
 
     const translations1 = lang({"namespace": "common"}, {"hello": "Hello World"});
@@ -40,6 +44,15 @@ const FILE_WITH_LANG_TAGS_TRANSLATIONS_POSITIONS_SWAPPED = `
 `;
 
 describe('collect command e2e tests', () => {
+
+    // Functions cannot be stringified
+    const testConfigImportFunction = `({packageName, originalExportName}) => {
+        return {
+            fileName: packageName + '.ts',
+            exportName: originalExportName,
+        };
+    }`;
+
     const testConfig = {
         tagName: 'lang',
         includes: ['src/**/*.ts'],
@@ -50,15 +63,8 @@ describe('collect command e2e tests', () => {
         translationArgPosition: 1,
         import: {
             dir: 'src/lang-libraries',
-            tagImportPath: 'import { lang } from "@/lang-tag"',
-            onImport: (relativePath: string, fileGenerationData: any) => {
-                const exportIndex = (fileGenerationData.index || 0) + 1;
-                fileGenerationData.index = exportIndex;
-                return {
-                    fileName: fileGenerationData.fileName,
-                    exportName: `translations${exportIndex}`,
-                };
-            }
+            tagImportPath: 'import { lang } from "../lang-tag"',
+            onImport: '$ToReplace$'
         }
     };
 
@@ -73,7 +79,7 @@ describe('collect command e2e tests', () => {
 
         copyPreparedMainProjectBase();
 
-        writeTestsConfig(TESTS_TEST_DIR, testConfig);
+        writeTestsConfig(TESTS_TEST_DIR, testConfig, testConfigImportFunction);
 
         const srcDir = join(TESTS_TEST_DIR, 'src');
 
@@ -108,6 +114,7 @@ describe('collect command e2e tests', () => {
             readFileSync(join(outputDir, 'common.json'), 'utf-8')
         );
         expect(commonTranslations).toEqual({
+            // test.ts
             hello: 'Hello World',
             bye: 'Goodbye'
         });
@@ -116,6 +123,7 @@ describe('collect command e2e tests', () => {
             readFileSync(join(outputDir, 'errors.json'), 'utf-8')
         );
         expect(errorTranslations).toEqual({
+            // test.ts
             error: 'Error occurred'
         });
     });
@@ -141,8 +149,11 @@ describe('collect command e2e tests', () => {
             readFileSync(join(outputDir, 'common.json'), 'utf-8')
         );
         expect(commonTranslations).toEqual({
+            // test.ts
             hello: 'Hello World',
             bye: 'Goodbye',
+
+            // already at common.json
             existing: 'Existing translation'
         });
     });
@@ -210,6 +221,7 @@ describe('collect command e2e tests', () => {
             readFileSync(join(outputDir, 'common.json'), 'utf-8')
         );
         expect(commonTranslations).toEqual({
+            // test.ts
             hello: 'Hello World',
             bye: 'Goodbye'
         });
@@ -218,7 +230,161 @@ describe('collect command e2e tests', () => {
             readFileSync(join(outputDir, 'errors.json'), 'utf-8')
         );
         expect(errorTranslations).toEqual({
+            // test.ts
             error: 'Error occurred'
         });
+    });
+
+    it('should handle nested translation paths correctly', () => {
+        // Create a test file with nested translations
+        const nestedTranslationsFile = `
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                "user": {
+                    "profile": {
+                        "title": "User Profile",
+                        "settings": {
+                            "notifications": "Notification Settings"
+                        }
+                    }
+                }
+            }, {"namespace": "common", "path": "components.user_page"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/nested.ts'), nestedTranslationsFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify nested structure in output file
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        expect(commonTranslations).toEqual({
+            // nested.ts
+            components: {
+                user_page: {
+                    user: {
+                        profile: {
+                            title: "User Profile",
+                            settings: {
+                                notifications: "Notification Settings"
+                            }
+                        }
+                    }
+                }
+            },
+            // Base common translations from "test.ts"
+            hello: 'Hello World',
+            bye: 'Goodbye'
+        });
+    });
+
+    it('should handle library imports with --libraries flag', async () => {
+        // Create a library project structure
+        const libraryDir = join(TESTS_TEST_DIR, 'node_modules/test-lib');
+        mkdirSync(libraryDir, {recursive: true});
+
+        // Create library exports file
+        const libraryExports = {
+            language: "en",
+            packageName: "test-lib",
+            files: {
+                "src/components.ts": {
+                    matches: [{
+                        translations: '{"button": {"label": "Click me"}}',
+                        config: '{"namespace": "common"}',
+                        variableName: "buttonTranslations"
+                    }]
+                }
+            }
+        };
+
+        writeFileSync(join(libraryDir, EXPORTS_FILE_NAME), JSON.stringify(libraryExports, null, 2));
+
+        // Run collect with --libraries flag
+        execSync('npm run collect -- --libraries', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify imported translations were created
+        const importedDir = join(TESTS_TEST_DIR, 'src/lang-libraries');
+        const importedTagFile = join(importedDir, 'test-lib.ts');
+        expect(existsSync(importedTagFile)).toBe(true);
+
+        const importedContent = readFileSync(importedTagFile, 'utf-8');
+        expect(importedContent.endsWith('export const buttonTranslations = lang({"button": {"label": "Click me"}}, {"namespace": "common"});')).toBeTruthy();
+    });
+
+    it('should handle multiple files with translations', () => {
+        // Create multiple test files
+        const file1 = `
+            import {lang} from "./lang-tag";
+            const translations = lang({"greeting": "Hello"}, {"namespace": "common"});
+        `;
+        const file2 = `
+            import {lang} from "./lang-tag";
+            const translations = lang({"farewell": "Goodbye"}, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/file1.ts'), file1);
+        writeFileSync(join(TESTS_TEST_DIR, 'src/file2.ts'), file2);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify all translations were collected
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        expect(commonTranslations).toEqual({
+            greeting: "Hello",
+            farewell: "Goodbye",
+            // Base common translations from "test.ts"
+            hello: 'Hello World',
+            bye: 'Goodbye'
+        });
+    });
+
+    it('should handle empty translation objects', () => {
+        // Create a test file with empty translations
+        const emptyTranslationsFile = `
+            import {lang} from "./lang-tag";
+            const translations = lang({}, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/empty.ts'), emptyTranslationsFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify empty object was handled correctly
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        expect(commonTranslations).toEqual({
+            // Base common translations from "test.ts"
+            hello: 'Hello World',
+            bye: 'Goodbye'
+        });
+    });
+
+    it('should handle invalid translation configurations gracefully', () => {
+        // Create a test file with invalid config
+        const invalidConfigFile = `
+            import {lang} from "./lang-tag";
+            const translations = lang({"key": "value"}, {"invalid": "config"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/invalid.ts'), invalidConfigFile);
+
+        // Run the collect command and expect it to complete without error
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify the file was still processed
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        expect(existsSync(join(outputDir, 'common.json'))).toBe(true);
     });
 }); 
