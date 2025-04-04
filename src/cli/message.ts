@@ -50,6 +50,10 @@ export function messageFoundTranslationKeys(totalKeys: number) {
     info(`Found ${totalKeys} translation keys`);
 }
 
+export function messageExistingConfiguration() {
+    success(`Configuration file already exists. Please remove the existing config before creating a new default one`);
+}
+
 export function messageInitializedConfiguration() {
     success(`Configuration file created successfully`);
 }

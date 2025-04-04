@@ -1,13 +1,11 @@
 import {writeFile} from 'fs/promises';
-import {messageInitializedConfiguration} from '@/cli/message';
+import {messageExistingConfiguration, messageInitializedConfiguration} from '@/cli/message';
 import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
+import {existsSync} from "fs";
 
-/**
- * Initialize project with default configuration
- */
-export async function initConfig() {
-    const configContent = `/** @type {import('lang-tag/cli/config').LangTagConfig} */
-const config = {
+const DEFAULT_INIT_CONFIG = `
+/** @type {import('lang-tag/cli/config').LangTagConfig} */
+export default  {
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
     outputDir: 'public/locales/en',
@@ -23,12 +21,19 @@ const config = {
         return params.config
     }
 };
-
-module.exports = config;
 `;
 
+/**
+ * Initialize project with default configuration
+ */
+export async function initConfig() {
+    if (existsSync(CONFIG_FILE_NAME)) {
+        messageExistingConfiguration();
+        return;
+    }
+
     try {
-        await writeFile(CONFIG_FILE_NAME, configContent, 'utf-8');
+        await writeFile(CONFIG_FILE_NAME, DEFAULT_INIT_CONFIG, 'utf-8');
         messageInitializedConfiguration();
     } catch (error) {
         console.error('Error creating configuration file:', error);
