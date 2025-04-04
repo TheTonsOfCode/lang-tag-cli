@@ -107,7 +107,7 @@ describe('collect command e2e tests', () => {
 
     it('should collect translations and create output files', () => {
         // Run the collect command with output
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify output files were created
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -147,7 +147,7 @@ describe('collect command e2e tests', () => {
         );
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify merged content
         const commonTranslations = JSON.parse(
@@ -172,7 +172,7 @@ describe('collect command e2e tests', () => {
         );
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify exports file was created
         const exportsFile = join(TESTS_TEST_DIR, EXPORTS_FILE_NAME);
@@ -218,7 +218,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(testFile, FILE_WITH_LANG_TAGS_TRANSLATIONS_POSITIONS_SWAPPED);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify output files were created with correct content
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -260,7 +260,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/nested.ts'), nestedTranslationsFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify nested structure in output file
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -310,7 +310,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(libraryDir, EXPORTS_FILE_NAME), JSON.stringify(libraryExports, null, 2));
 
         // Run collect with --libraries flag
-        execSync('npm run collect -- --libraries', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c -- --libraries', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify imported translations were created
         const importedDir = join(TESTS_TEST_DIR, 'src/lang-libraries');
@@ -336,7 +336,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/file2.ts'), file2);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify all translations were collected
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -362,7 +362,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/empty.ts'), emptyTranslationsFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify empty object was handled correctly
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -386,7 +386,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/invalid.ts'), invalidConfigFile);
 
         // Run the collect command and expect it to complete without error
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify the file was still processed
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -409,7 +409,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/variables.ts'), variableTranslationsFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify translations with variables were collected
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -443,7 +443,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/html.ts'), htmlTranslationsFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify HTML translations were collected
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -483,7 +483,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/multi-namespace.ts'), multiNamespaceFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify translations in different namespaces
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -537,7 +537,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/special-chars.ts'), specialCharsFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify special characters were handled correctly
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -577,7 +577,7 @@ describe('collect command e2e tests', () => {
 
         try {
             // Run the collect command
-            execSync('npm run collect', {
+            execSync('npm run c', {
                 cwd: TESTS_TEST_DIR,
                 encoding: 'utf8',
                 stdio: ['pipe', 'ignore', 'pipe']
@@ -605,7 +605,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/duplicates.ts'), duplicateKeysFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify only the last occurrence was kept
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -639,7 +639,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/test.js'), jsFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify translations from both file types were collected
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -666,7 +666,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/malformed.ts'), malformedJsonFile);
 
         // Run the collect command and expect it to complete without error
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify the file was still processed and valid translations were collected
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -690,7 +690,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/large.ts'), largeTranslationsFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify all translations were collected
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -745,7 +745,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/README.md'), mdFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify translations from unsupported file types were not collected
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -796,7 +796,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/deeply-nested.ts'), deeplyNestedFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify deeply nested translations were collected correctly
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -826,7 +826,7 @@ describe('collect command e2e tests', () => {
     //     writeFileSync(join(TESTS_TEST_DIR, 'src/regex.ts'), regexTranslationsFile);
     //
     //     // Run the collect command
-    //     execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+    //     execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
     //
     //     // Verify regex patterns were collected correctly
     //     const outputDir = join(TESTS_TEST_DIR, 'locales/en');
@@ -868,7 +868,7 @@ describe('collect command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/comments.ts'), commentsTranslationsFile);
 
         // Run the collect command
-        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify translations with comments were collected correctly
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
