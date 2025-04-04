@@ -7,10 +7,12 @@ import {
     clearTestsEnvironment,
     copyPreparedMainProjectBase,
     prepareMainProjectBase,
-    TESTS_TEST_DIR,
-    writeTestsConfig
+    TESTS_TEST_DIR as _TESTS_TEST_DIR
 } from "./utils.ts";
 import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/cli/constants.ts';
+
+const SUFFIX = 'collect';
+const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
 
 // language=typescript jsx
 const LANG_TAG_DEFINITION = `
@@ -64,22 +66,25 @@ describe('collect command e2e tests', () => {
         import: {
             dir: 'src/lang-libraries',
             tagImportPath: 'import { lang } from "../lang-tag"',
-            onImport: '$ToReplace$'
+            onImport: '$onImport$'
         }
     };
 
     beforeAll(() => {
-        prepareMainProjectBase();
+        prepareMainProjectBase(SUFFIX);
     });
 
     beforeEach(() => {
-        clearTestsEnvironment();
+        clearTestsEnvironment(SUFFIX);
 
         mkdirSync(TESTS_TEST_DIR, {recursive: true});
 
-        copyPreparedMainProjectBase();
+        copyPreparedMainProjectBase(SUFFIX);
 
-        writeTestsConfig(TESTS_TEST_DIR, testConfig, testConfigImportFunction);
+        writeFileSync(
+            join(TESTS_TEST_DIR, '.lang-tag.config.js'),
+            `export default ${JSON.stringify(testConfig, null, 2).replace('"$onImport$"', testConfigImportFunction)}`
+        );
 
         const srcDir = join(TESTS_TEST_DIR, 'src');
 
@@ -93,11 +98,11 @@ describe('collect command e2e tests', () => {
     });
 
     afterEach(() => {
-        clearTestsEnvironment();
+        clearTestsEnvironment(SUFFIX);
     });
 
     afterAll(() => {
-        clearPreparedMainProjectBase();
+        clearPreparedMainProjectBase(SUFFIX);
     });
 
     it('should collect translations and create output files', () => {
