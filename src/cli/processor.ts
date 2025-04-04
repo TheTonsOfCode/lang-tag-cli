@@ -51,25 +51,89 @@ export function extractLangTagData(config: LangTagConfig, match: LangTagMatch, b
 
 export function findLangTags(config: Pick<LangTagConfig, 'tagName'>, content: string): LangTagMatch[] {
     const tagName = config.tagName;
-    const objectPattern = '\\{[^]*?\\}';
-    const firstCaptureGroup = `(${objectPattern})`;
-    const optionalSecondParam = `(?:,\\s*(${objectPattern}))?`;
     const optionalVariableAssignment = `(?:\\s*(\\w+)\\s*=\\s*)?`;
-
-    const pattern = new RegExp(`${optionalVariableAssignment}${tagName}\\(\\s*${firstCaptureGroup}\\s*${optionalSecondParam}\\s*\\)`, 'g');
-
+    
+    // Find all potential lang tag matches
     const matches: LangTagMatch[] = [];
-    let match;
-    while ((match = pattern.exec(content)) !== null) {
+    let currentIndex = 0;
+    
+    // Create a regex to find the start of a lang tag
+    const startPattern = new RegExp(`${optionalVariableAssignment}${tagName}\\(\\s*\\{`, 'g');
+    
+    while (true) {
+        // Find the next potential match
+        startPattern.lastIndex = currentIndex;
+        const startMatch = startPattern.exec(content);
+        
+        if (!startMatch) break;
+        
+        const matchStartIndex = startMatch.index;
+        const variableName = startMatch[1] || undefined;
+        
+        // Find the matching closing brace for the first object
+        let braceCount = 1;
+        let i = matchStartIndex + startMatch[0].length;
+        
+        while (i < content.length && braceCount > 0) {
+            if (content[i] === '{') braceCount++;
+            if (content[i] === '}') braceCount--;
+            i++;
+        }
+        
+        if (braceCount !== 0) {
+            // No matching closing brace found, skip this match
+            currentIndex = matchStartIndex + 1;
+            continue;
+        }
+        
+        // Check if there's a second parameter
+        let content1 = content.substring(matchStartIndex + startMatch[0].length - 1, i);
+        let content2: string | undefined;
+        
+        // Skip whitespace and comma
+        while (i < content.length && (content[i] === ' ' || content[i] === '\n' || content[i] === '\t' || content[i] === ',')) {
+            i++;
+        }
+        
+        // If we find another opening brace, it's the second parameter
+        if (i < content.length && content[i] === '{') {
+            braceCount = 1;
+            const secondParamStart = i;
+            i++;
+            
+            while (i < content.length && braceCount > 0) {
+                if (content[i] === '{') braceCount++;
+                if (content[i] === '}') braceCount--;
+                i++;
+            }
+            
+            if (braceCount === 0) {
+                content2 = content.substring(secondParamStart, i);
+            }
+        }
+        
+        // Skip to the closing parenthesis
+        while (i < content.length && content[i] !== ')') {
+            i++;
+        }
+        
+        if (i < content.length) {
+            i++; // Include the closing parenthesis
+        }
+        
+        const fullMatch = content.substring(matchStartIndex, i);
+        
         matches.push({
-            fullMatch: match[0],
-            variableName: match[1] || undefined,
-            content1: match[2],
-            content2: match[3] || undefined,
-            index: match.index,
+            fullMatch,
+            variableName,
+            content1,
+            content2,
+            index: matchStartIndex,
         });
+        
+        currentIndex = i;
     }
-
+    
     return matches.filter(m => {
         try {
             JSON5.parse(m.content1);

@@ -1,16 +1,16 @@
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 import {execSync} from 'child_process';
-import {existsSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'fs';
+import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'fs';
 import {join} from 'path';
 import {
     clearPreparedMainProjectBase,
-    clearTestsEnvironment, copyPreparedMainProjectBase, prepareMainProjectBase,
+    clearTestsEnvironment,
+    copyPreparedMainProjectBase,
+    prepareMainProjectBase,
     TESTS_TEST_DIR,
     writeTestsConfig
 } from "./utils.ts";
 import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/cli/constants.ts';
-import {LangTagOnImportParams} from "@/cli/config.ts";
-import {basename} from "pathe";
 
 // language=typescript jsx
 const LANG_TAG_DEFINITION = `
@@ -386,5 +386,199 @@ describe('collect command e2e tests', () => {
         // Verify the file was still processed
         const outputDir = join(TESTS_TEST_DIR, 'locales/en');
         expect(existsSync(join(outputDir, 'common.json'))).toBe(true);
+    });
+
+    it('should handle translations with variables', () => {
+        // Create a test file with translations containing variables
+        const variableTranslationsFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                "welcome": "Welcome {{name}}!",
+                "items": "You have {{count}} items in your cart",
+                "price": "Total price: {{currency}}{{amount}}"
+            }, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/variables.ts'), variableTranslationsFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify translations with variables were collected
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        expect(commonTranslations).toEqual({
+            // Base common translations from "test.ts"
+            hello: 'Hello World',
+            bye: 'Goodbye',
+            // variables.ts
+            welcome: "Welcome {{name}}!",
+            items: "You have {{count}} items in your cart",
+            price: "Total price: {{currency}}{{amount}}"
+        });
+    });
+
+    it('should handle translations with HTML tags', () => {
+        // Create a test file with translations containing HTML
+        const htmlTranslationsFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                "title": "<h1>Welcome</h1>",
+                "description": "<p>This is a <strong>test</strong> description</p>",
+                "button": "<button>Click <span>here</span></button>"
+            }, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/html.ts'), htmlTranslationsFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify HTML translations were collected
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        expect(commonTranslations).toEqual({
+            // Base common translations from "test.ts"
+            hello: 'Hello World',
+            bye: 'Goodbye',
+            // html.ts
+            title: "<h1>Welcome</h1>",
+            description: "<p>This is a <strong>test</strong> description</p>",
+            button: "<button>Click <span>here</span></button>"
+        });
+    });
+
+    it('should handle multiple namespaces in the same file', () => {
+        // Create a test file with multiple namespaces
+        const multiNamespaceFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const commonTranslations = lang({
+                "common": "Common text"
+            }, {"namespace": "common"});
+
+            const errorsTranslations = lang({
+                "error": "Error message 2"
+            }, {"namespace": "errors"});
+
+            const settingsTranslations = lang({
+                "setting": "Setting value"
+            }, {"namespace": "settings"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/multi-namespace.ts'), multiNamespaceFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify translations in different namespaces
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        expect(commonTranslations).toEqual({
+            // Base common translations from "test.ts"
+            hello: 'Hello World',
+            bye: 'Goodbye',
+            // multi-namespace.ts
+            common: "Common text"
+        });
+
+        const errorsTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'errors.json'), 'utf-8')
+        );
+        expect(errorsTranslations).toEqual({
+            // multi-namespace.ts
+            // was overridden by:
+            // error translations from "test.ts"
+            // cause 'test.ts' was indexed later than 'multi-namespace.ts'
+            error: "Error occurred"
+        });
+
+        const settingsTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'settings.json'), 'utf-8')
+        );
+        expect(settingsTranslations).toEqual({
+            // multi-namespace.ts
+            setting: "Setting value"
+        });
+    });
+
+    it('should handle translations with special characters', () => {
+        // Create a test file with special characters
+        const specialCharsFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                "special": "Special chars: !@#$%^&*()_+",
+                "unicode": "Unicode: 你好, こんにちは, 안녕하세요",
+                "emoji": "Emoji: 😀 🌟 🎉",
+                "quotes": "Quotes: 'single' and \\"double\\"",
+                "newlines": "Line 1\\nLine 2\\nLine 3"
+            }, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/special-chars.ts'), specialCharsFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify special characters were handled correctly
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        expect(commonTranslations).toEqual({
+            // Base common translations from "test.ts"
+            hello: 'Hello World',
+            bye: 'Goodbye',
+            // special-chars.ts
+            special: "Special chars: !@#$%^&*()_+",
+            unicode: "Unicode: 你好, こんにちは, 안녕하세요",
+            emoji: "Emoji: 😀 🌟 🎉",
+            quotes: "Quotes: 'single' and \"double\"",
+            newlines: "Line 1\nLine 2\nLine 3"
+        });
+    });
+
+    it('should not handle translations with arrays', () => {
+        // Create a test file with nested arrays
+        const nestedArraysFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                menu: {
+                    items: [
+                        {label: "Home", url: "/"},
+                        {label: "About", url: "/about"},
+                    ]
+                }
+            }, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/nested-arrays.ts'), nestedArraysFile);
+
+        try {
+            // Run the collect command
+            execSync('npm run collect', {
+                cwd: TESTS_TEST_DIR,
+                encoding: 'utf8',
+                stdio: ['pipe', 'ignore', 'pipe']
+            });
+        } catch (error: any) {
+            expect(error.message).toContain("Trying to write array into target key")
+        }
     });
 }); 

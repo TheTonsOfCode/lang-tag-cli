@@ -20,6 +20,10 @@ export function deepMergeTranslations(target: any, source: any): boolean {
             throw new Error(`Trying to write object into target key "${key}" which is translation already`);
         }
 
+        if (Array.isArray(sourceValue)) {
+            throw new Error(`Trying to write array into target key "${key}", we do not allow arrays inside translations`);
+        }
+
         if (typeof sourceValue === 'object') {
             if (!targetValue) {
                 targetValue = {};

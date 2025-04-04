@@ -30,7 +30,8 @@ export function gatherTranslationsToNamespaces(files: string[], config: LangTagC
                 const translations = digToSection(tagConfig.path, namespaceTranslations);
                 deepMergeTranslations(translations, tagTranslations);
             } catch (e: any) {
-                messageErrorInFile(e.message + ` path: "${tagConfig.path}"`, file, match);
+                messageErrorInFile(e.message + `, path: "${tagConfig.path}"`, file, match);
+                throw e;
             }
         }
     }

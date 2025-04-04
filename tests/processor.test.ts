@@ -90,6 +90,40 @@ describe('findLangMatches', () => {
 
         expect(matches).toHaveLength(0);
     });
+
+    // that test does not mean we handle array translations
+    it('should find lang match with nested objects and arrays', () => {
+        const content = `const translations = lang({
+                menu: {
+                    items: [
+                        {label: "Home", url: "/"},
+                        {label: "About", url: "/about"},
+                    ]
+                }
+            }, {"namespace": "common"});`;
+        
+        const matches = findLangTags(commonConfig, content);
+
+        expect(matches).toHaveLength(1);
+        expect(matches[0].fullMatch).toBe(` translations = lang({
+                menu: {
+                    items: [
+                        {label: "Home", url: "/"},
+                        {label: "About", url: "/about"},
+                    ]
+                }
+            }, {"namespace": "common"})`);
+        expect(matches[0].variableName).toBe("translations");
+        expect(matches[0].content1).toBe(`{
+                menu: {
+                    items: [
+                        {label: "Home", url: "/"},
+                        {label: "About", url: "/about"},
+                    ]
+                }
+            }`);
+        expect(matches[0].content2).toBe(`{"namespace": "common"}`);
+    });
 });
 
 describe('replaceLangMatches', () => {
