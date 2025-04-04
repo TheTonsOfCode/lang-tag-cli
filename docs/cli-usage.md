@@ -10,14 +10,18 @@ Lang Tag provides commands to extract and manage translations:
 # Extract all translations to output directory
 langtag collect
 
-# Regenerate all lang tags configurations
-langtag generate-config
+# Regenerate configuration for all language tags
+langtag regenerate-tags
+# or use the alias
+langtag rt
 
 # Watch for changes and extract automatically
 langtag watch
 ```
 
 The `collect` command gathers all translations from your source files and merges them into namespace-based JSON files in your `outputDir`.
+
+The `regenerate-tags` command (alias: `rt`) applies the `onConfigGeneration` function from your configuration to all language tags in your project, updating their configuration based on the rules you've defined. This is useful for standardizing translation structures across your project.
 
 The `watch` command monitors your source files for changes and automatically updates translation files when changes are detected.
 

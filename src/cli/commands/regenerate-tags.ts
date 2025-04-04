@@ -3,7 +3,7 @@ import { checkAndRegenerateFileLangTags } from './core/regenerate-config';
 import { messageLangTagTranslationConfigRegenerated, messageNoChangesMade } from '@/cli/message';
 import { globby } from 'globby';
 
-export async function generateConfig() {
+export async function regenerateTags() {
     const config = await readConfig(process.cwd());
 
     const files = await globby(config.includes, {
@@ -29,4 +29,4 @@ export async function generateConfig() {
     if (!dirty) {
         messageNoChangesMade();
     }
-}
+} 

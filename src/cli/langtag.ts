@@ -2,7 +2,7 @@
 
 import {program} from 'commander';
 import {collectTranslations} from '@/cli/commands/collect';
-import {generateConfig} from '@/cli/commands/generate-config';
+import {regenerateTags} from '@/cli/commands/regenerate-tags';
 import {watchTranslations} from '@/cli/commands/watch';
 import {initConfig} from '@/cli/commands/init';
 
@@ -24,10 +24,10 @@ export function createCli() {
         });
 
     program
-        .command('generate-config')
-        .alias('gc')
-        .description('Generate configuration for translations')
-        .action(generateConfig);
+        .command('regenerate-tags')
+        .alias('rt')
+        .description('Regenerate configuration for language tags')
+        .action(regenerateTags);
 
     program
         .command('watch')
