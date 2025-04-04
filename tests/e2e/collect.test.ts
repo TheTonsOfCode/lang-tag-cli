@@ -701,4 +701,180 @@ describe('collect command e2e tests', () => {
         // Verify the total number of keys
         expect(Object.keys(commonTranslations).length).toBeGreaterThan(1000);
     });
+
+    it('should not find language tags in files with not included extensions', () => {
+        // Create test files with unsupported extensions
+        const cssFile = `
+            /* CSS file with lang tag */
+            .selector {
+                content: lang({"css": "CSS translation"}, {"namespace": "common"});
+            }
+        `;
+
+        const htmlFile = `
+            <!-- HTML file with lang tag -->
+            <div>
+                <script>
+                    const translations = lang({"html": "HTML translation"}, {"namespace": "common"});
+                </script>
+            </div>
+        `;
+
+        const jsonFile = `
+            {
+                "translations": lang({"json": "JSON translation"}, {"namespace": "common"})
+            }
+        `;
+
+        const mdFile = `
+            # Markdown file with lang tag
+            
+            \`\`\`js
+            const translations = lang({"markdown": "Markdown translation"}, {"namespace": "common"});
+            \`\`\`
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/styles.css'), cssFile);
+        writeFileSync(join(TESTS_TEST_DIR, 'src/index.html'), htmlFile);
+        writeFileSync(join(TESTS_TEST_DIR, 'src/data.json'), jsonFile);
+        writeFileSync(join(TESTS_TEST_DIR, 'src/README.md'), mdFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify translations from unsupported file types were not collected
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        
+        // Check that the translations from unsupported files are not present
+        expect(commonTranslations.css).toBeUndefined();
+        expect(commonTranslations.html).toBeUndefined();
+        expect(commonTranslations.json).toBeUndefined();
+        expect(commonTranslations.markdown).toBeUndefined();
+        
+        // Verify that the base translations from test.ts are still present
+        expect(commonTranslations.hello).toBe("Hello World");
+        expect(commonTranslations.bye).toBe("Goodbye");
+    });
+
+    it('should handle deeply nested translation objects', () => {
+        // Create a test file with deeply nested translations
+        const deeplyNestedFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                "level1": {
+                    "level2": {
+                        "level3": {
+                            "level4": {
+                                "level5": {
+                                    "level6": {
+                                        "level7": {
+                                            "level8": {
+                                                "level9": {
+                                                    "level10": "Deeply nested translation"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/deeply-nested.ts'), deeplyNestedFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify deeply nested translations were collected correctly
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        
+        // Check that the deeply nested structure was preserved
+        expect(commonTranslations.level1.level2.level3.level4.level5.level6.level7.level8.level9.level10)
+            .toBe("Deeply nested translation");
+    });
+
+    // it('should handle translations with complex regex patterns', () => {
+    //     // Create a test file with translations containing regex patterns
+    //     const regexTranslationsFile = `
+    //         // @ts-ignore
+    //         import {lang} from "./lang-tag";
+    //
+    //         const translations = lang({
+    //             "regex1": "Pattern: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$/",
+    //             "regex2": "Pattern: /^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$/",
+    //             "regex3": "Pattern: /^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$/",
+    //             "regex4": "Pattern: /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/"
+    //         }, {"namespace": "common"});
+    //     `;
+    //
+    //     writeFileSync(join(TESTS_TEST_DIR, 'src/regex.ts'), regexTranslationsFile);
+    //
+    //     // Run the collect command
+    //     execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+    //
+    //     // Verify regex patterns were collected correctly
+    //     const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+    //     const commonTranslations = JSON.parse(
+    //         readFileSync(join(outputDir, 'common.json'), 'utf-8')
+    //     );
+    //
+    //     // Check that the regex patterns were preserved
+    //     expect(commonTranslations.regex1).toContain("/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$/");
+    //     expect(commonTranslations.regex2).toContain("/^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$/");
+    //     expect(commonTranslations.regex3).toContain("/^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$/");
+    //     expect(commonTranslations.regex4).toContain("/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/");
+    // });
+
+    it('should handle translations with comments', () => {
+        // Create a test file with translations containing comments
+        const commentsTranslationsFile = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            const translations = lang({
+                // This is a comment inside the translations object
+                "key1": "Value 1",
+                
+                // Another comment
+                "key2": "Value 2",
+                
+                /* 
+                 * Multi-line comment
+                 * inside the translations object
+                 */
+                "key3": "Value 3",
+                
+                // Comment with special characters: /* */ // 
+                "key4": "Value 4"
+            }, {"namespace": "common"});
+        `;
+
+        writeFileSync(join(TESTS_TEST_DIR, 'src/comments.ts'), commentsTranslationsFile);
+
+        // Run the collect command
+        execSync('npm run collect', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Verify translations with comments were collected correctly
+        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
+        const commonTranslations = JSON.parse(
+            readFileSync(join(outputDir, 'common.json'), 'utf-8')
+        );
+        
+        // Check that the translations were collected correctly despite the comments
+        expect(commonTranslations.key1).toBe("Value 1");
+        expect(commonTranslations.key2).toBe("Value 2");
+        expect(commonTranslations.key3).toBe("Value 3");
+        expect(commonTranslations.key4).toBe("Value 4");
+    });
 }); 
