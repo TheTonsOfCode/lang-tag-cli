@@ -2,12 +2,18 @@
 
 This guide covers the initial setup and basic usage patterns for `lang-tag`.
 
+## Installation
+
+```bash
+npm install lang-tag
+```
+
 ## Initialize Configuration
 
 Begin by running the initialization command in your project root:
 
 ```bash
-langtag init
+lang-tag init
 ```
 
 This creates a `.lang-tag.config.js` file with default settings that you can customize for your project needs.

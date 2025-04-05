@@ -46,10 +46,10 @@ export function prepareMainProjectBase(suffix: string) {
             version: '1.0.0',
             type: 'module',
             scripts: {
-                c: `${RUN_CMD}langtag c`,
-                rt: `${RUN_CMD}langtag rt`,
-                init: `${RUN_CMD}langtag init`,
-                watch: `${RUN_CMD}langtag watch`
+                c: `${RUN_CMD}lang-tag c`,
+                rt: `${RUN_CMD}lang-tag rt`,
+                init: `${RUN_CMD}lang-tag init`,
+                watch: `${RUN_CMD}lang-tag watch`
             },
             dependencies: {
                 'lang-tag': 'file:../dist/lang-tag.tgz'

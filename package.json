@@ -10,7 +10,7 @@
   "author": "TheTonsOfCode",
   "license": "MIT",
   "bin": {
-    "langtag": "./cli/index.js"
+    "lang-tag": "./cli/index.js"
   },
   "main": "./index.umd.cjs",
   "module": "./index.js",

@@ -8,15 +8,15 @@ Lang Tag provides commands to extract and manage translations:
 
 ```bash
 # Extract all translations to output directory
-langtag collect
+lang-tag collect
 
 # Regenerate configuration for all language tags
-langtag regenerate-tags
+lang-tag regenerate-tags
 # or use the alias
-langtag rt
+lang-tag rt
 
 # Watch for changes and extract automatically
-langtag watch
+lang-tag watch
 ```
 
 The `collect` command gathers all translations from your source files and merges them into namespace-based JSON files in your `outputDir`.

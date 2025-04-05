@@ -8,7 +8,7 @@ import {initConfig} from '@/cli/commands/init';
 
 export function createCli() {
     program
-        .name('langtag')
+        .name('lang-tag')
         .description('CLI to manage language translations')
         .version('0.1.0');
 

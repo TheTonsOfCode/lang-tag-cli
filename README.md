@@ -37,9 +37,9 @@ function CheckoutComponent({ name, count }) {
 }
 ```
 
-`lang-tag` provides the building blocks (`mapTranslationObjectToFunctions`) and CLI tools (`langtag`) to make this work seamlessly:
+`lang-tag` provides the building blocks (`mapTranslationObjectToFunctions`) and CLI tools (`lang-tag`) to make this work seamlessly:
 
-*   **Automated Organization:** The `langtag collect` command scans your project for these tags and automatically aggregates the translations into the correct namespace files (e.g., `public/locales/en/orders.json`) based on the tag's configuration or rules you define (`onConfigGeneration`). For the example above, it would place the translations under the key `components.checkout.greeting` and `components.checkout.orderSummary` within `orders.json`.
+*   **Automated Organization:** The `lang-tag collect` command scans your project for these tags and automatically aggregates the translations into the correct namespace files (e.g., `public/locales/en/orders.json`) based on the tag's configuration or rules you define (`onConfigGeneration`). For the example above, it would place the translations under the key `components.checkout.greeting` and `components.checkout.orderSummary` within `orders.json`.
 *   **Simplified Key Management:** Developers focus on meaningful keys within the component's context, letting the tools handle the final path and namespace.
 *   **Flexibility:** Build your own tag functions (like the `i18n` function shown) tailored to your project's needs and integrate with existing i18n libraries (like `react-i18next`).
 *   **CLI Tooling:** Includes commands to collect translations, watch for changes, and automatically generate configuration within source files.
