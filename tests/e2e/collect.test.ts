@@ -558,7 +558,7 @@ describe('collect command e2e tests', () => {
         });
     });
 
-    it('should not handle translations with arrays', () => {
+    it('should throw an error for translations containing arrays', () => {
         // Create a test file with nested arrays
         const nestedArraysFile = `
             // @ts-ignore
@@ -651,7 +651,7 @@ describe('collect command e2e tests', () => {
         expect(commonTranslations.js).toBe("JS translation");
     });
 
-    it('should handle malformed JSON in translations gracefully', () => {
+    it('should skip tags containing malformed JSON', () => {
         // Create a test file with malformed JSON
         const malformedJsonFile = `
             // @ts-ignore
@@ -708,7 +708,7 @@ describe('collect command e2e tests', () => {
         expect(Object.keys(commonTranslations).length).toBeGreaterThan(1000);
     });
 
-    it('should not find language tags in files with not included extensions', () => {
+    it('should ignore files with extensions not included in the configuration', () => {
         // Create test files with unsupported extensions
         const cssFile = `
             /* CSS file with lang tag */

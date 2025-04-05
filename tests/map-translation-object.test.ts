@@ -69,7 +69,7 @@ describe('mapTranslationObjectToFunctions', () => {
     //     )).toThrow('path must be defined');
     // });
 
-    it('no path, means first keys are not prefixed', () => {
+    it('should not prefix keys when the path is empty', () => {
         const translations = {
             foo: 'bar'
         };

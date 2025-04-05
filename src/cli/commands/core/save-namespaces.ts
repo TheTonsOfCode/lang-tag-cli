@@ -13,7 +13,6 @@ export async function saveNamespaces(config: LangTagConfig, namespaces: Record<s
 
     for (let namespace of Object.keys(namespaces)) {
         if (!namespace) {
-            // console.error(miniChalk.yellow(`Skipped empty namespace with ${Object.keys(namespaces[namespace]).length} keys.`));
             continue;
         }
 
@@ -34,8 +33,6 @@ export async function saveNamespaces(config: LangTagConfig, namespaces: Record<s
             changedNamespaces.push(namespace);
             await writeJSON(filePath, originalJSON);
         }
-
-        // console.log(miniChalk.green(`Namespace file "${namespace}.json" written`));
     }
 
     return changedNamespaces;

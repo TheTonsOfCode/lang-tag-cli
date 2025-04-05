@@ -33,8 +33,6 @@ export async function collectTranslations(libraries: boolean = false) {
 
         messageFoundTranslationKeys(totalKeys);
 
-        // console.log(JSON.stringify(namespaces, null, 2));
-
         const changedNamespaces = await saveNamespaces(config, namespaces);
 
         if (changedNamespaces.length > 0) {

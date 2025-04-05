@@ -33,7 +33,7 @@ export function messageNamespacesUpdated(config: LangTagConfig, namespaces: stri
 }
 
 export function messageLangTagTranslationConfigRegenerated(filePath: string) {
-    info(`Lang tags inside file "${filePath}" written`);
+    info(`Lang tag configurations written for file "${filePath}"`);
 }
 
 export function messageCollectTranslations() {
@@ -51,7 +51,7 @@ export function messageFoundTranslationKeys(totalKeys: number) {
 }
 
 export function messageExistingConfiguration() {
-    success(`Configuration file already exists. Please remove the existing config before creating a new default one`);
+    success(`Configuration file already exists. Please remove the existing configuration file before creating a new default one`);
 }
 
 export function messageInitializedConfiguration() {
@@ -75,22 +75,22 @@ export function messageImportedFile(fileName: string) {
 }
 
 export function messageOriginalNamespaceNotFound(filePath: string) {
-    warning(`Original namespace file "${filePath}" not found. We will create new one.`);
+    warning(`Original namespace file "${filePath}" not found. A new one will be created.`);
 }
 
 export function messageErrorInFile(e: string, file: string, match: LangTagMatch) {
     error(e + `
-- tag: ${match.fullMatch},
-- at file: ${file},
-- at index: ${match.index}`);
+  Tag: ${match.fullMatch}
+  File: ${file}
+  Index: ${match.index}`);
 }
 
 export function messageErrorInFileWatcher(e: unknown) {
-    error('Error in file watcher:' + String(e));
+    error(`Error in file watcher: ${String(e)}`);
 }
 
 export function messageErrorReadingConfig(error: unknown) {
-    warning('Error reading config file:' + String(error));
+    warning(`Error reading configuration file: ${String(error)}`);
 }
 
 export function messageSkippingInvalidJson(invalid: string, match: LangTagMatch) {
@@ -98,7 +98,7 @@ export function messageSkippingInvalidJson(invalid: string, match: LangTagMatch)
 }
 
 export function messageErrorReadingDirectory(dir: string, e: unknown) {
-    error(`Error reading directory: ${dir}` + String(e));
+    error(`Error reading directory "${dir}": ${String(e)}`);
 }
 
 export function messageSkippedEmptyNamespace(namespace: string, keysCount: number) {

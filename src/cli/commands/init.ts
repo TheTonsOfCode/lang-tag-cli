@@ -11,14 +11,14 @@ const config = {
     outputDir: 'public/locales/en',
     onConfigGeneration: (params) => {
         // We do not modify imported configurations
-        if (params.isImportedLibrary) return params.config;
+        if (params.isImportedLibrary) return undefined;
 
         //if (!params.config.path) {
         //    params.config.path = 'test';
         //    params.config.namespace = 'testNamespace';
         //}
 
-        return params.config
+        return undefined
     }
 };
 

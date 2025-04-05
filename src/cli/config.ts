@@ -7,25 +7,25 @@ import {messageErrorReadingConfig} from "@/cli/message";
 
 export interface LangTagConfig {
     /**
-     * Tag name used to mark translations in code
+     * Tag name used to mark translations in code.
      * @default 'lang'
      */
     tagName: string;
 
     /**
-     * Directories to include when searching for translations
-     * @default ['src']
+     * Glob patterns specifying directories/files to include when searching for translations.
+     * @default ['src/** /*.{js,ts,jsx,tsx}']
      */
     includes: string[];
 
     /**
-     * Directories or files to exclude when searching for translations
-     * @default ['node_modules', 'dist', 'build']
+     * Glob patterns specifying directories/files to exclude when searching for translations.
+     * @default ['node_modules', 'dist', 'build', '** /*.test.ts']
      */
     excludes: string[];
 
     /**
-     * Output directory for translation files
+     * Output directory for generated translation namespace files (e.g., common.json, errors.json).
      * @default 'locales/en'
      */
     outputDir: string;
@@ -33,19 +33,20 @@ export interface LangTagConfig {
 
     import: {
         /**
-         * Imported libraries definitions
+         * Output directory for generated files containing imported library tags.
          * @default 'src/lang-libraries'
          */
         dir: string;
 
         /**
-         * Import path of lang tag used inside project
+         * The import statement used in generated library files to import the project's `lang` tag function.
          * @default 'import { lang } from "@/my-lang-tag-path"'
          */
         tagImportPath: string;
 
         /**
-         * You can decide there how imported file gonna be named, as well as name of exported langTag
+         * A function to customize the generated file name and export name for imported library tags.
+         * Allows controlling how imported tags are organized and named within the generated files.
          */
         onImport: (params: LangTagOnImportParams) => {
             fileName: string;
@@ -70,34 +71,53 @@ export interface LangTagConfig {
 
     /**
      * Indicates whether this configuration is for a translation library.
-     * If true, collects to lang-tag.exports.json
+     * If true, generates an exports file (`.lang-tag.exports.json`) instead of locale files.
      * @default false
      */
     isLibrary: boolean;
 
     /**
-     * Whether to flatten the translation keys
+     * Whether to flatten the translation keys. (Currently unused)
      * @default false
      */
     // flattenKeys: boolean;
 
-    onConfigGeneration: (params: LangTagOnConfigGenerationParams) => LangTagTranslationsConfig;
+    /**
+     * A function called for each found lang tag before processing.
+     * Allows dynamic modification of the tag's configuration (namespace, path, etc.)
+     * based on the file path or other context.
+     * If it returns `undefined`, the tag's configuration is not automatically generated or updated.
+     */
+    onConfigGeneration: (params: LangTagOnConfigGenerationParams) => LangTagTranslationsConfig | undefined;
 }
 
+/**
+ * Parameters passed to the `onImport` configuration function.
+ */
 export interface LangTagOnImportParams {
+    /** The name of the package from which the tag is being imported. */
     packageName: string;
+    /** The relative path to the source file within the imported package. */
     relativePath: string;
+    /** The original variable name assigned to the lang tag in the source library file, if any. */
     originalExportName: string | undefined;
+    /** A mutable object that can be used to pass data between multiple `onImport` calls for the same generated file. */
     fileGenerationData: any;
 }
 
+/**
+ * Parameters passed to the `onConfigGeneration` configuration function.
+ */
 export interface LangTagOnConfigGenerationParams {
+    /** The absolute path to the source file being processed. */
     fullPath: string;
 
-    // path relative to command invocation
+    /** The path of the source file relative to the project root (where the command was invoked). */
     path: string;
 
+    /** True if the file being processed is located within the configured library import directory (`config.import.dir`). */
     isImportedLibrary: boolean;
 
+    /** The configuration object extracted from the lang tag's options argument (e.g., `{ namespace: 'common', path: 'my.path' }`). */
     config: LangTagTranslationsConfig;
 }

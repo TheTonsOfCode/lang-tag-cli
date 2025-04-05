@@ -44,7 +44,7 @@ function digToSection(key: string | undefined, translations: Record<string, any>
     const sp = key.split('.');
     let currentValue = translations[sp[0]];
     if (currentValue && typeof currentValue != 'object') {
-        throw new Error(`Key: ${sp[0]} is not an object! (value: "${currentValue}")`);
+        throw new Error(`Key "${sp[0]}" is not an object (found value: "${currentValue}")`);
     }
     if (!currentValue) {
         currentValue = {};

@@ -93,8 +93,6 @@ export async function watchTranslations() {
 }
 
 async function handleFile(config: LangTagConfig, cwdRelativeFilePath: string, event: string) {
-    console.log(`[handleFile] Event: '${event}', Raw file path: '${cwdRelativeFilePath}'`);
-
     // Check if the path matches any of the original glob patterns
     if (!micromatch.isMatch(cwdRelativeFilePath, config.includes)) {
         return;

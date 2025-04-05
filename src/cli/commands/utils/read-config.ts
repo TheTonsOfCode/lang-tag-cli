@@ -25,7 +25,7 @@ export const defaultConfig: LangTagConfig = {
     isLibrary: false,
     language: 'en',
     translationArgPosition: 1,
-    onConfigGeneration: (params: LangTagOnConfigGenerationParams) => params.config,
+    onConfigGeneration: (params: LangTagOnConfigGenerationParams) => undefined,
 };
 
 export async function readConfig(projectPath: string): Promise<LangTagConfig> {
