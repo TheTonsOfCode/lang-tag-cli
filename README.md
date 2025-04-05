@@ -65,5 +65,6 @@ For detailed setup, usage, and advanced features, please refer to the documentat
 - [CLI Usage](docs/cli-usage.md)
 - [Advanced Features](docs/advanced-features.md)
 - [Integrations](docs/integrations.md)
+- [React-i18next Example](docs/react-i18n-example.md)
 - [Library Support](docs/library-support.md)
 - [API Reference](docs/api-reference.md)
