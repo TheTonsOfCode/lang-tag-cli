@@ -39,6 +39,7 @@ export default defineConfig({
         'node:stream/promises',
         'node:fs/promises',
         'globby',
+        'micromatch',
         'events',
         'util',
         'os',
