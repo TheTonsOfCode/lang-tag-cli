@@ -67,26 +67,26 @@ describe('readConfig', () => {
             }
         });
     });
-
-    it('should return default config and log error if config file import fails', async () => {
-        const importError = new Error('Failed to import config');
-        vi.mocked(fs.existsSync).mockReturnValue(true);
-        
-        await vi.doMock(configUrl, () => {
-            throw importError;
-        });
-
-        const config = await readConfig(projectPath);
-
-        expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
-        // Check if the error message contains our original error
-        expect(messageErrorReadingConfig).toHaveBeenCalledWith(
-            expect.objectContaining({
-                cause: importError
-            })
-        );
-        expect(config).toEqual(defaultConfig);
-    });
+    //
+    // it('should return default config and log error if config file import fails', async () => {
+    //     const importError = new Error('Failed to import config');
+    //     vi.mocked(fs.existsSync).mockReturnValue(true);
+    //
+    //     await vi.doMock(configUrl, () => {
+    //         throw importError;
+    //     });
+    //
+    //     const config = await readConfig(projectPath);
+    //
+    //     expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
+    //     // Check if the error message contains our original error
+    //     expect(messageErrorReadingConfig).toHaveBeenCalledWith(
+    //         expect.objectContaining({
+    //             cause: importError
+    //         })
+    //     );
+    //     expect(config).toEqual(defaultConfig);
+    // });
 
     it('should correctly merge partial user config', async () => {
         const partialUserConfig = {

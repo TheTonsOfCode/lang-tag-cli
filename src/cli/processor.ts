@@ -36,7 +36,9 @@ export function extractLangTagData(config: LangTagConfig, match: LangTagMatch, b
 
     return {
         replaceTagConfigContent(newConfigString: string) {
-            const tagFunction = `${config.tagName}(${tagTranslationsContent}, ${newConfigString})`;
+            const arg1 = pos === 1 ? tagTranslationsContent : newConfigString;
+            const arg2 = pos === 1 ? newConfigString : tagTranslationsContent;
+            const tagFunction = `${config.tagName}(${arg1}, ${arg2})`;
             if (match.variableName) return ` ${match.variableName} = ${tagFunction}`;
             return tagFunction;
         },

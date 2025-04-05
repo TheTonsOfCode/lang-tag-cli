@@ -70,6 +70,16 @@ describe('collect command e2e tests', () => {
         }
     };
 
+    function writeConfig(config: any) {
+        const configString = JSON.stringify(config, null, 2)
+            .replace('"$onImport$"', testConfigImportFunction);
+
+        writeFileSync(
+            join(TESTS_TEST_DIR, CONFIG_FILE_NAME),
+            `export default ${configString}`
+        );
+    }
+
     beforeAll(() => {
         prepareMainProjectBase(SUFFIX);
     });
@@ -81,10 +91,7 @@ describe('collect command e2e tests', () => {
 
         copyPreparedMainProjectBase(SUFFIX);
 
-        writeFileSync(
-            join(TESTS_TEST_DIR, '.lang-tag.config.js'),
-            `export default ${JSON.stringify(testConfig, null, 2).replace('"$onImport$"', testConfigImportFunction)}`
-        );
+        writeConfig(testConfig);
 
         const srcDir = join(TESTS_TEST_DIR, 'src');
 
@@ -166,10 +173,7 @@ describe('collect command e2e tests', () => {
     it('should handle library mode correctly', () => {
         // Modify config for library mode
         const libraryConfig = {...testConfig, isLibrary: true};
-        writeFileSync(
-            join(TESTS_TEST_DIR, CONFIG_FILE_NAME),
-            `export default ${JSON.stringify(libraryConfig, null, 2)}`
-        );
+        writeConfig(libraryConfig);
 
         // Run the collect command
         execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
@@ -208,10 +212,7 @@ describe('collect command e2e tests', () => {
     it('should handle translation argument position correctly', () => {
         // Modify config for different translation position
         const configPos2 = {...testConfig, translationArgPosition: 2};
-        writeFileSync(
-            join(TESTS_TEST_DIR, CONFIG_FILE_NAME),
-            `export default ${JSON.stringify(configPos2, null, 2)}`
-        );
+        writeConfig(configPos2);
 
         // Create a test file with swapped arguments
         const testFile = join(TESTS_TEST_DIR, 'src/test.ts');

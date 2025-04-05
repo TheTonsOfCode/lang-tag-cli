@@ -1,6 +1,6 @@
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from 'vitest';
 import {execSync} from 'child_process';
-import {mkdirSync, readFileSync, writeFileSync} from 'fs';
+import {existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync} from 'fs';
 import {join} from 'path';
 import {
     clearPreparedMainProjectBase,
@@ -12,6 +12,7 @@ import {
 import {findLangTags} from "@/cli/processor.ts";
 import {LangTagTranslationsConfig} from "@/index.ts";
 import JSON5 from "json5";
+import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
 
 const SUFFIX = 'regenerate';
 const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
@@ -69,6 +70,31 @@ const FILE_WITH_LANG_TAGS_EXCLAMATION_PREFIX = `
     const translations2 = lang({"bye": "Goodbye"}, {"namespace": "common", "path": "!custom.path"});
 
     const translations3 = lang({"error": "Error occurred"}, {"namespace": "errors", "path": "!custom.path"});
+`;
+
+// language=typescript jsx
+const FILE_WITH_LANG_TAGS_NESTED_OBJECTS = `
+    // @ts-ignore
+    import {lang} from "./lang-tag";
+
+    const translations = lang({
+        "greeting": {
+            "hello": "Hello",
+            "goodbye": "Goodbye"
+        },
+        "error": {
+            "notFound": "Not found",
+            "serverError": "Server error"
+        }
+    }, {});
+`;
+
+// language=typescript jsx
+const FILE_WITH_LANG_TAGS_DIFFERENT_ORDER = `
+    // @ts-ignore
+    import {lang} from "./lang-tag";
+
+    const translations = lang({"namespace": "common"}, {"hello": "Hello World"});
 `;
 
 describe('regenerate-tags command e2e tests', () => {
@@ -137,6 +163,17 @@ describe('regenerate-tags command e2e tests', () => {
         onConfigGeneration: '$onConfigGeneration$'
     };
 
+    function writeConfig(config: any) {
+        const configString = JSON.stringify(config, null, 2)
+            .replace('"$onImport$"', testConfigImportFunction)
+            .replace('"$onConfigGeneration$"', testConfigGenerationFunction);
+
+        writeFileSync(
+            join(TESTS_TEST_DIR, CONFIG_FILE_NAME),
+            `export default ${configString}`
+        );
+    }
+
     type LocalConfig = LangTagTranslationsConfig & {
         manual?: boolean;
     };
@@ -145,11 +182,15 @@ describe('regenerate-tags command e2e tests', () => {
         config: LocalConfig;
     }
 
-    function parseContent(content: string): ContentMatch[] {
-        return findLangTags(testConfig, content).map(m => ({
-            translations: JSON5.parse(m.content1),
-            config: m.content2 ? JSON5.parse(m.content2) : { namespace: '???', path: '???' },
-        }));
+    function parseContent(content: string, config = testConfig): ContentMatch[] {
+        return findLangTags(config, content).map(m => {
+            const argT = config.translationArgPosition === 1 ? m.content1 : (m.content2 || '{}');
+            const argC = config.translationArgPosition === 1 ? (m.content2 || '{}') : m.content1;
+            return ({
+                translations: JSON5.parse(argT),
+                config: JSON5.parse(argC),
+            });
+        });
     }
 
     const srcDir = join(TESTS_TEST_DIR, 'src');
@@ -167,14 +208,7 @@ describe('regenerate-tags command e2e tests', () => {
 
         copyPreparedMainProjectBase(SUFFIX);
 
-        const config = JSON.stringify(testConfig, null, 2)
-            .replace('"$onImport$"', testConfigImportFunction)
-            .replace('"$onConfigGeneration$"', testConfigGenerationFunction);
-
-        writeFileSync(
-            join(TESTS_TEST_DIR, '.lang-tag.config.js'),
-            `export default ${config}`
-        );
+        writeConfig(testConfig);
 
         mkdirSync(srcDir, {recursive: true});
 
@@ -403,5 +437,96 @@ describe('regenerate-tags command e2e tests', () => {
 
         // Verify the file content is unchanged
         expect(fileContent).toBe(noTagsFile);
+    });
+
+    it('should handle nested translation objects correctly', () => {
+        // Create a test file with nested translation objects
+        writeFileSync(join(TESTS_TEST_DIR, 'src/nested-objects.ts'), FILE_WITH_LANG_TAGS_NESTED_OBJECTS);
+
+        // Run the regenerate-tags command
+        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Read the file content after running the command
+        const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/nested-objects.ts'), 'utf-8');
+
+        // Verify the file content has been updated with the correct namespace
+        const matches = parseContent(fileContent);
+        expect(matches.length).toBe(1);
+        expect(matches[0].config.namespace).toEqual('too-short-path');
+        expect(matches[0].config.path).toEqual('');
+    });
+
+    it('should handle different argument order correctly', () => {
+        const configPos2 = {...testConfig, translationArgPosition: 2};
+        writeConfig(configPos2);
+
+        // Create a test file with different argument order
+        writeFileSync(join(TESTS_TEST_DIR, 'src/config-at-1-arg-pos.ts'), FILE_WITH_LANG_TAGS_DIFFERENT_ORDER);
+
+        // Run the regenerate-tags command
+        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+
+        // Read the file content after running the command
+        const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/config-at-1-arg-pos.ts'), 'utf-8');
+
+        const rawMatches = findLangTags(testConfig, fileContent);
+        expect(rawMatches.length).toBe(1);
+        expect(rawMatches[0].content1).toContain('namespace');
+        expect(rawMatches[0].content2).toContain('hello');
+
+        const matches = parseContent(fileContent, configPos2);
+        expect(matches.length).toBe(1);
+        expect(matches[0].config.namespace).toEqual('too-short-path');
+        expect(matches[0].config.path).toEqual('');
+
+        const matchesWithConfigTranslationArgPos1 = parseContent(fileContent);
+        expect(matchesWithConfigTranslationArgPos1.length).toBe(1);
+        expect(matchesWithConfigTranslationArgPos1[0].config.namespace).toBeUndefined();
+        expect(matchesWithConfigTranslationArgPos1[0].config.path).toBeUndefined();
+    });
+
+    it('should handle errors gracefully when config file is missing', () => {
+        // Remove the config file
+        const configPath = join(TESTS_TEST_DIR, CONFIG_FILE_NAME);
+        if (existsSync(configPath)) {
+            unlinkSync(configPath);
+        }
+
+        // Run the regenerate-tags command and expect it to fail gracefully
+        try {
+            execSync('npm run rt', {
+                cwd: TESTS_TEST_DIR,
+                encoding: 'utf8',
+                stdio: ['pipe', 'ignore', 'pipe']
+            });
+
+            // If we get here, the test should fail
+            expect(true).toBe(false);
+        } catch (error: any) {
+            expect(error.message).toContain("No \".lang-tag.config.js\" detected")
+        }
+    });
+
+    it('should handle errors gracefully when config file is empty', () => {
+        // Remove the config file
+        const configPath = join(TESTS_TEST_DIR, CONFIG_FILE_NAME);
+        if (existsSync(configPath)) {
+            writeFileSync(configPath, '');
+        }
+
+        // Run the regenerate-tags command and expect it to fail gracefully
+        try {
+
+            execSync('npm run rt', {
+                cwd: TESTS_TEST_DIR,
+                encoding: 'utf8',
+                stdio: ['inherit']
+            });
+
+            // If we get here, the test should fail
+            expect(true).toBe(false);
+        } catch (error: any) {
+            expect(error.message).toContain("Config found, but default export is undefined")
+        }
     });
 }); 
