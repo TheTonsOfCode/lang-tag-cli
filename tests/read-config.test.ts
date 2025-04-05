@@ -101,25 +101,6 @@ describe('readConfig', () => {
         expect(config.import.dir).toBe(defaultConfig.import.dir);
     });
 
-    it('should handle user config without a default export', async () => {
-        const userConfigNoDefault = {
-            tagName: 'myLang',
-            outputDir: 'custom/locales',
-        };
-        vi.mocked(fs.existsSync).mockReturnValue(true);
-        
-        // Return an empty default export to avoid the Vitest error
-        await vi.doMock(configUrl, () => ({
-            default: {},
-            ...userConfigNoDefault
-        }));
-
-        const config = await readConfig(projectPath);
-
-        expect(config).toEqual(defaultConfig);
-        expect(messageErrorReadingConfig).not.toHaveBeenCalled();
-    });
-
     it('should handle user config with partial nested import config', async () => {
         const partialImportConfig = {
             import: {

@@ -49,7 +49,6 @@ export function prepareMainProjectBase(suffix: string) {
         JSON.stringify({
             name: 'test-main-project',
             version: '1.0.0',
-            type: 'module',
             scripts: {
                 c: `${RUN_CMD}langtag c`,
                 rt: `${RUN_CMD}lang-tag rt`,

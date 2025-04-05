@@ -5,7 +5,7 @@ import {existsSync} from "fs";
 
 const DEFAULT_INIT_CONFIG = `
 /** @type {import('lang-tag/cli/config').LangTagConfig} */
-export default  {
+const config = {
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
     outputDir: 'public/locales/en',
@@ -21,6 +21,8 @@ export default  {
         return params.config
     }
 };
+
+module.exports = config;
 `;
 
 /**

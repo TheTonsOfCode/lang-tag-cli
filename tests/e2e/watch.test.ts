@@ -27,14 +27,15 @@ describe('watch command e2e tests', () => {
 
         // Create basic configuration
         const configContent = `
-export default {
-    includes: ['src/**/*.{js,ts,jsx,tsx}'],
+const config = {
+    includes: ['src/**/*.{js,ts,jsx,tsx}', 'app/components/**/*.{js,ts}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
     outputDir: 'public/locales/en',
     onConfigGeneration: (params) => {
         return params.config;
     }
-}`;
+};
+module.exports = config;`;
         writeFileSync(join(TESTS_TEST_DIR, CONFIG_FILE_NAME), configContent);
 
         // Create source directory and lang tag definition
@@ -186,6 +187,145 @@ export default {
 
         // The watcher should continue running despite the error
         expect(process.kill(-watchProcess.pid, 0)).toBe(true);
+
+        // Kill the watch process
+        process.kill(-watchProcess.pid);
+    });
+
+    it('should ignore changes in non-included directories', async () => {
+        // Start watch command in background
+        const watchProcess = spawn('npm', ['run', 'watch'], {
+            cwd: TESTS_TEST_DIR,
+            stdio: 'ignore',
+            detached: true
+        });
+
+        if (!watchProcess.pid) {
+            throw new Error('Failed to start watch process');
+        }
+
+        // Wait a bit for the watcher to initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Create a file in a non-included directory
+        const nonIncludedDir = join(TESTS_TEST_DIR, 'other');
+        mkdirSync(nonIncludedDir, {recursive: true});
+        
+        const nonIncludedFile = `
+    // @ts-ignore
+    import {lang} from "../src/lang-tag";
+
+    const translations = lang({"ignored": "This should be ignored"}, {"namespace": "ignored"});
+`;
+        writeFileSync(join(nonIncludedDir, 'ignored.ts'), nonIncludedFile);
+
+        // Wait for the watcher to process the change
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Check that no translations were created for the ignored file
+        const outputDir = join(TESTS_TEST_DIR, 'public/locales/en');
+        const translationsFile = join(outputDir, 'ignored.json');
+        expect(existsSync(translationsFile)).toBe(false);
+
+        // Kill the watch process
+        process.kill(-watchProcess.pid);
+    });
+
+    it('should watch for changes in app/components directory', async () => {
+        // Create app/components directory
+        const componentsDir = join(TESTS_TEST_DIR, 'app/components');
+        mkdirSync(componentsDir, {recursive: true});
+
+        // Start watch command in background
+        const watchProcess = spawn('npm', ['run', 'watch'], {
+            cwd: TESTS_TEST_DIR,
+            stdio: 'ignore',
+            detached: true
+        });
+
+        if (!watchProcess.pid) {
+            throw new Error('Failed to start watch process');
+        }
+
+        // Wait a bit for the watcher to initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Create a component file with translations
+        const componentFile = `
+    // @ts-ignore
+    import {lang} from "../../src/lang-tag";
+
+    const translations = lang({"component": "Component Text"}, {"namespace": "components"});
+`;
+        writeFileSync(join(componentsDir, 'Button.ts'), componentFile);
+
+        // Wait for the watcher to process the change
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Check if translations were created
+        const outputDir = join(TESTS_TEST_DIR, 'public/locales/en');
+        const translationsFile = join(outputDir, 'components.json');
+        expect(existsSync(translationsFile)).toBe(true);
+
+        const translations = JSON.parse(readFileSync(translationsFile, 'utf-8'));
+        expect(translations).toHaveProperty('component', 'Component Text');
+
+        // Kill the watch process
+        process.kill(-watchProcess.pid);
+    });
+
+    it('should handle simultaneous changes in src and app/components directories', async () => {
+        // Create app/components directory
+        const componentsDir = join(TESTS_TEST_DIR, 'app/components');
+        mkdirSync(componentsDir, {recursive: true});
+
+        // Start watch command in background
+        const watchProcess = spawn('npm', ['run', 'watch'], {
+            cwd: TESTS_TEST_DIR,
+            stdio: 'ignore',
+            detached: true
+        });
+
+        if (!watchProcess.pid) {
+            throw new Error('Failed to start watch process');
+        }
+
+        // Wait a bit for the watcher to initialize
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Create files in both directories simultaneously
+        const srcFile = `
+    // @ts-ignore
+    import {lang} from "./lang-tag";
+
+    const translations = lang({"src": "Source Text"}, {"namespace": "source"});
+`;
+        writeFileSync(join(TESTS_TEST_DIR, 'src/source.ts'), srcFile);
+
+        const componentFile = `
+    // @ts-ignore
+    import {lang} from "../../src/lang-tag";
+
+    const translations = lang({"component": "Component Text"}, {"namespace": "components"});
+`;
+        writeFileSync(join(componentsDir, 'Button.ts'), componentFile);
+
+        // Wait for the watcher to process the changes
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Check if translations were created for both files
+        const outputDir = join(TESTS_TEST_DIR, 'public/locales/en');
+        const sourceTranslationsFile = join(outputDir, 'source.json');
+        const componentTranslationsFile = join(outputDir, 'components.json');
+
+        expect(existsSync(sourceTranslationsFile)).toBe(true);
+        expect(existsSync(componentTranslationsFile)).toBe(true);
+
+        const sourceTranslations = JSON.parse(readFileSync(sourceTranslationsFile, 'utf-8'));
+        const componentTranslations = JSON.parse(readFileSync(componentTranslationsFile, 'utf-8'));
+
+        expect(sourceTranslations).toHaveProperty('src', 'Source Text');
+        expect(componentTranslations).toHaveProperty('component', 'Component Text');
 
         // Kill the watch process
         process.kill(-watchProcess.pid);

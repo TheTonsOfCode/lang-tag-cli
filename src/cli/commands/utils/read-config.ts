@@ -38,7 +38,7 @@ export async function readConfig(projectPath: string): Promise<LangTagConfig> {
     try {
         const configModule = await import(pathToFileURL(configPath).href);
 
-        if (!configModule.default) {
+        if (!configModule.default || Object.keys(configModule.default).length === 0) {
             throw new Error(`Config found, but default export is undefined`)
         }
 

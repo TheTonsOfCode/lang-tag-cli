@@ -76,7 +76,7 @@ describe('collect command e2e tests', () => {
 
         writeFileSync(
             join(TESTS_TEST_DIR, CONFIG_FILE_NAME),
-            `export default ${configString}`
+            `const config = ${configString};\nmodule.exports = config;`
         );
     }
 
