@@ -32,7 +32,9 @@ export function copyPreparedMainProjectBase(suffix: string) {
 export function prepareMainProjectBase(suffix: string) {
     if (!process.env.TESTS_BY_COMMAND) {
         // Build the main package first
-        execSync('npm run pack-test-build', {cwd: TESTS_ROOT_DIR, stdio: 'inherit'});
+        process.stdout.write('Start building the main package...\n')
+        execSync('npm run pack-test-build', {cwd: TESTS_ROOT_DIR, stdio: 'ignore'});
+        process.stdout.write('Done building the main package\n')
     }
 
     const RUN_CMD = 'node --loader ts-node/esm ./node_modules/.bin/';
@@ -84,5 +86,17 @@ export function prepareMainProjectBase(suffix: string) {
     );
 
     // Install dependencies
-    execSync('npm install', {cwd: MAIN_PROJECT_TEMPLATE + '-' + suffix, stdio: 'ignore'});
+    try {
+        execSync('npm install', {
+            cwd: MAIN_PROJECT_TEMPLATE + '-' + suffix,
+            stdio: 'ignore',
+            timeout: 8000
+        });
+    } catch (error: any) {
+        if (error.code === 'ETIMEDOUT') {
+            process.stdout.write('NPM registry timeout\n');
+            throw new Error('NPM registry timeout');
+        }
+        throw error;
+    }
 }

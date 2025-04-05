@@ -50,7 +50,7 @@ export default {
     });
 
     afterEach(() => {
-        // clearTestsEnvironment(SUFFIX);
+        clearTestsEnvironment(SUFFIX);
     });
 
     afterAll(() => {
@@ -73,7 +73,7 @@ export default {
         // Start watch command in background
         const watchProcess = spawn('npm', ['run', 'watch'], {
             cwd: TESTS_TEST_DIR,
-            stdio: 'inherit',
+            stdio: 'ignore',
             detached: true
         });
 
@@ -82,9 +82,8 @@ export default {
         }
 
         // Wait a bit for the watcher to initialize
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        console.log('updated file', 123123123123)
         // Modify the test file
         const updatedTestFile = `
     // @ts-ignore
@@ -98,7 +97,7 @@ export default {
         writeFileSync(join(TESTS_TEST_DIR, 'src/foo.ts'), updatedTestFile);
 
         // Wait for the watcher to process the change
-        await new Promise(resolve => setTimeout(resolve, 4000));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Check if translations were updated
         const outputDir = join(TESTS_TEST_DIR, 'public/locales/en');
@@ -126,7 +125,7 @@ export default {
         }
 
         // Wait a bit for the watcher to initialize
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Create a new file with translations
         const newFile = `
@@ -138,7 +137,7 @@ export default {
         writeFileSync(join(TESTS_TEST_DIR, 'src/new.ts'), newFile);
 
         // Wait for the watcher to process the change
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Check if translations were created
         const outputDir = join(TESTS_TEST_DIR, 'public/locales/en');
@@ -152,7 +151,7 @@ export default {
         writeFileSync(join(TESTS_TEST_DIR, 'src/new.ts'), '');
 
         // Wait for the watcher to process the change
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Kill the watch process
         process.kill(-watchProcess.pid);
@@ -171,7 +170,7 @@ export default {
         }
 
         // Wait a bit for the watcher to initialize
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Create a file with invalid translations
         const invalidFile = `
@@ -183,7 +182,7 @@ export default {
         writeFileSync(join(TESTS_TEST_DIR, 'src/invalid.ts'), invalidFile);
 
         // Wait for the watcher to process the change
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // The watcher should continue running despite the error
         expect(process.kill(-watchProcess.pid, 0)).toBe(true);
