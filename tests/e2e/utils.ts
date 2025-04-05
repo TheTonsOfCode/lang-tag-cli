@@ -2,6 +2,7 @@ import {fileURLToPath} from "url";
 import {join} from "path";
 import {cpSync, existsSync, mkdirSync, rmSync, writeFileSync} from "fs";
 import {execSync} from "child_process";
+import process from "node:process";
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 export const TESTS_ROOT_DIR = join(__dirname, '../..');
@@ -29,8 +30,10 @@ export function copyPreparedMainProjectBase(suffix: string) {
 
 // NOTE: Npm install and build can take a while, so we do it once for all tests
 export function prepareMainProjectBase(suffix: string) {
-    // Build the main package first
-    // execSync('npm run pack-test-build', {cwd: TESTS_ROOT_DIR, stdio: 'inherit'});
+    if (!process.env.TESTS_BY_COMMAND) {
+        // Build the main package first
+        execSync('npm run pack-test-build', {cwd: TESTS_ROOT_DIR, stdio: 'inherit'});
+    }
 
     const RUN_CMD = 'node --loader ts-node/esm ./node_modules/.bin/';
 

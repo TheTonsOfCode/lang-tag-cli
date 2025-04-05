@@ -27,16 +27,16 @@ export async function watchTranslations() {
     const ignored = [...config.excludes, '**/.git/**']
 
     const watcher = chokidar.watch(includes, {
-        ignored: ignored,
-        persistent: true,
-        ignoreInitial: true,
-        awaitWriteFinish: {
-            stabilityThreshold: 300,
-            pollInterval: 100
-        }
+        // ignored: ignored,
+        // persistent: true,
+        // ignoreInitial: true,
+        // awaitWriteFinish: {
+        //     stabilityThreshold: 300,
+        //     pollInterval: 100
+        // }
     });
 
-    messageWatchMode()
+    messageWatchMode();
 
     watcher
         .on('change', async filePath => await handleFile(config, filePath, 'change'))
@@ -48,6 +48,7 @@ export async function watchTranslations() {
 }
 
 async function handleFile(config: LangTagConfig, filePath: string, event: string) {
+    console.log(filePath);
     // Force check for only js/ts files
     if (!filePath.match(/\.(js|ts|jsx|tsx)$/)) {
         // console.log('Ignored', filePath);
