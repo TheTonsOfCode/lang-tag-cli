@@ -10,7 +10,8 @@
   "author": "TheTonsOfCode",
   "license": "MIT",
   "bin": {
-    "lang-tag": "./cli/index.js"
+    "lang-tag": "./cli/index.js",
+    "langtag": "./cli/index.js"
   },
   "main": "./index.umd.cjs",
   "module": "./index.js",
@@ -24,10 +25,8 @@
   "scripts": {
     "dev": "vite",
     "build": "./build.sh",
-    "pack-test-build": "./pack-test-build.sh",
     "publish": "./publish.sh",
-    "test": "vitest --run",
-    "test:watch": "vitest --watch"
+    "test": "./pack-test-build.sh && vitest --run"
   },
   "dependencies": {
     "chokidar": "^4.0.3",

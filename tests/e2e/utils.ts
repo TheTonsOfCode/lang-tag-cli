@@ -30,7 +30,7 @@ export function copyPreparedMainProjectBase(suffix: string) {
 // NOTE: Npm install and build can take a while, so we do it once for all tests
 export function prepareMainProjectBase(suffix: string) {
     // Build the main package first
-    execSync('npm run pack-test-build', {cwd: TESTS_ROOT_DIR, stdio: 'inherit'});
+    // execSync('npm run pack-test-build', {cwd: TESTS_ROOT_DIR, stdio: 'inherit'});
 
     const RUN_CMD = 'node --loader ts-node/esm ./node_modules/.bin/';
 
@@ -46,9 +46,9 @@ export function prepareMainProjectBase(suffix: string) {
             version: '1.0.0',
             type: 'module',
             scripts: {
-                c: `${RUN_CMD}lang-tag c`,
+                c: `${RUN_CMD}langtag c`,
                 rt: `${RUN_CMD}lang-tag rt`,
-                init: `${RUN_CMD}lang-tag init`,
+                init: `${RUN_CMD}langtag init`,
                 watch: `${RUN_CMD}lang-tag watch`
             },
             dependencies: {
@@ -81,5 +81,5 @@ export function prepareMainProjectBase(suffix: string) {
     );
 
     // Install dependencies
-    execSync('npm install', {cwd: MAIN_PROJECT_TEMPLATE + '-' + suffix, stdio: 'inherit'});
+    execSync('npm install', {cwd: MAIN_PROJECT_TEMPLATE + '-' + suffix, stdio: 'ignore'});
 }

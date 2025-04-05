@@ -2,6 +2,8 @@
 
 `lang-tag` is a robust solution for managing translations in JavaScript/TypeScript projects, especially those using component-based architectures. It simplifies i18n by allowing you to define translation keys directly within the components where they are used, rather than in separate, namespace-specific files.
 
+> **Note:** The CLI command is available as `lang-tag` (recommended) or `langtag`.
+
 ## Core Concept
 
 The primary goal is to colocate translation definitions with their usage. Instead of managing complex key structures and deciding which translation file (`orders.json`, `profile.json`, etc.) a key belongs to, you define translations inline:
@@ -39,7 +41,7 @@ function CheckoutComponent({ name, count }) {
 
 `lang-tag` provides the building blocks (`mapTranslationObjectToFunctions`) and CLI tools (`lang-tag`) to make this work seamlessly:
 
-*   **Automated Organization:** The `lang-tag collect` command scans your project for these tags and automatically aggregates the translations into the correct namespace files (e.g., `public/locales/en/orders.json`) based on the tag's configuration or rules you define (`onConfigGeneration`). For the example above, it would place the translations under the key `components.checkout.greeting` and `components.checkout.orderSummary` within `orders.json`.
+*   **Automated Organization:** The `lang-tag collect` (alias: c) command scans your project for these tags and automatically aggregates the translations into the correct namespace files (e.g., `public/locales/en/orders.json`) based on the tag's configuration or rules you define (`onConfigGeneration`). For the example above, it would place the translations under the key `components.checkout.greeting` and `components.checkout.orderSummary` within `orders.json`.
 *   **Simplified Key Management:** Developers focus on meaningful keys within the component's context, letting the tools handle the final path and namespace.
 *   **Flexibility:** Build your own tag functions (like the `i18n` function shown) tailored to your project's needs and integrate with existing i18n libraries (like `react-i18next`).
 *   **CLI Tooling:** Includes commands to collect translations, watch for changes, and automatically generate configuration within source files.

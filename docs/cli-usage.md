@@ -2,21 +2,21 @@
 
 This section details the command-line interface (CLI) commands provided by `lang-tag` for managing your translations and automatically generating configurations.
 
+> **Note:** The CLI command is available as `lang-tag` (recommended) or `langtag` (alias for backward compatibility).
+
 ## Translation Extraction & Management Commands
 
 Lang Tag provides commands to extract and manage translations:
 
 ```bash
 # Extract all translations to output directory
-lang-tag collect
+lang-tag collect (or langtag collect, alias: c)
 
 # Regenerate configuration for all language tags
-lang-tag regenerate-tags
-# or use the alias
-lang-tag rt
+lang-tag regenerate-tags (or langtag regenerate-tags, alias: rt)
 
 # Watch for changes and extract automatically
-lang-tag watch
+lang-tag watch (or langtag watch)
 ```
 
 The `collect` command gathers all translations from your source files and merges them into namespace-based JSON files in your `outputDir`.

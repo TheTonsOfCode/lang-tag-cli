@@ -2,6 +2,8 @@
 
 This guide covers the initial setup and basic usage patterns for `lang-tag`.
 
+> **Note:** The CLI command is available as `lang-tag` (recommended) or `langtag` (alias for backward compatibility).
+
 ## Installation
 
 ```bash
@@ -13,7 +15,7 @@ npm install lang-tag
 Begin by running the initialization command in your project root:
 
 ```bash
-lang-tag init
+lang-tag init (or langtag init)
 ```
 
 This creates a `.lang-tag.config.js` file with default settings that you can customize for your project needs.
