@@ -25,7 +25,8 @@ fi
 echo "Copying files to dist..."
 [ -f "README.md" ] && cp README.md dist/
 [ -f "LICENSE" ] && cp LICENSE dist/
-cp -r docs dist/docs/
+# Exclude docs. README links points to github
+#cp -r docs dist/docs/
 
 # Create new package.json in dist
 echo "Creating package.json in dist..."
