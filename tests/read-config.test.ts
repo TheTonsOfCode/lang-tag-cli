@@ -67,26 +67,20 @@ describe('readConfig', () => {
             }
         });
     });
-    //
-    // it('should return default config and log error if config file import fails', async () => {
-    //     const importError = new Error('Failed to import config');
-    //     vi.mocked(fs.existsSync).mockReturnValue(true);
-    //
-    //     await vi.doMock(configUrl, () => {
-    //         throw importError;
-    //     });
-    //
-    //     const config = await readConfig(projectPath);
-    //
-    //     expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
-    //     // Check if the error message contains our original error
-    //     expect(messageErrorReadingConfig).toHaveBeenCalledWith(
-    //         expect.objectContaining({
-    //             cause: importError
-    //         })
-    //     );
-    //     expect(config).toEqual(defaultConfig);
-    // });
+
+    it('should throw error if config file exists but has no default export', async () => {
+        vi.mocked(fs.existsSync).mockReturnValue(true);
+        
+        // Mock the module to have a default export that is undefined
+        await vi.doMock(configUrl, () => ({
+            default: undefined
+        }));
+
+        await expect(readConfig(projectPath)).rejects.toThrow(
+            'Config found, but default export is undefined'
+        );
+        expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
+    });
 
     it('should correctly merge partial user config', async () => {
         const partialUserConfig = {
