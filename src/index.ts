@@ -100,3 +100,45 @@ export function mapTranslationObjectToFunctions<
 export const mockTranslateTransform: TransformFunction<LangTagTranslationsConfig> = ({ value, params }) => {
     return value.replace(/{{(.*?)}}/g, (_: any, key: string) => params?.[key.trim()] ?? '');
 };
+
+export type FlexibleTranslations<T> = {
+    [P in keyof T]: T[P] extends ParametrizedFunction
+        ? ParametrizedFunction | string
+        : T[P] extends object
+            ? FlexibleTranslations<T[P]>
+            : T[P] | string;
+};
+
+type ReverseFlexibleTranslations<T> = {
+    [P in keyof T]: T[P] extends object
+        ? T[P] extends Function
+            ? T[P]
+            : {
+                [K in keyof T[P]]: ParametrizedFunction;
+            }
+        : ParametrizedFunction;
+};
+
+export function normalizeTranslations<T>(translations: FlexibleTranslations<T>): ReverseFlexibleTranslations<T>  {
+    const result = {} as ReverseFlexibleTranslations<T>;
+
+    for (const key in translations) {
+        const value = translations[key];
+
+        if (value === null || value === undefined) {
+            continue;
+        }
+
+        if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Function)) {
+            result[key] = normalizeTranslations(value as any) as any;
+        } else if (typeof value === 'string') {
+            // Translation ---> () => Translation
+            result[key] = ((_?: ParametrizedFunctionParams) => value) as any;
+        } else {
+            // Function
+            result[key] = value as any;
+        }
+    }
+
+    return result;
+}

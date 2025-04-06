@@ -68,3 +68,4 @@ For detailed setup, usage, and advanced features, please refer to the documentat
 - [React-i18next Example](docs/react-i18n-example.md)
 - [Library Support](docs/library-support.md)
 - [API Reference](docs/api-reference.md)
+- [Flexible Translation Definitions](docs/flexible-translations.md)
