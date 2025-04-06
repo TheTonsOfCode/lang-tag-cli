@@ -1,30 +1,43 @@
 import {fileURLToPath} from "url";
 import {join} from "path";
-import {cpSync, existsSync, mkdirSync, rmSync, writeFileSync} from "fs";
+import {cpSync, existsSync, mkdirSync, rmSync, writeFileSync, readdirSync} from "fs";
 import {execSync} from "child_process";
 import process from "node:process";
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 export const TESTS_ROOT_DIR = join(__dirname, '../..');
-export const TESTS_TEST_DIR = join(TESTS_ROOT_DIR, '.e2e-tests-environment');
+export const TESTS_CONTAINER_DIR = join(TESTS_ROOT_DIR, '.e2e-tests');
+export const TESTS_TEST_DIR = join(TESTS_CONTAINER_DIR, '.e2e-tests-environment');
 
-const MAIN_PROJECT_TEMPLATE = join(TESTS_ROOT_DIR, '.e2e-tests-main-project-template');
+const MAIN_PROJECT_TEMPLATE = join(TESTS_CONTAINER_DIR, '.e2e-tests-main-project-template');
 
 export function clearTestsEnvironment(suffix: string) {
     if (existsSync(TESTS_TEST_DIR + '-' + suffix)) {
-        rmSync(TESTS_TEST_DIR + '-' + suffix, { recursive: true, force: true });
+        rmSync(TESTS_TEST_DIR + '-' + suffix, {recursive: true, force: true});
     }
+
+    // give system a little bit of time to remove previous directory
+    setTimeout(() => {
+        if (existsSync(TESTS_CONTAINER_DIR)) {
+            const containerContents = readdirSync(TESTS_CONTAINER_DIR);
+            if (containerContents.length === 0) {
+                rmSync(TESTS_CONTAINER_DIR, {recursive: true, force: true});
+            }
+        }
+    }, 100);
 }
 
 export function clearPreparedMainProjectBase(suffix: string) {
     if (existsSync(MAIN_PROJECT_TEMPLATE + '-' + suffix)) {
-        rmSync(MAIN_PROJECT_TEMPLATE + '-' + suffix, { recursive: true, force: true });
+        rmSync(MAIN_PROJECT_TEMPLATE + '-' + suffix, {recursive: true, force: true});
     }
 }
 
 export function copyPreparedMainProjectBase(suffix: string) {
     if (existsSync(MAIN_PROJECT_TEMPLATE + '-' + suffix)) {
-        cpSync(MAIN_PROJECT_TEMPLATE + '-' + suffix, TESTS_TEST_DIR + '-' + suffix, { recursive: true });
+        // process.stdout.write('Copying main project base...\n')
+        cpSync(MAIN_PROJECT_TEMPLATE + '-' + suffix, TESTS_TEST_DIR + '-' + suffix, {recursive: true});
+        // process.stdout.write('Copied\n')
     }
 }
 
@@ -32,20 +45,22 @@ export function copyPreparedMainProjectBase(suffix: string) {
 export function prepareMainProjectBase(suffix: string) {
     if (!process.env.TESTS_BY_COMMAND) {
         // Build the main package first
-        process.stdout.write('Start building the main package...\n')
+        // process.stdout.write('Start building the main package...\n')
         execSync('npm run pack-test-build', {cwd: TESTS_ROOT_DIR, stdio: 'ignore'});
-        process.stdout.write('Done building the main package\n')
+        // process.stdout.write('Done building the main package\n')
     }
 
     const RUN_CMD = 'node --loader ts-node/esm ./node_modules/.bin/';
 
     clearPreparedMainProjectBase(suffix);
 
-    mkdirSync(MAIN_PROJECT_TEMPLATE + '-' + suffix, {recursive: true});
+    const mainProjectPath = MAIN_PROJECT_TEMPLATE + '-' + suffix;
+
+    mkdirSync(mainProjectPath, {recursive: true});
 
     // Create package.json
     writeFileSync(
-        join(MAIN_PROJECT_TEMPLATE + '-' + suffix, 'package.json'),
+        join(mainProjectPath, 'package.json'),
         JSON.stringify({
             name: 'test-main-project',
             version: '1.0.0',
@@ -56,7 +71,7 @@ export function prepareMainProjectBase(suffix: string) {
                 watch: `${RUN_CMD}lang-tag watch`
             },
             dependencies: {
-                'lang-tag': 'file:../dist/lang-tag.tgz'
+                'lang-tag': 'file:../../dist/lang-tag.tgz'
             },
             devDependencies: {
                 'ts-node': '^10.9.2',
@@ -67,7 +82,7 @@ export function prepareMainProjectBase(suffix: string) {
 
     // Create tsconfig.json
     writeFileSync(
-        join(MAIN_PROJECT_TEMPLATE + '-' + suffix, 'tsconfig.json'),
+        join(mainProjectPath, 'tsconfig.json'),
         JSON.stringify({
             compilerOptions: {
                 target: 'ESNext',
@@ -87,7 +102,7 @@ export function prepareMainProjectBase(suffix: string) {
     // Install dependencies
     try {
         execSync('npm install', {
-            cwd: MAIN_PROJECT_TEMPLATE + '-' + suffix,
+            cwd: mainProjectPath,
             stdio: 'ignore',
             timeout: 8000
         });
