@@ -8,7 +8,7 @@ To address this, `lang-tag` introduces the `FlexibleTranslations` type and the `
 
 This utility type allows you to define your translation objects more leniently. Leaf nodes (the actual translations) can be either:
 
-1.  A standard `ParametrizedFunction`: `(params) => \`Hello ${params.name}\``
+1.  A standard `ParametrizedFunction`: ```(params) => `Hello ${params.name}` ```
 2.  A plain `string`: `'This is a static message.'`
 
 ### Basic Example
