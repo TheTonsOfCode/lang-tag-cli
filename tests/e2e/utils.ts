@@ -7,13 +7,37 @@ import process from "node:process";
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 export const TESTS_ROOT_DIR = join(__dirname, '../..');
 export const TESTS_CONTAINER_DIR = join(TESTS_ROOT_DIR, '.e2e-tests');
-export const TESTS_TEST_DIR = join(TESTS_CONTAINER_DIR, '.e2e-tests-environment');
+export const TESTS_TEST_DIR = join(TESTS_CONTAINER_DIR, '-');
 
-const MAIN_PROJECT_TEMPLATE = join(TESTS_CONTAINER_DIR, '.e2e-tests-main-project-template');
+const MAIN_PROJECT_TEMPLATE = join(TESTS_CONTAINER_DIR, '.template');
 
+export function removeTestDirectory(directory: string) {
+    console.log(directory);
+    if (existsSync(directory)) {
+        rmSync(directory, {recursive: true, force: true});
+    }
+}
+
+/**
+ * @deprecated
+ */
 export function clearTestsEnvironment(suffix: string) {
     if (existsSync(TESTS_TEST_DIR + '-' + suffix)) {
         rmSync(TESTS_TEST_DIR + '-' + suffix, {recursive: true, force: true});
+    }
+}
+
+export function clearPreparedMainProjectBase(suffix: string) {
+    if (existsSync(MAIN_PROJECT_TEMPLATE + '-' + suffix)) {
+        rmSync(MAIN_PROJECT_TEMPLATE + '-' + suffix, {recursive: true, force: true});
+    }
+}
+
+export function copyPreparedMainProjectBase(suffix: string, targetDir?: string) {
+    if (existsSync(MAIN_PROJECT_TEMPLATE + '-' + suffix)) {
+        // process.stdout.write('Copying main project base...\n')
+        cpSync(MAIN_PROJECT_TEMPLATE + '-' + suffix, targetDir || (TESTS_TEST_DIR + '-' + suffix), {recursive: true});
+        // process.stdout.write('Copied\n')
     }
 
     // give system a little bit of time to remove previous directory
@@ -25,20 +49,6 @@ export function clearTestsEnvironment(suffix: string) {
             }
         }
     }, 100);
-}
-
-export function clearPreparedMainProjectBase(suffix: string) {
-    if (existsSync(MAIN_PROJECT_TEMPLATE + '-' + suffix)) {
-        rmSync(MAIN_PROJECT_TEMPLATE + '-' + suffix, {recursive: true, force: true});
-    }
-}
-
-export function copyPreparedMainProjectBase(suffix: string) {
-    if (existsSync(MAIN_PROJECT_TEMPLATE + '-' + suffix)) {
-        // process.stdout.write('Copying main project base...\n')
-        cpSync(MAIN_PROJECT_TEMPLATE + '-' + suffix, TESTS_TEST_DIR + '-' + suffix, {recursive: true});
-        // process.stdout.write('Copied\n')
-    }
 }
 
 // NOTE: Npm install and build can take a while, so we do it once for all tests

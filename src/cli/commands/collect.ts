@@ -16,15 +16,16 @@ export async function collectTranslations(libraries: boolean = false) {
     messageCollectTranslations();
 
     const config = await readConfig(process.cwd());
+
+    if (libraries) {
+        await importLibraries(config);
+    }
+
     const files = await globby(config.includes, {
         cwd: process.cwd(),
         ignore: config.excludes,
         absolute: true
     });
-
-    if (libraries) {
-        await importLibraries(config);
-    }
 
     if (config.isLibrary) {
         await saveAsLibrary(files, config)
