@@ -12,7 +12,7 @@ import {
 import {CONFIG_FILE_NAME} from '@/cli/constants.ts';
 import process from "node:process";
 
-const SUFFIX = 'watch';
+const SUFFIX = 'watch-collect';
 const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
 
 describe('watch command e2e tests', () => {
