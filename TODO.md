@@ -7,7 +7,6 @@
 ## E2E:
 
 - Implement watch mode with config regeneration
-- Create separate tests for library modes, then package them, install within projects and verify compilation
 - Test flexible translations from library to main project compilation
 
 # Documentation:

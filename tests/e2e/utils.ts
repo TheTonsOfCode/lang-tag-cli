@@ -77,7 +77,8 @@ export function prepareMainProjectBase(suffix: string) {
                 c: `${RUN_CMD}langtag c`,
                 rt: `${RUN_CMD}lang-tag rt`,
                 init: `${RUN_CMD}langtag init`,
-                watch: `${RUN_CMD}lang-tag watch`
+                watch: `${RUN_CMD}lang-tag watch`,
+                compile: `${RUN_CMD}tsc`,
             },
             dependencies: {
                 'lang-tag': 'file:../../dist/lang-tag.tgz'

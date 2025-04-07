@@ -57,14 +57,14 @@ const LIBRARY_LANG_TAG_DEFINITION = `
     }
 `;
 
-// language=typescript jsx
+// language=typescript
 const LANG_TAG_DEFINITION = `
     export function lang(translations: any, options?: any): any {
         return translations;
     }
 `;
 
-// language=typescript jsx
+// language=typescript
 const LIBRARY_SOURCE_FILE = `
     // @ts-ignore
     import {libTag} from "./lang-tag"; // Relative import within the library
@@ -152,6 +152,9 @@ describe('libraries import e2e tests', () => {
         // 2. Pack the library
         execSync('npm pack', {cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore'}); // Creates $`libraryPackageJSON.name`-1.0.0.tgz
 
+        // Test library compilation
+        execSync('npm run compile', {cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore'});
+
         // --- Install Library in Main Project ---
         const libraryPackagePath = join(LIBRARY_PROJECT_DIR, libraryPackageJSON.name + '-1.0.0.tgz').replace(/\\/g, '/');
 
@@ -165,8 +168,8 @@ describe('libraries import e2e tests', () => {
     });
 
     afterEach(() => {
-        removeTestDirectory(MAIN_PROJECT_DIR);
-        removeTestDirectory(LIBRARY_PROJECT_DIR);
+        // removeTestDirectory(MAIN_PROJECT_DIR);
+        // removeTestDirectory(LIBRARY_PROJECT_DIR);
     });
 
     afterAll(() => {
@@ -180,6 +183,9 @@ describe('libraries import e2e tests', () => {
             console.error("Error running 'npm run c' in main project:", e.stdout?.toString(), e.stderr?.toString());
             throw e;
         }
+
+        // Test main project compilation
+        execSync('npm run compile', {cwd: MAIN_PROJECT_DIR, stdio: 'ignore'});
 
         // Check if the import directory exists
         const importDir = join(MAIN_PROJECT_DIR, CONFIG_MAIN_PROJECT.import.dir);
