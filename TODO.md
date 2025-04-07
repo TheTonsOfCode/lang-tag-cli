@@ -7,7 +7,6 @@
 ## E2E:
 
 - Implement watch mode with config regeneration
-- Test flexible translations from library to main project compilation
 
 # Documentation:
 
