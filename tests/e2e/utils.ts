@@ -12,7 +12,6 @@ export const TESTS_TEST_DIR = join(TESTS_CONTAINER_DIR, '-');
 const MAIN_PROJECT_TEMPLATE = join(TESTS_CONTAINER_DIR, '.template');
 
 export function removeTestDirectory(directory: string) {
-    console.log(directory);
     if (existsSync(directory)) {
         rmSync(directory, {recursive: true, force: true});
     }

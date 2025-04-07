@@ -7,6 +7,7 @@ import {
     prepareMainProjectBase,
     removeTestDirectory,
     TESTS_TEST_DIR as _TESTS_TEST_DIR,
+    clearPreparedMainProjectBase,
 } from "./utils.ts";
 import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
 import JSON5 from 'json5';
@@ -136,15 +137,13 @@ describe('libraries import e2e tests', () => {
         // Library source code
         const librarySrcDir = join(LIBRARY_PROJECT_DIR, 'src');
         mkdirSync(librarySrcDir, {recursive: true});
-        writeFileSync(join(librarySrcDir, 'lang-tag.ts'), LIBRARY_LANG_TAG_DEFINITION); // Library needs its own lang tag def for its source files
+        writeFileSync(join(librarySrcDir, 'lang-tag.ts'), LIBRARY_LANG_TAG_DEFINITION);
         writeFileSync(join(librarySrcDir, 'translations.ts'), LIBRARY_SOURCE_FILE);
 
         // --- Build & Pack Library ---
-        // 1. Collect tags in the library (this generates the data lang-tag needs later)
-        //    Run using the langtag CLI installed in the *main* project's node_modules
-        //    Adjust the path in package.json or run directly
+        // 1. Collect tags in the library
         try {
-            execSync('npm run c', {cwd: LIBRARY_PROJECT_DIR, stdio: 'pipe'}); // Use pipe to capture output/errors
+            execSync('npm run c', {cwd: LIBRARY_PROJECT_DIR, stdio: 'pipe'});
         } catch (e: any) {
             console.error("Error running 'npm run c' in library:", e.stdout?.toString(), e.stderr?.toString());
             throw e;
@@ -159,8 +158,6 @@ describe('libraries import e2e tests', () => {
         try {
             // Install the packed library as a dependency
             execSync(`npm install ${libraryPackagePath}`, {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
-            // Re-run install potentially? Sometimes needed after adding file: dependencies
-            // execSync(`npm install`, { cwd: MAIN_PROJECT_DIR, stdio: 'pipe' });
         } catch (e: any) {
             console.error("Error installing library package:", e.stdout?.toString(), e.stderr?.toString());
             throw e;
@@ -168,12 +165,12 @@ describe('libraries import e2e tests', () => {
     });
 
     afterEach(() => {
-        // removeTestDirectory(MAIN_PROJECT_DIR);
-        // removeTestDirectory(LIBRARY_PROJECT_DIR);
+        removeTestDirectory(MAIN_PROJECT_DIR);
+        removeTestDirectory(LIBRARY_PROJECT_DIR);
     });
 
     afterAll(() => {
-        // clearPreparedMainProjectBase(SUFFIX);
+        clearPreparedMainProjectBase(SUFFIX);
     });
 
     it('should import library tags using onImport configuration', () => {
@@ -184,17 +181,16 @@ describe('libraries import e2e tests', () => {
             throw e;
         }
 
-        // --- Assertions ---
-        // 1. Check if the import directory exists
+        // Check if the import directory exists
         const importDir = join(MAIN_PROJECT_DIR, CONFIG_MAIN_PROJECT.import.dir);
         expect(existsSync(importDir), `Import directory '${importDir}' should exist`).toBe(true);
 
-        // 2. Check if the generated library config file exists (name modified by onImport)
+        // Check if the generated library config file exists (name modified by onImport)
         const expectedLibConfigFileName = TEST_LIBRARY_PACKAGE_NAME + '.ts'; // Based on onImport function
         const importedConfigPath = join(importDir, expectedLibConfigFileName);
         expect(existsSync(importedConfigPath), `Generated library config '${importedConfigPath}' should exist`).toBe(true);
 
-        // 3. Check the content of the generated library config file
+        // Check the content of the generated library config file
         const importedConfigContent = readFileSync(importedConfigPath, 'utf-8');
 
         const matches = parseContent(importedConfigContent, CONFIG_MAIN_PROJECT);
@@ -209,7 +205,7 @@ describe('libraries import e2e tests', () => {
         expect(matches[1].translations.libraryBye).toBeDefined();
         expect(matches[1].translations.libraryBye).toEqual('Bye from Library');
 
-        // 4. Optional: Check the main project's final output directory
+        // Check the main project's final output directory
         const mainOutputDir = join(MAIN_PROJECT_DIR, CONFIG_MAIN_PROJECT.outputDir);
         const mainOutputFile = join(mainOutputDir, 'conversational.json'); // Default naming based on namespace 'lib'
         expect(existsSync(mainOutputFile), `Main output file '${mainOutputFile}' should exist`).toBe(true);
