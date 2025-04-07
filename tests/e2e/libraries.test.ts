@@ -112,8 +112,8 @@ describe('libraries import e2e tests', () => {
     });
 
     afterEach(() => {
-        // removeTestDirectory(MAIN_PROJECT_DIR);
-        // removeTestDirectory(LIBRARY_PROJECT_DIR);
+        removeTestDirectory(MAIN_PROJECT_DIR);
+        removeTestDirectory(LIBRARY_PROJECT_DIR);
     });
 
     afterAll(() => {
