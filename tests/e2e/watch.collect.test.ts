@@ -15,6 +15,10 @@ import process from "node:process";
 const SUFFIX = 'watch-collect';
 const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
 
+// Once at 30 runs it happened that delay was too slow to file system catch up,
+// if it will happen again, raise up the delay
+const DELAY = 500;
+
 describe('watch command e2e tests', () => {
     beforeAll(() => {
         prepareMainProjectBase(SUFFIX);
@@ -83,7 +87,7 @@ module.exports = config;`;
         }
 
         // Wait a bit for the watcher to initialize
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Modify the test file
         const updatedTestFile = `
@@ -98,7 +102,7 @@ module.exports = config;`;
         writeFileSync(join(TESTS_TEST_DIR, 'src/foo.ts'), updatedTestFile);
 
         // Wait for the watcher to process the change
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Check if translations were updated
         const outputDir = join(TESTS_TEST_DIR, 'public/locales/en');
@@ -126,7 +130,7 @@ module.exports = config;`;
         }
 
         // Wait a bit for the watcher to initialize
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Create a new file with translations
         const newFile = `
@@ -138,7 +142,7 @@ module.exports = config;`;
         writeFileSync(join(TESTS_TEST_DIR, 'src/new.ts'), newFile);
 
         // Wait for the watcher to process the change
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Check if translations were created
         const outputDir = join(TESTS_TEST_DIR, 'public/locales/en');
@@ -152,7 +156,7 @@ module.exports = config;`;
         writeFileSync(join(TESTS_TEST_DIR, 'src/new.ts'), '');
 
         // Wait for the watcher to process the change
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Kill the watch process
         process.kill(-watchProcess.pid);
@@ -171,7 +175,7 @@ module.exports = config;`;
         }
 
         // Wait a bit for the watcher to initialize
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Create a file with invalid translations
         const invalidFile = `
@@ -183,7 +187,7 @@ module.exports = config;`;
         writeFileSync(join(TESTS_TEST_DIR, 'src/invalid.ts'), invalidFile);
 
         // Wait for the watcher to process the change
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // The watcher should continue running despite the error
         expect(process.kill(-watchProcess.pid, 0)).toBe(true);
@@ -205,7 +209,7 @@ module.exports = config;`;
         }
 
         // Wait a bit for the watcher to initialize
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Create a file in a non-included directory
         const nonIncludedDir = join(TESTS_TEST_DIR, 'other');
@@ -220,7 +224,7 @@ module.exports = config;`;
         writeFileSync(join(nonIncludedDir, 'ignored.ts'), nonIncludedFile);
 
         // Wait for the watcher to process the change
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Check that no translations were created for the ignored file
         const outputDir = join(TESTS_TEST_DIR, 'public/locales/en');
@@ -248,7 +252,7 @@ module.exports = config;`;
         }
 
         // Wait a bit for the watcher to initialize
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Create a component file with translations
         const componentFile = `
@@ -260,7 +264,7 @@ module.exports = config;`;
         writeFileSync(join(componentsDir, 'Button.ts'), componentFile);
 
         // Wait for the watcher to process the change
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Check if translations were created
         const outputDir = join(TESTS_TEST_DIR, 'public/locales/en');
@@ -291,7 +295,7 @@ module.exports = config;`;
         }
 
         // Wait a bit for the watcher to initialize
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Create files in both directories simultaneously
         const srcFile = `
@@ -311,7 +315,7 @@ module.exports = config;`;
         writeFileSync(join(componentsDir, 'Button.ts'), componentFile);
 
         // Wait for the watcher to process the changes
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, DELAY));
 
         // Check if translations were created for both files
         const outputDir = join(TESTS_TEST_DIR, 'public/locales/en');
