@@ -19,7 +19,7 @@ export default defineConfig({
         if (format === 'es') {
           return `${entryName}.js`;
         }
-        return `${entryName}.${format}.cjs`;
+        return `${entryName}.cjs`;
       }
     },
     rollupOptions: {
@@ -46,7 +46,8 @@ export default defineConfig({
         'chokidar'
       ]
     },
-    target: 'node18'
+    target: 'node18',
+    minify: false
   },
   plugins: [
     dts({
