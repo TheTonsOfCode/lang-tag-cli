@@ -19,7 +19,7 @@ export default defineConfig({
         if (format === 'es') {
           return `${entryName}.js`;
         }
-        return `${entryName}.${format === 'cjs' ? 'cjs' : 'umd.cjs'}`;
+        return `${entryName}.${format}.cjs`;
       }
     },
     rollupOptions: {

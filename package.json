@@ -13,13 +13,13 @@
     "lang-tag": "./cli/index.js",
     "langtag": "./cli/index.js"
   },
-  "main": "./index.umd.cjs",
+  "main": "./index.cjs",
   "module": "./index.js",
   "types": "./index.d.ts",
   "exports": {
     ".": {
       "import": "./index.js",
-      "require": "./index.umd.cjs"
+      "require": "./index.cjs"
     }
   },
   "scripts": {
