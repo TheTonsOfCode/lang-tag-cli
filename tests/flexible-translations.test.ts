@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeTranslations, FlexibleTranslations, ParametrizedFunction, ParametrizedFunctionParams } from '@/index';
+import {
+    normalizeTranslations,
+    FlexibleTranslations,
+    ParameterizedTranslation,
+    InterpolationParams,
+} from '@/index';
 
 describe('normalizeTranslations and FlexibleTranslations', () => {
 
@@ -18,8 +23,8 @@ describe('normalizeTranslations and FlexibleTranslations', () => {
     });
 
     it('should keep existing functions as they are', () => {
-        const inputFunc: ParametrizedFunction = (params?: ParametrizedFunctionParams) => `Hello ${params?.name}`;
-        const input: FlexibleTranslations<{ welcome: ParametrizedFunction }> = {
+        const inputFunc: ParameterizedTranslation = (params?: InterpolationParams) => `Hello ${params?.name}`;
+        const input: FlexibleTranslations<{ welcome: ParameterizedTranslation }> = {
             welcome: inputFunc,
         };
 
@@ -28,12 +33,12 @@ describe('normalizeTranslations and FlexibleTranslations', () => {
         expect(typeof normalized.welcome).toBe('function');
         expect(normalized.welcome).toBe(inputFunc); // Should be the same function instance
         expect(normalized.welcome({ name: 'User' })).toBe('Hello User');
-        expect(normalized.welcome()).toBe('Hello undefined');
+        expect(normalized.welcome()).toBe('Hello undefined'); // Behavior with undefined params
     });
 
     it('should handle mixed strings and functions', () => {
-        const inputFunc: ParametrizedFunction = () => 'Static Function Message';
-        const input: FlexibleTranslations<{ title: string; message: ParametrizedFunction }> = {
+        const inputFunc: ParameterizedTranslation = () => 'Static Function Message';
+        const input: FlexibleTranslations<{ title: string; message: ParameterizedTranslation }> = {
             title: 'Mixed Object',
             message: inputFunc,
         };
@@ -48,10 +53,10 @@ describe('normalizeTranslations and FlexibleTranslations', () => {
     });
 
     it('should recursively normalize nested objects', () => {
-        const inputFunc: ParametrizedFunction = (params?: ParametrizedFunctionParams) => `Contact at ${params?.email}`;
+        const inputFunc: ParameterizedTranslation = (params?: InterpolationParams) => `Contact at ${params?.email}`;
         const input: FlexibleTranslations<{
             header: { title: string };
-            footer: { copyright: string; contact: ParametrizedFunction };
+            footer: { copyright: string; contact: ParameterizedTranslation };
         }> = {
             header: {
                 title: 'Nested Title',
@@ -74,7 +79,7 @@ describe('normalizeTranslations and FlexibleTranslations', () => {
         expect(normalized.footer.copyright()).toBe('© 2024');
         expect(normalized.footer.contact).toBe(inputFunc);
         expect(normalized.footer.contact({ email: 'test@example.com' })).toBe('Contact at test@example.com');
-        expect(normalized.footer.contact()).toBe('Contact at undefined');
+        expect(normalized.footer.contact()).toBe('Contact at undefined'); // Behavior with undefined params
     });
 
     it('should handle empty objects', () => {
@@ -83,60 +88,73 @@ describe('normalizeTranslations and FlexibleTranslations', () => {
         expect(normalized).toEqual({});
     });
 
-     it('should skip null/undefined and keep other non-string/object types', () => {
-        const input: FlexibleTranslations<{ title: string | null; description?: string; count: number | undefined; active: boolean }> = {
+     it('should ignore null, undefined, and other non-string/object/function primitive types', () => {
+        const input: FlexibleTranslations<{
+            title: string | null;
+            description?: string; // Will be undefined if not provided
+            count: number;
+            active: boolean;
+            id: symbol;
+            bigNum: bigint;
+            someString: string;
+            someFunc: ParameterizedTranslation;
+        }> = {
             title: null,
-            description: undefined,
-            count: 5 as any, // Keep as any to test skipping non-string/object/function
-            active: true // Add boolean test case
+            // description is implicitly undefined
+            count: 5,
+            active: true,
+            id: Symbol('id'),
+            bigNum: 100n,
+            someString: 'I will stay',
+            someFunc: () => 'I am a function'
         };
 
         const normalized = normalizeTranslations(input);
 
-        // Expect keys with null/undefined to not exist
         expect(normalized).not.toHaveProperty('title');
         expect(normalized).not.toHaveProperty('description');
+        expect(normalized).not.toHaveProperty('count');
+        expect(normalized).not.toHaveProperty('active');
+        expect(normalized).not.toHaveProperty('id');
+        expect(normalized).not.toHaveProperty('bigNum');
 
-        // TODO: rethink that, maybe we should throw an error on non-string values/translations
-        // Expect other types (number, boolean) to be kept as they are
-        expect(normalized).toHaveProperty('count', 5);
-        expect(normalized).toHaveProperty('active', true);
+        expect(normalized).toHaveProperty('someString');
+        expect(typeof normalized.someString).toBe('function');
+        expect(normalized.someString()).toBe('I will stay');
 
-        // Check the resulting object keys
+        expect(normalized).toHaveProperty('someFunc');
+        expect(typeof normalized.someFunc).toBe('function');
+        expect(normalized.someFunc()).toBe('I am a function');
+
         expect(Object.keys(normalized).length).toBe(2);
-        expect(Object.keys(normalized)).toEqual(expect.arrayContaining(['count', 'active']));
+        expect(Object.keys(normalized)).toEqual(expect.arrayContaining(['someString', 'someFunc']));
      });
 
     it('should correctly type the output when using FlexibleTranslations', () => {
          const input: FlexibleTranslations<{
              staticMsg: string;
-             dynamicMsg: ParametrizedFunction;
+             dynamicMsg: ParameterizedTranslation;
              nested: { subStatic: string; };
          }> = {
              staticMsg: 'Static',
-             // Align function signature with ParametrizedFunction
-             dynamicMsg: (params?: ParametrizedFunctionParams) => `Dynamic ${params?.value ?? 'default'}`,
+             dynamicMsg: (params?: InterpolationParams) => `Dynamic ${params?.value ?? 'default'}`,
              nested: {
                  subStatic: 'Nested Static'
              }
          };
 
-         // No explicit type annotation needed here, but TS should infer correctly
          const normalized = normalizeTranslations(input);
 
-         // Type checks (compile-time) - these lines primarily check TypeScript inference
          const msg1: string = normalized.staticMsg();
          const msg2: string = normalized.dynamicMsg({ value: 123 });
          const msg3: string = normalized.nested.subStatic();
-         const msg4: string = normalized.dynamicMsg(); // Check call without params
+         const msg4: string = normalized.dynamicMsg(); 
 
-         // Runtime checks
          expect(msg1).toBe('Static');
          expect(msg2).toBe('Dynamic 123');
          expect(msg3).toBe('Nested Static');
-         expect(msg4).toBe('Dynamic default'); // Check fallback value
+         expect(msg4).toBe('Dynamic default');
 
-         // Ensure all leaves are functions
          expect(typeof normalized.staticMsg).toBe('function');
          expect(typeof normalized.dynamicMsg).toBe('function');
          expect(typeof normalized.nested.subStatic).toBe('function');

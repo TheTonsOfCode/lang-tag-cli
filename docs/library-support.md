@@ -1,95 +1,183 @@
 # Library Support
 
-`lang-tag` provides features specifically designed for projects that act as libraries, exporting components that utilize `lang-tag` for their internal translations. This allows consuming applications to easily integrate and potentially override the library's default translations.
+`lang-tag` provides features specifically designed for projects that act as libraries, exporting components or utilities that utilize `lang-tag` for their internal translations. This allows consuming applications to easily integrate and potentially override the library's default translations.
 
 > **Note:** The CLI command is available as `lang-tag` (recommended) or `langtag` (alias for backward compatibility).
 
-## Project Configuration (`isLibrary`)
+## Library Project Configuration (`isLibrary`)
 
-To designate your project as a library, set the `isLibrary` flag to `true` in your `.lang-tag.config.js`:
+To designate your project as a library that exports its translations for consumption by other `lang-tag` enabled projects, set the `isLibrary` flag to `true` in your `.lang-tag.config.js`:
 
-```json
-{
-  "isLibrary": true
-}
+```javascript
+// .lang-tag.config.js for your library project
+module.exports = {
+  // ... other configurations (tagName, includes, language, etc.)
+  isLibrary: true,
+  // outputDir is typically not needed or ignored in library mode, as translations are exported to .lang-tag.exports.json
+};
 ```
 
-This instructs the tool to process your project as a library, changing how language tags are handled during the build process.
+This instructs the `lang-tag collect` command to generate a special `.lang-tag.exports.json` file in your library's output (usually the project root or specified by `outputDir` if still relevant for other purposes) instead of the standard namespace-based JSON files.
 
-## Language Tag Generation
+## Translation Tagging in a Library
 
-### In Library Projects
+Define your translation tags (e.g., using your custom `i18n` function) within your library components/modules as you normally would.
 
-When creating language tags in a library project:
+```typescript
+// src/components/MyLibraryComponent.ts (in your library)
+import { i18n } from '../utils/library-i18n-tag'; // Your library's i18n tag setup
 
-1. Define language tags as you normally would
-2. Use `lang-tag collect` (or langtag collect, alias: c) to generate a `.lang-tag.exports.json` file instead of namespace files
-3. Ensure this file is included in your build before publishing to the registry
+export const libTranslations = i18n({
+  greeting: "Hello from the library!",
+  farewell: "Goodbye from the library, {{user}}."
+}, {
+  namespace: 'myLibNamespace', // Namespace for these library translations
+  path: 'myLibComponent'       // Path within the namespace
+});
 
-This file contains all language tag definitions from your project, making them available to consuming applications.
-
-## Type Definitions
-
-### Basic Component Typing
-
-Components that consume translations should be properly typed:
-
-```tsx
-const translations = i18n({
-  title: "Member profile",
-  description: "Some description"
-}, { namespace: 'profile' });
-
-interface ProfileComponentProps {
-    t: typeof translations;
-}
-
-export function ProfileComponent({t}: ProfileComponentProps) {
-    return <div>
-        <h1>{t.title()}</h1>
-        <h2>{t.description()}</h2>
-    </div>;
-}
+// Your library component might use these directly or expose them
 ```
 
-### Typing with Intermediate Functions
+When you run `lang-tag collect` in your library project (with `isLibrary: true`), it will produce a `.lang-tag.exports.json` file. This file contains a structured representation of all translations defined via your `tagName` function, including their original text, namespace, path, and language.
 
-When translations are accessed through functions:
+**Ensure this `.lang-tag.exports.json` file is included in your library's published package** (e.g., in the `files` array of your `package.json`).
 
-```tsx
-export function i18n<T extends LangTagTranslations>(
+## Consuming Library Translations in an Application
+
+For an application to consume translations from your `lang-tag` enabled library:
+
+1.  **Install the library package:**
+    ```bash
+    npm install my-lang-tag-library
+    # or
+    yarn add my-lang-tag-library
+    ```
+
+2.  **Configure `lang-tag` in the application:**
+    The application's `.lang-tag.config.js` should specify where to look for imported library tags and how to integrate them. This is done via the `import` section of the configuration.
+
+    ```javascript
+    // .lang-tag.config.js for the consuming application
+    module.exports = {
+      // ... other app configurations (tagName, includes, outputDir, language, etc.)
+      import: {
+        // Directory within your app where lang-tag will generate modules for library translations
+        // Default: 'src/lang-tag-libs' (you might prefer a name like 'src/i18n/libs')
+        dir: 'src/i18n/generated-libs',
+        
+        // Import statement for the consuming application's OWN tag function.
+        // This is used in the generated files so they use the app's i18n setup.
+        // Example: 'import { i18n } from "@/utils/i18n-tag"',
+        tagImportPath: 'import { i18n } from "@/app/core/i18n-tag"', // Adjust to your app's i18n tag
+        
+        // Optional: Function to customize the generated file and export names for library tags.
+        // onImport: (params: { libraryName: string; originalTagName: string; }) => 
+        //   ({ fileName?: string; exportName?: string; }),
+      },
+    };
+    ```
+
+3.  **Run `lang-tag collect --lib` in the application:**
+    ```bash
+    npx lang-tag collect --lib
+    ```
+    During its collection phase, `lang-tag` will:
+    *   Scan `node_modules` for installed packages that contain a `.lang-tag.exports.json` file.
+    *   For each found library, it will read the exported translations.
+    *   It will then generate a new `.ts` (or `.js`) file in the directory specified by `import.dir` (e.g., `src/i18n/generated-libs/my-lang-tag-library.ts`).
+    *   This generated file will contain calls to your application's own `i18n` tag function (specified by `import.tagImportPath`), effectively re-declaring the library's translations using your app's i18n setup. This allows the library's translations to be processed just like your app's own translations (e.g., collected into your app's JSON files, benefiting from your app's `TranslationMappingStrategy`).
+
+**Example of a generated file in the application (`src/i18n/generated-libs/my-lang-tag-library.ts`):**
+
+```typescript
+// This file is auto-generated by lang-tag. Do not edit directly.
+import { i18n } from "@/app/core/i18n-tag"; // Using the app's i18n tag
+
+export const myLibNamespaceMyLibComponentTranslations = i18n(
+  {
+    greeting: "Hello from the library!", // Default text from library
+    farewell: "Goodbye from the library, {{user}}."
+  },
+  {
+    namespace: "myLibNamespace", // Original namespace from library
+    path: "myLibComponent",     // Original path from library
+    // lang-tag might add other metadata here, like isImported: true
+  }
+);
+
+// Other translations from the same library would also be here.
+```
+
+Now, your application can import and use `myLibNamespaceMyLibComponentTranslations` just like any other `i18n`-tagged translations within the app. This means they are now part of the app's translation ecosystem and can be overridden by the app if needed (by redefining them in the app with the same namespace/path, and ensuring the app's version is loaded/merged appropriately by the i18n runtime library like `i18next`).
+
+## Typing Library Components and Translations
+
+If your library exports React components that use its internal translations, you'll want to type them correctly.
+
+Let's assume your library has its own `i18n` tag function (e.g., `libI18n`) that might return a structure like `{ useT: () => ({...}) }` for `react-i18next` integration.
+
+```typescript
+// In your LIBRARY (e.g., src/utils/lib-i18n-tag.ts)
+import {
+  LangTagTranslationsConfig,
+  LangTagTranslations,
+  createCallableTranslations,
+  defaultTranslationTransformer
+} from "lang-tag";
+// For this example, let's assume the library doesn't directly use react-i18next's useTranslation,
+// but prepares for it or for a simple string resolver.
+
+export function libI18n<T extends LangTagTranslations>(
   translations: T,
   config?: LangTagTranslationsConfig
 ) {
-  return {
-    useT() {
-      const {t} = useTranslation(config?.namespace || '');
-      
-      return mapTranslationObjectToFunctions(translations, config, {
-        //..
-      });
-    }
-  };
+  // This is the raw callable object from lang-tag
+  const callable = createCallableTranslations(translations, config, {
+    transform: defaultTranslationTransformer, // Or library's own transformer
+  });
+  
+  // The library might expose this directly, or wrap it further.
+  return callable;
 }
 
-// Component props definition
-const translations = i18n({
-  title: "Member profile",
-  description: "Some description"
-}, { namespace: 'profile' });
+// Example of a translation definition in the library
+// src/lib-features/FeatureX.ts
+import { libI18n } from '../utils/lib-i18n-tag';
+export const featureXTranslations = libI18n({
+  featureName: "Awesome Feature X",
+  enableButton: "Enable {{featureName}}"
+}, { namespace: 'myLib', path: 'featureX' });
 
-interface ProfileComponentProps {
-    t: ReturnType<typeof translations.useT>;
-}
+// Type for the component props that expect these translations
+// This would be ReturnType<typeof featureXTranslations> if featureXTranslations is the direct output
+// or ReturnType<typeof someWrapper.useT> if you have a useT like structure.
+// For a simple return from libI18n as above:
+export type FeatureXTranslationProps = typeof featureXTranslations;
 ```
 
-## Consuming Library Translations
+```tsx
+// In your LIBRARY (e.g., src/components/FeatureXComponent.tsx)
+import React from 'react';
+import { featureXTranslations, FeatureXTranslationProps } from '../lib-features/FeatureX';
 
-### Installation Process
+interface FeatureXComponentProps {
+  // The component expects the callable translation object as a prop.
+  // This allows the consuming application to pass in potentially overridden translations.
+  t: FeatureXTranslationProps;
+  // other props...
+}
 
-To use translations from an installed library package in your main application:
+export const FeatureXComponent: React.FC<FeatureXComponentProps> = ({ t, ...props }) => {
+  return (
+    <div>
+      <h2>{t.featureName()}</h2>
+      <button>{t.enableButton({ featureName: t.featureName() })}</button>
+      {/* ... rest of component ... */}
+    </div>
+  );
+};
+```
 
-1. Install the library package (e.g., `npm install my-lang-tag-library`).
-2. Ensure the library included the `.lang-tag.exports.json` file in its published package (check its `package.json` "files" array).
-3. Run `lang-tag collect --lib` (or langtag collect --lib, alias: c --lib) in your main project's root directory.
-4. This command reads the `.lang-tag.exports.json`
+When the consuming application uses `FeatureXComponent`, it would pass the translations generated in its `src/i18n/generated-libs/my-lang-tag-library.ts` (or however it integrates/overrides them).
+
+This approach provides flexibility: the library defines default translations and structure, and the consuming application can seamlessly integrate them into its own `lang-tag` and i18n workflow, including overriding them if necessary.

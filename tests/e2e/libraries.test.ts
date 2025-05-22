@@ -55,14 +55,14 @@ const MAIN_PROJECT_LANG_TAG_DEFINITION = `
     import {
         LangTagTranslationsConfig,
         LangTagTranslations,
-        mapTranslationObjectToFunctions
+        createCallableTranslations
     } from "lang-tag";
 
     export function lang<T extends LangTagTranslations>(
         translations: T,
         config?: LangTagTranslationsConfig
     ) {
-        return mapTranslationObjectToFunctions(translations, config, {
+        return createCallableTranslations(translations, config, {
             transform: ({ path }) => path
         });
     }
@@ -138,14 +138,14 @@ describe('libraries import e2e tests', () => {
             import {
                 LangTagTranslationsConfig,
                 LangTagTranslations,
-                mapTranslationObjectToFunctions
+                createCallableTranslations
             } from "lang-tag";
 
             export function libTag<T extends LangTagTranslations>(
                 translations: T,
                 config?: LangTagTranslationsConfig
             ) {
-                return mapTranslationObjectToFunctions(translations, config, {
+                return createCallableTranslations(translations, config, {
                     transform: ({ path }) => path
                 });
             }
@@ -271,14 +271,14 @@ describe('libraries import e2e tests', () => {
             import {
                 LangTagTranslationsConfig,
                 LangTagTranslations,
-                mapTranslationObjectToFunctions
+                createCallableTranslations
             } from "lang-tag";
 
             export function libTag<T extends LangTagTranslations>(
                 translations: T,
                 config?: LangTagTranslationsConfig
             ) {
-                return mapTranslationObjectToFunctions(translations, config, {
+                return createCallableTranslations(translations, config, {
                     transform: ({ path }) => path
                 });
             }

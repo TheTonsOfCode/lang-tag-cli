@@ -39,7 +39,7 @@ function CheckoutComponent({ name, count }) {
 }
 ```
 
-`lang-tag` provides the building blocks (`mapTranslationObjectToFunctions`) and CLI tools (`lang-tag`) to make this work seamlessly:
+`lang-tag` provides the building blocks (`createCallableTranslations`) and CLI tools (`lang-tag`) to make this work seamlessly:
 
 *   **Automated Organization:** The `lang-tag collect` (alias: c) command scans your project for these tags and automatically aggregates the translations into the correct namespace files (e.g., `public/locales/en/orders.json`) based on the tag's configuration or rules you define (`onConfigGeneration`). For the example above, it would place the translations under the key `components.checkout.greeting` and `components.checkout.orderSummary` within `orders.json`.
 *   **Simplified Key Management:** Developers focus on meaningful keys within the component's context, letting the tools handle the final path and namespace.
