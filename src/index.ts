@@ -109,7 +109,7 @@ export type FlexibleTranslations<T> = {
             : T[P] | string;
 };
 
-type ReverseFlexibleTranslations<T> = {
+export type ReversedFlexibleTranslations<T> = {
     [P in keyof T]: T[P] extends object
         ? T[P] extends Function
             ? T[P]
@@ -119,8 +119,8 @@ type ReverseFlexibleTranslations<T> = {
         : ParametrizedFunction;
 };
 
-export function normalizeTranslations<T>(translations: FlexibleTranslations<T>): ReverseFlexibleTranslations<T>  {
-    const result = {} as ReverseFlexibleTranslations<T>;
+export function normalizeTranslations<T>(translations: FlexibleTranslations<T>): ReversedFlexibleTranslations<T>  {
+    const result = {} as ReversedFlexibleTranslations<T>;
 
     for (const key in translations) {
         const value = translations[key];
