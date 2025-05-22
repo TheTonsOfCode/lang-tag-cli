@@ -189,3 +189,51 @@ Here, `ProfileCard` receives a mix of strings and functions. Its internal `norma
 *   **Consumer Flexibility:** This allows consumers of your component to provide translations either as fully `CallableTranslations` (e.g., from their own `lang-tag` setup) or as more lenient `FlexibleTranslations` objects (plain strings mixed with functions).
 
 This approach decouples your reusable component from the specific translation management strategy of its consuming applications, while still ensuring type safety and a consistent internal API via `CallableTranslations`.
+
+## `PartialFlexibleTranslations<T>`
+
+The `PartialFlexibleTranslations<T>` type represents a deeply partial version of an original translation structure `T`, after being processed by the flexible translation logic.
+
+This type makes all properties at all levels of nesting optional. The transformation rules for the types of these properties mirror those in `FlexibleTranslations<T>` (e.g., a `string` in `T` becomes `ParameterizedTranslation | string` here, but optional).
+
+It is an alias for `RecursiveFlexibleTranslations<T, true>` (defined in `src/index.ts`).
+
+This is useful when you want to provide only a subset of translations for a given structure, for example, when overriding a few specific translations from a larger set or when defining translations incrementally.
+
+**Type Parameter:**
+
+*   `T`: The original, un-transformed, structure of the translations. This is the same kind of type argument that `FlexibleTranslations<T>` expects. It defines the shape and types of the translations *before* they are made flexible or partial.
+
+**Usage Example:**
+
+```typescript
+import { PartialFlexibleTranslations, normalizeTranslations } from './src/index'; // Assuming the path is correct
+
+interface MyTranslations {
+  greeting: string;
+  farewell: string;
+  user: {
+    name: string;
+    age: string; // Represented as a string for translation purposes
+  };
+}
+
+const partialMsgs: PartialFlexibleTranslations<MyTranslations> = {
+  greeting: "Hi there!", // string becomes ParameterizedTranslation | string
+  user: { // user itself is optional, and its properties are also optional
+    age: (params) => `Age: ${params?.years}` // can be a ParameterizedTranslation directly
+  }
+  // farewell is omitted, which is allowed
+  // user.name is omitted, also allowed
+};
+
+// This can then be passed to normalizeTranslations:
+const normalized = normalizeTranslations(partialMsgs);
+// normalized will be:
+// {
+//   greeting: Function,
+//   user: {
+//     age: Function
+//   }
+// }
+```
