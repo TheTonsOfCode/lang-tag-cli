@@ -1,17 +1,42 @@
+/**
+ * Configuration for LangTag translations.
+ * @template Namespaces - The type used for namespaces, defaults to string.
+ */
 export interface LangTagTranslationsConfig<Namespaces = string> {
+    /** Optional base path for translation keys. */
     path?: string;
+    /** The namespace for the translations. */
     namespace: Namespaces;
 }
 
+/**
+ * Represents a collection of translations.
+ * Keys are strings, and values can be either strings (translations)
+ * or nested LangTagTranslations objects for hierarchical translations.
+ */
 export type LangTagTranslations = {
     [key: string]: string | LangTagTranslations;
 };
 
 // export type LangTag<Config extends LangTagConfig = LangTagConfig, T = any> = (translations: LangTagTranslations, config?: Config) => T;
 
+/**
+ * Defines the structure for parameters used in interpolation.
+ * It's a record where keys are placeholders and values are their replacements.
+ */
 export type InterpolationParams = Record<string, any>;
+/**
+ * Represents a function that takes optional interpolation parameters
+ * and returns a translated string.
+ */
 export type ParameterizedTranslation = (params?: InterpolationParams) => string;
 
+/**
+ * Transforms a static translation object into an object where each
+ * translation string or nested object is converted into a callable function
+ * or a nested structure of callable functions.
+ * @template T - The structure of the input translations.
+ */
 export type CallableTranslations<T> = {
     [P in keyof T]:
         T[P] extends ParameterizedTranslation ? ParameterizedTranslation :
@@ -22,34 +47,81 @@ export type CallableTranslations<T> = {
         ParameterizedTranslation; // Fallback for basic strings that will be converted
 };
 
+/**
+ * Context provided to a translation transformer function.
+ * @template Config - The LangTag translations configuration type.
+ */
 export interface TranslationTransformContext<Config extends LangTagTranslationsConfig> {
+    /** The LangTag configuration object. */
     config: Config | undefined;
+    /** The path of the direct parent object of the current translation key. */
     parentPath: string;
+    /** The full path to the current translation key. */
     path: string;
+    /** The current translation key. */
     key: string;
+    /** The raw string value of the translation. */
     value: string; // The raw string value of the translation
+    /** Optional interpolation parameters for the translation. */
     params?: InterpolationParams;
 }
 
+/**
+ * Defines the signature for a function that transforms a raw translation string.
+ * @template Config - The LangTag translations configuration type.
+ * @param transformContext - The context for the transformation.
+ * @returns The transformed translation string.
+ */
 type TranslationTransformer<Config extends LangTagTranslationsConfig> = (transformContext: TranslationTransformContext<Config>) => string;
 
+/**
+ * Context provided to a translation key processor function.
+ * It omits the 'params' field from `TranslationTransformContext`.
+ * @template Config - The LangTag translations configuration type.
+ */
 export type TranslationKeyProcessorContext<Config extends LangTagTranslationsConfig> = Omit<TranslationTransformContext<Config>, 'params'>;
 
+/**
+ * Defines the signature for a function that processes translation keys.
+ * This allows for modifying or generating new keys based on the original key and value.
+ * @template Config - The LangTag translations configuration type.
+ */
 export type TranslationKeyProcessor<
     Config extends LangTagTranslationsConfig = LangTagTranslationsConfig
 > = (
+    /** Context for processing the key. */
     context: TranslationKeyProcessorContext<Config>,
-    // Callback to add a processed key.
-    // newKey: the key to be added to the result.
-    // originalValue: the original string value associated with the original key being processed.
+    /**
+     * Callback to add a processed key.
+     * @param newKey - The new key to be added to the result.
+     * @param originalValue - The original string value associated with the key being processed.
+     */
     addProcessedKey: (newKey: string, originalValue: string) => void
 ) => void;
 
+/**
+ * Defines the strategy for mapping and transforming translations.
+ * @template Config - The LangTag translations configuration type.
+ */
 export interface TranslationMappingStrategy<Config extends LangTagTranslationsConfig> {
+    /** The function used to transform raw translation strings. */
     transform: TranslationTransformer<Config>;
+    /** Optional function to process translation keys. */
     processKey?: TranslationKeyProcessor<Config>;
 }
 
+/**
+ * Recursively transforms a nested object of translation strings into an object
+ * of callable translation functions.
+ * @template T - The type of the input translations object.
+ * @template Config - The LangTag translations configuration type.
+ * @param config - The LangTag configuration object.
+ * @param strategy - The translation mapping strategy.
+ * @param input - The translations object to transform.
+ * @param currentParentPath - The current parent path for building full translation keys.
+ * @returns An object with the same structure as input, but with strings replaced by callable functions.
+ * @internal
+ */
 function transformTranslationsToFunctions<
     T extends LangTagTranslations,
     Config extends LangTagTranslationsConfig
@@ -102,6 +174,16 @@ function transformTranslationsToFunctions<
     return result as CallableTranslations<T>;
 }
 
+/**
+ * Creates a callable translations object from a static translations object.
+ * This function initializes the transformation process.
+ * @template T - The type of the input translations object.
+ * @template Config - The LangTag translations configuration type.
+ * @param translations - The static translations object.
+ * @param config - The LangTag configuration object.
+ * @param strategy - The translation mapping strategy.
+ * @returns A callable translations object.
+ */
 export function createCallableTranslations<
     T extends LangTagTranslations,
     Config extends LangTagTranslationsConfig
@@ -120,6 +202,11 @@ export function createCallableTranslations<
     );
 }
 
+/**
+ * Default transformer for translations.
+ * Replaces placeholders in the format `{{placeholder}}` with values from `params`.
+ * If a placeholder is not found in `params`, it's replaced with an empty string.
+ */
 export const defaultTranslationTransformer: TranslationTransformer<LangTagTranslationsConfig> = ({ value, params }) => {
     if (typeof value !== 'string') {
          // This case should ideally not be hit if input conforms to LangTagTranslations.
@@ -132,6 +219,13 @@ export const defaultTranslationTransformer: TranslationTransformer<LangTagTransl
     });
 };
 
+/**
+ * Represents a flexible structure for translations before they are normalized.
+ * Allows for strings, `ParameterizedTranslation` functions, or other compatible functions
+ * at any level of the translation object. This provides flexibility in how translations
+ * are initially defined.
+ * @template T - The structure of the translations.
+ */
 export type FlexibleTranslations<T> = {
     [P in keyof T]: T[P] extends ParameterizedTranslation
         ? ParameterizedTranslation | string
@@ -141,6 +235,14 @@ export type FlexibleTranslations<T> = {
             : ParameterizedTranslation | T[P] | string; // Allow plain strings or other primitive types if they make sense in some context or ParameterizedTranslation
 };
 
+/**
+ * Normalizes a `FlexibleTranslations` object into a `CallableTranslations` object.
+ * Converts plain strings into `ParameterizedTranslation` functions and ensures
+ * that all callable elements conform to the `ParameterizedTranslation` signature.
+ * @template T - The structure of the flexible translations.
+ * @param translations - The flexible translations object to normalize.
+ * @returns A `CallableTranslations` object.
+ */
 export function normalizeTranslations<T>(translations: FlexibleTranslations<T>): CallableTranslations<T>  {
     const result = {} as CallableTranslations<T>;
 
@@ -174,9 +276,11 @@ export function normalizeTranslations<T>(translations: FlexibleTranslations<T>):
 
 /**
  * Resolves a translation function from a nested translation object using a path array.
+ * @template T - The type of the translations object.
  * @param translations The object containing translation functions.
  * @param path An array of keys representing the path to the function.
  * @returns The translation function, or null if not found or invalid.
+ * @internal
  */
 function resolveTranslationFunction<T>(
     translations: CallableTranslations<T>,
@@ -197,6 +301,7 @@ function resolveTranslationFunction<T>(
 
 /**
  * Retrieves a translation function from a nested translation object using a dot-separated path.
+ * @template T - The type of the translations object.
  * @param translations The object containing translation functions.
  * @param dottedPath A string path using dot notation (e.g., "user.profile.greeting").
  * @returns The translation function, or null if not found or invalid.
