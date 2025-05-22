@@ -5,7 +5,7 @@ import {
     createCallableTranslations,
     normalizeTranslations,
     ParameterizedTranslation,
-    CallableTranslations
+    CallableTranslations, lookupTranslation
 } from "@/index";
 
 // import React, {createContext, useContext, ReactNode} from 'react';
@@ -30,7 +30,7 @@ export function lang<T extends LangTagTranslations>(
                     transform: ({path, params, value}) => {
                         if (!normalized) return value;
 
-                        const fn = getTranslationFunctionByPath(normalized, path);
+                        const fn = lookupTranslation(normalized, path);
 
                         if (fn) return fn(params)
 
@@ -80,32 +80,6 @@ const c: FlexibleT = {
     sub: {
         ooo: params => "hrrr!",
     }
-}
-
-
-function resolveTranslationFunction<T>(
-    translations: CallableTranslations<T>,
-    path: string[]
-): ParameterizedTranslation | null {
-    let current: any = translations;
-
-    for (const key of path) {
-        if (current && typeof current === 'object' && key in current) {
-            current = current[key];
-        } else {
-            return null;
-        }
-    }
-
-    return typeof current === 'function' ? (current as ParameterizedTranslation) : null;
-}
-
-export function getTranslationFunctionByPath<T>(
-    translations: CallableTranslations<T>,
-    dottedPath: string
-): ParameterizedTranslation | null {
-    const pathSegments = dottedPath.split('.');
-    return resolveTranslationFunction(translations, pathSegments);
 }
 
 
