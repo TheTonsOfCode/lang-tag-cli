@@ -138,7 +138,7 @@ export type FlexibleTranslations<T> = {
         : T[P] extends (...args: any[]) => string ? T[P] | string // Allow functions returning string
         : T[P] extends Record<string, any>
             ? FlexibleTranslations<T[P]>
-            : T[P] | string; // Allow plain strings or other primitive types if they make sense in some context
+            : ParameterizedTranslation | T[P] | string; // Allow plain strings or other primitive types if they make sense in some context or ParameterizedTranslation
 };
 
 export function normalizeTranslations<T>(translations: FlexibleTranslations<T>): CallableTranslations<T>  {
@@ -170,4 +170,38 @@ export function normalizeTranslations<T>(translations: FlexibleTranslations<T>):
         }
     }
     return result;
+}
+
+/**
+ * Resolves a translation function from a nested translation object using a path array.
+ * @param translations The object containing translation functions.
+ * @param path An array of keys representing the path to the function.
+ * @returns The translation function, or null if not found or invalid.
+ */
+function resolveTranslationFunction<T>(
+    translations: CallableTranslations<T>,
+    path: string[]
+): ParameterizedTranslation | null {
+    let current: any = translations;
+
+    for (const key of path) {
+        if (current && typeof current === 'object' && key in current) {
+            current = current[key];
+        } else {
+            return null;
+        }
+    }
+
+    return typeof current === 'function' ? (current as ParameterizedTranslation) : null;
+}
+
+/**
+ * Retrieves a translation function from a nested translation object using a dot-separated path.
+ * @param translations The object containing translation functions.
+ * @param dottedPath A string path using dot notation (e.g., "user.profile.greeting").
+ * @returns The translation function, or null if not found or invalid.
+ */
+export function lookupTranslation<T>(translations: CallableTranslations<T>, dottedPath: string): ParameterizedTranslation | null {
+    const pathSegments = dottedPath.split('.');
+    return resolveTranslationFunction(translations, pathSegments);
 }

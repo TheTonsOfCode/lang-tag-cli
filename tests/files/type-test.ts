@@ -4,7 +4,7 @@ import {
     CallableTranslations,
     InterpolationParams,
     ParameterizedTranslation
-} from "@/index.ts";
+} from "@/index";
 
 // Example base object structure
 const exampleStructure = {
@@ -66,26 +66,26 @@ interface MyFlexibleType {
     }
 }
 
-const flexInput: FlexibleTranslations<MyFlexibleType> = {
-    greeting: "Hello there!",
-    farewell: (params?: InterpolationParams) => `Goodbye ${params?.name || 'friend'}`,
-    details: {
-        info: "Some important info."
-        // 'extra' is optional and can be omitted or be a string/function
+const translations = {
+    title: 'Translations',
+    sub: {
+        ooo: (params?: InterpolationParams) => "Hrrr!"
     }
-};
+} as const;
 
-const normalizedFlex = normalizeTranslations(flexInput);
+const fxT: FlexibleTranslations<typeof translations> = {
+    title: 'Some title',
+    sub: {
+        ooo: (props) => "Hrrr!" + props?.name
+    }
+}
 
-const greetMsg: string = normalizedFlex.greeting();
-const farewellMsg: string = normalizedFlex.farewell({ name: "Alice" });
-const infoMsg: string = normalizedFlex.details.info();
+const normalizedFlex = normalizeTranslations(translations);
 
-// If 'extra' were provided as a string "Extra detail", this would be callable:
-// const extraMsg = normalizedFlex.details.extra(); 
-// If 'extra' is undefined in flexInput, normalizedFlex.details.extra will also be undefined.
+const titleMsg: string = normalizedFlex.title();
+const oooMsg: string = normalizedFlex.sub.ooo({ name: "Alice" });
 
-console.log(greetMsg, farewellMsg, infoMsg);
+console.log(titleMsg, oooMsg);
 
 // This file is primarily for TypeScript type checking during development.
 // The console.logs are just for basic runtime verification if someone runs this file.

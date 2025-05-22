@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {defaultTranslationTransformer, InterpolationParams, LangTagTranslationsConfig, TranslationTransformContext} from '@/index';
+import {defaultTranslationTransformer, InterpolationParams, LangTagTranslationsConfig, TranslationTransformContext} from '@/index.ts';
 
 // Minimal config for testing purposes
 const mockConfig: LangTagTranslationsConfig = {
