@@ -203,47 +203,67 @@ export function createCallableTranslations<
 }
 
 /**
- * Default transformer for translations.
- * Replaces placeholders in the format `{{placeholder}}` with values from `params`.
- * If a placeholder is not found in `params`, it's replaced with an empty string.
+ * Core type for flexible translations, allowing properties to be optional recursively.
+ * This type serves as the foundation for `FlexibleTranslations` and `PartialFlexibleTranslations`.
+ * @template T The original, un-transformed, structure of the translations.
+ * @template IsPartial A boolean indicating whether properties should be optional. If true, all properties at all levels become optional.
  */
-export const defaultTranslationTransformer: TranslationTransformer<LangTagTranslationsConfig> = ({ value, params }) => {
-    if (typeof value !== 'string') {
-         // This case should ideally not be hit if input conforms to LangTagTranslations.
-         // However, as a safeguard, return an empty string
-        return '';
-    }
-    return value.replace(/{{(.*?)}}/g, (_: any, placeholder: string) => {
-        const trimmedPlaceholder = placeholder.trim();
-        return params?.[trimmedPlaceholder] !== undefined ? String(params[trimmedPlaceholder]) : '';
-    });
-};
+export type RecursiveFlexibleTranslations<T, IsPartial extends boolean> =
+    IsPartial extends true
+        ? { // If IsPartial is true, all properties are optional
+            [P in keyof T]?:
+                T[P] extends ParameterizedTranslation
+                    ? ParameterizedTranslation | string
+                    : T[P] extends (...args: any[]) => string
+                        ? T[P] | string
+                        : T[P] extends Record<string, any>
+                            // Recursive call with IsPartial = true
+                            ? RecursiveFlexibleTranslations<T[P], true>
+                            : ParameterizedTranslation | T[P] | string;
+          }
+        : { // If IsPartial is false, all properties are required
+            [P in keyof T]:
+                T[P] extends ParameterizedTranslation
+                    ? ParameterizedTranslation | string
+                    : T[P] extends (...args: any[]) => string
+                        ? T[P] | string
+                        : T[P] extends Record<string, any>
+                            // Recursive call with IsPartial = false
+                            ? RecursiveFlexibleTranslations<T[P], false>
+                            : ParameterizedTranslation | T[P] | string;
+          };
 
 /**
- * Represents a flexible structure for translations before they are normalized.
+ * Represents a flexible structure for translations where all properties are required, based on an original type `T`.
  * Allows for strings, `ParameterizedTranslation` functions, or other compatible functions
  * at any level of the translation object. This provides flexibility in how translations
  * are initially defined.
- * @template T - The structure of the translations.
+ * This type is an alias for `RecursiveFlexibleTranslations<T, false>`.
+ * @template T - The original structure of the translations.
  */
-export type FlexibleTranslations<T> = {
-    [P in keyof T]: T[P] extends ParameterizedTranslation
-        ? ParameterizedTranslation | string
-        : T[P] extends (...args: any[]) => string ? T[P] | string // Allow functions returning string
-        : T[P] extends Record<string, any>
-            ? FlexibleTranslations<T[P]>
-            : ParameterizedTranslation | T[P] | string; // Allow plain strings or other primitive types if they make sense in some context or ParameterizedTranslation
-};
+export type FlexibleTranslations<T> = RecursiveFlexibleTranslations<T, false>;
 
 /**
- * Normalizes a `FlexibleTranslations` object into a `CallableTranslations` object.
+ * Represents a deeply partial version of the structure that `FlexibleTranslations<T>` would produce, based on an original type `T`.
+ * All properties at all levels of nesting are made optional.
+ * The transformation rules for property types mirror those in `FlexibleTranslations<T>`.
+ * This type is an alias for `RecursiveFlexibleTranslations<T, true>`.
+ * @template T - The original, un-transformed, structure of the translations. This is the same kind of type argument that `FlexibleTranslations<T>` expects.
+ */
+export type PartialFlexibleTranslations<T> = RecursiveFlexibleTranslations<T, true>;
+
+/**
+ * Normalizes a `FlexibleTranslations` or `PartialFlexibleTranslations` object into a `CallableTranslations` object.
  * Converts plain strings into `ParameterizedTranslation` functions and ensures
  * that all callable elements conform to the `ParameterizedTranslation` signature.
- * @template T - The structure of the flexible translations.
- * @param translations - The flexible translations object to normalize.
- * @returns A `CallableTranslations` object.
+ * Only properties present in the input `translations` object will be processed and included in the result.
+ * @template T - The structure of the original translations.
+ * @param translations - The flexible or partial flexible translations object to normalize.
+ * @returns A `CallableTranslations` object. The returned object will only contain callable translations for properties that were present in the input `translations` object.
  */
-export function normalizeTranslations<T>(translations: FlexibleTranslations<T>): CallableTranslations<T>  {
+export function normalizeTranslations<T>(
+    translations: RecursiveFlexibleTranslations<T, boolean>
+): CallableTranslations<T>  {
     const result = {} as CallableTranslations<T>;
 
     for (const key in translations) {
@@ -256,7 +276,7 @@ export function normalizeTranslations<T>(translations: FlexibleTranslations<T>):
 
             if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Function)) {
                 // Recursively normalize nested objects
-                result[key] = normalizeTranslations(value as FlexibleTranslations<any>) as any;
+                result[key] = normalizeTranslations(value as RecursiveFlexibleTranslations<any, boolean>) as any;
             } else if (typeof value === 'string') {
                 // Convert string to a ParameterizedTranslation
                 result[key] = ((_params?: InterpolationParams) => value) as any;
@@ -310,3 +330,33 @@ export function lookupTranslation<T>(translations: CallableTranslations<T>, dott
     const pathSegments = dottedPath.split('.');
     return resolveTranslationFunction(translations, pathSegments);
 }
+
+/**
+ * Processes placeholders in a translation string.
+ * If the input `translation` is not a string, it returns an empty string.
+ * Otherwise, it replaces placeholders in the format `{{placeholder}}` with values from `params`.
+ * If a placeholder is not found in `params`, it's replaced with an empty string.
+ * @param translation The translation value to process. Can be of any type.
+ * @param params Optional interpolation parameters.
+ * @returns The processed string, or an empty string if the input was not a string.
+ */
+export function processPlaceholders(translation: any, params?: InterpolationParams): string {
+    if (typeof translation !== 'string') {
+        // As a safeguard, return an empty string if the input is not a string.
+        return '';
+    }
+    return translation.replace(/{{(.*?)}}/g, (_: any, placeholder: string) => {
+        const trimmedPlaceholder = placeholder.trim();
+        return params?.[trimmedPlaceholder] !== undefined ? String(params[trimmedPlaceholder]) : '';
+    });
+}
+
+// TODO: to remove
+/**
+ * Default transformer for translations.
+ * Uses `processPlaceholders` to replace placeholders in the format `{{placeholder}}`
+ * with values from `params`.
+ */
+export const defaultTranslationTransformer: TranslationTransformer<LangTagTranslationsConfig> = ({ value, params }) => {
+    return processPlaceholders(value, params);
+};
