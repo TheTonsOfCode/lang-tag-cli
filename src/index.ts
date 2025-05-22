@@ -13,9 +13,11 @@ export type ParametrizedFunctionParams = Record<string, any>;
 export type ParametrizedFunction = (params?: ParametrizedFunctionParams) => string;
 
 export type TranslationObjectToFunctions<T> = {
-    [P in keyof T]: T[P] extends object
-        ? TranslationObjectToFunctions<T[P]>
-        : ParametrizedFunction;
+    [P in keyof T]:
+        T[P] extends ParametrizedFunction ? ParametrizedFunction :
+        T[P] extends (...args: any[]) => any ? ParametrizedFunction :
+        T[P] extends Record<string, any> ? TranslationObjectToFunctions<T[P]> :
+        ParametrizedFunction;
 };
 
 interface TransformFunctionParams<Config extends LangTagTranslationsConfig> {
@@ -109,18 +111,8 @@ export type FlexibleTranslations<T> = {
             : T[P] | string;
 };
 
-export type ReversedFlexibleTranslations<T> = {
-    [P in keyof T]: T[P] extends object
-        ? T[P] extends Function
-            ? T[P]
-            : {
-                [K in keyof T[P]]: ParametrizedFunction;
-            }
-        : ParametrizedFunction;
-};
-
-export function normalizeTranslations<T>(translations: FlexibleTranslations<T>): ReversedFlexibleTranslations<T>  {
-    const result = {} as ReversedFlexibleTranslations<T>;
+export function normalizeTranslations<T>(translations: FlexibleTranslations<T>): TranslationObjectToFunctions<T>  {
+    const result = {} as TranslationObjectToFunctions<T>;
 
     for (const key in translations) {
         const value = translations[key];
