@@ -1,0 +1,10 @@
+{
+  "homePageTitle": "Welcome to Next App 1 - Home",
+  "homePageContent": "This is the home page. We are using lib1 here!",
+  "aboutPageTitle": "About Us - Next App 1",
+  "aboutPageContent": "This is the about page. Learn more about us.",
+  "buttonText": "Click me (from lib1)!",
+  "changeToPolish": "Change to Polish",
+  "changeToEnglish": "Change to English",
+  "currentLanguage": "Current language: {{lng}}"
+} 

@@ -1,0 +1,10 @@
+{
+  "homePageTitle": "Witaj w Next App 1 - Strona Główna",
+  "homePageContent": "To jest strona główna. Używamy tutaj lib1!",
+  "aboutPageTitle": "O nas - Next App 1",
+  "aboutPageContent": "To jest strona o nas. Dowiedz się więcej.",
+  "buttonText": "Kliknij mnie (z lib1)!",
+  "changeToPolish": "Zmień na Polski",
+  "changeToEnglish": "Zmień na Angielski",
+  "currentLanguage": "Aktualny język: {{lng}}"
+} 

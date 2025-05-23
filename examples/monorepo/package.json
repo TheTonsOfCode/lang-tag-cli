@@ -1,0 +1,18 @@
+{
+  "name": "monorepo-example",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter \"./packages/*\" build",
+    "dev:next1": "pnpm --filter next1 dev",
+    "dev:next2": "pnpm --filter next2 dev",
+    "build:next1": "pnpm --filter next1 build",
+    "build:next2": "pnpm --filter next2 build",
+    "start:next1": "pnpm --filter next1 start",
+    "start:next2": "pnpm --filter next2 start"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "pnpm": "^8.0.0" 
+  },
+  "packageManager": "pnpm@8.6.0" 
+} 
