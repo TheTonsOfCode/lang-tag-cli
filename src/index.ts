@@ -203,35 +203,37 @@ export function createCallableTranslations<
 }
 
 /**
+ * Helper type to determine the flexible value of a translation property.
+ * If `T` is a function returning a string, it can be `T` or `string`.
+ * If `T` is a record, it recursively applies `RecursiveFlexibleTranslations`.
+ * Otherwise, it can be `ParameterizedTranslation`, `T`, or `string`.
+ * @template T - The type of the property value.
+ * @template IsPartial - A boolean indicating whether properties should be optional.
+ */
+type FlexibleValue<T, IsPartial extends boolean> =
+    T extends (...args: any[]) => string
+        ? T | string
+        : T extends Record<string, any>
+            ? RecursiveFlexibleTranslations<T, IsPartial>
+            : ParameterizedTranslation | T | string;
+
+/**
  * Core type for flexible translations, allowing properties to be optional recursively.
  * This type serves as the foundation for `FlexibleTranslations` and `PartialFlexibleTranslations`.
+ * It transforms a given translation structure `T` into a flexible version where each property
+ * can be its original type, a string, or a `ParameterizedTranslation` function.
+ * If `IsPartial` is true, all properties at all levels of nesting become optional.
+ *
  * @template T The original, un-transformed, structure of the translations.
- * @template IsPartial A boolean indicating whether properties should be optional. If true, all properties at all levels become optional.
+ * @template IsPartial A boolean indicating whether properties should be optional. 
+ *   If true, all properties at all levels become optional (e.g., `string | undefined`).
+ *   If false, properties are required (e.g., `string`).
  */
-export type RecursiveFlexibleTranslations<T, IsPartial extends boolean> =
-    IsPartial extends true
-        ? { // If IsPartial is true, all properties are optional
-            [P in keyof T]?:
-                T[P] extends ParameterizedTranslation
-                    ? ParameterizedTranslation | string
-                    : T[P] extends (...args: any[]) => string
-                        ? T[P] | string
-                        : T[P] extends Record<string, any>
-                            // Recursive call with IsPartial = true
-                            ? RecursiveFlexibleTranslations<T[P], true>
-                            : ParameterizedTranslation | T[P] | string;
-          }
-        : { // If IsPartial is false, all properties are required
-            [P in keyof T]:
-                T[P] extends ParameterizedTranslation
-                    ? ParameterizedTranslation | string
-                    : T[P] extends (...args: any[]) => string
-                        ? T[P] | string
-                        : T[P] extends Record<string, any>
-                            // Recursive call with IsPartial = false
-                            ? RecursiveFlexibleTranslations<T[P], false>
-                            : ParameterizedTranslation | T[P] | string;
-          };
+export type RecursiveFlexibleTranslations<T, IsPartial extends boolean> = {
+    [P in keyof T]: IsPartial extends true
+        ? FlexibleValue<T[P], IsPartial> | undefined
+        : FlexibleValue<T[P], IsPartial>;
+};
 
 /**
  * Represents a flexible structure for translations where all properties are required, based on an original type `T`.
