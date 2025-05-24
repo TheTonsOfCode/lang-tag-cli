@@ -59,7 +59,7 @@ export function messageInitializedConfiguration() {
 }
 
 export function messageNoChangesMade() {
-    warning(`No changes made`);
+    info('No changes were made based on the current configuration and files.');
 }
 
 export function messageNodeModulesNotFound() {
@@ -103,4 +103,12 @@ export function messageErrorReadingDirectory(dir: string, e: unknown) {
 
 export function messageSkippedEmptyNamespace(namespace: string, keysCount: number) {
     warning(`Skipped empty namespace "${namespace}" with ${keysCount} keys.`);
+}
+
+export function messageImportLibraries() {
+    info('Importing translations from libraries...');
+}
+
+export function messageLibrariesImportedSuccessfully() {
+    success('Successfully imported translations from libraries.');
 }

@@ -77,9 +77,9 @@ For an application to consume translations from your `lang-tag` enabled library:
     };
     ```
 
-3.  **Run `lang-tag collect --lib` in the application:**
+3.  **Run `lang-tag import` in the application:**
     ```bash
-    npx lang-tag collect --lib
+    npx lang-tag import
     ```
     During its collection phase, `lang-tag` will:
     *   Scan `node_modules` for installed packages that contain a `.lang-tag.exports.json` file.
@@ -181,3 +181,15 @@ export const FeatureXComponent: React.FC<FeatureXComponentProps> = ({ t, ...prop
 When the consuming application uses `FeatureXComponent`, it would pass the translations generated in its `src/i18n/generated-libs/my-lang-tag-library.ts` (or however it integrates/overrides them).
 
 This approach provides flexibility: the library defines default translations and structure, and the consuming application can seamlessly integrate them into its own `lang-tag` and i18n workflow, including overriding them if necessary.
+
+### Consuming a Library
+
+To use translations from an external library in your application:
+
+1.  **Install the library:** `npm install your-library-name` or `yarn add your-library-name`.
+2.  **Ensure your `lang-tag.config.json` in the application is configured** to include the library if it's not automatically discovered (though automatic discovery from `node_modules` is the typical case).
+3.  **Run `lang-tag import` in the application:** This command will scan `node_modules` for LangTag libraries and integrate their exported translations into your application's translation pool, typically by copying them into your specified `outputDir` under a namespace derived from the library name.
+    ```bash
+    npx lang-tag import
+    ```
+4.  **Use the library's translations in your code:** You can now reference the translations from the library using their namespaces, modify default translations, just like your application's own translations.

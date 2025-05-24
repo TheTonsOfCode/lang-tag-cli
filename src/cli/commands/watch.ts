@@ -44,7 +44,7 @@ export async function watchTranslations() {
     const cwd = process.cwd();
     const config = await readConfig(cwd);
 
-    await collectTranslations(false);
+    await collectTranslations();
 
     // Chokidar doesn't seem to handle glob patterns reliably, especially during tests.
     // To unify watching behavior in both tests and production:

@@ -75,6 +75,7 @@ export function prepareMainProjectBase(suffix: string) {
             version: '1.0.0',
             scripts: {
                 c: `${RUN_CMD}langtag c`,
+                i: `${RUN_CMD}langtag i`,
                 rt: `${RUN_CMD}lang-tag rt`,
                 init: `${RUN_CMD}langtag init`,
                 watch: `${RUN_CMD}lang-tag watch`,
@@ -114,7 +115,7 @@ export function prepareMainProjectBase(suffix: string) {
         execSync('npm install', {
             cwd: mainProjectPath,
             stdio: 'ignore',
-            timeout: 8000
+            timeout: 12000
         });
     } catch (error: any) {
         if (error.code === 'ETIMEDOUT') {

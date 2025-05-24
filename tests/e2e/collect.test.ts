@@ -310,8 +310,8 @@ describe('collect command e2e tests', () => {
 
         writeFileSync(join(libraryDir, EXPORTS_FILE_NAME), JSON.stringify(libraryExports, null, 2));
 
-        // Run collect with --libraries flag
-        execSync('npm run c -- --libraries', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        // Run import
+        execSync('npm run i', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
 
         // Verify imported translations were created
         const importedDir = join(TESTS_TEST_DIR, 'src/lang-libraries');

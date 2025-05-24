@@ -207,9 +207,9 @@ describe('libraries import e2e tests', () => {
         }
 
         try {
-            execSync('npm run c -- -l', {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
+            execSync('npm run i', {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
         } catch (e: any) {
-            console.error("Error running 'npm run c' in main project:", e.stdout?.toString(), e.stderr?.toString());
+            console.error("Error running 'npm run i' in main project:", e.stdout?.toString(), e.stderr?.toString());
             throw e;
         }
 
@@ -239,6 +239,13 @@ describe('libraries import e2e tests', () => {
         expect(matches[1].config.path).toEqual('farewells');
         expect(matches[1].translations.libraryBye).toBeDefined();
         expect(matches[1].translations.libraryBye).toEqual('Bye from Library');
+
+        try {
+            execSync('npm run c', {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
+        } catch (e: any) {
+            console.error("Error running 'npm run c' in main project:", e.stdout?.toString(), e.stderr?.toString());
+            throw e;
+        }
 
         // Check the main project's final output directory
         const mainOutputDir = join(MAIN_PROJECT_DIR, CONFIG_MAIN_PROJECT.outputDir);
@@ -352,9 +359,9 @@ describe('libraries import e2e tests', () => {
         }
 
         try {
-            execSync('npm run c -- -l', {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
+            execSync('npm run i', {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
         } catch (e: any) {
-            console.error("Error running 'npm run c' in main project:", e.stdout?.toString(), e.stderr?.toString());
+            console.error("Error running 'npm run i' in main project:", e.stdout?.toString(), e.stderr?.toString());
             throw e;
         }
 

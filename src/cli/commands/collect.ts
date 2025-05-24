@@ -1,4 +1,3 @@
-import {importLibraries} from "@/cli/commands/core/import-node-modules-libraries";
 import {readConfig} from '@/cli/commands/utils/read-config';
 import {globby} from 'globby';
 import * as process from "node:process";
@@ -12,14 +11,10 @@ import {
 } from '@/cli/message';
 import {saveAsLibrary} from "@/cli/commands/core/save-as-library.ts";
 
-export async function collectTranslations(libraries: boolean = false) {
+export async function collectTranslations() {
     messageCollectTranslations();
 
     const config = await readConfig(process.cwd());
-
-    if (libraries) {
-        await importLibraries(config);
-    }
 
     const files = await globby(config.includes, {
         cwd: process.cwd(),

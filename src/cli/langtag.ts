@@ -5,6 +5,7 @@ import {collectTranslations} from '@/cli/commands/collect';
 import {regenerateTags} from '@/cli/commands/regenerate-tags';
 import {watchTranslations} from '@/cli/commands/watch';
 import {initConfig} from '@/cli/commands/init';
+import {importTranslations} from "@/cli/commands/import";
 
 export function createCli() {
     program
@@ -16,12 +17,13 @@ export function createCli() {
         .command('collect')
         .alias('c')
         .description('Collect translations from source files')
-        .option('-l, --libraries', 'Importing libraries translations before collecting translations')
-        .action(async (options) => {
-            const importLibraries = options.libraries;
+        .action(collectTranslations);
 
-            await collectTranslations(importLibraries);
-        });
+    program
+        .command('import')
+        .alias('i')
+        .description('Import translations from libraries in node_modules')
+        .action(importTranslations);
 
     program
         .command('regenerate-tags')
