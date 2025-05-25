@@ -48,10 +48,12 @@ export interface LangTagConfig {
          * A function to customize the generated file name and export name for imported library tags.
          * Allows controlling how imported tags are organized and named within the generated files.
          */
-        onImport: (params: LangTagOnImportParams) => {
-            fileName: string;
-            exportName: string;
-        };
+        onImport: (params: LangTagOnImportParams, actions: LangTagOnImportActions) => void;
+
+        /**
+         * A function called after all lang-tags were imported
+         */
+        onImportFinish?: () => void;
     }
 
     /**
@@ -98,11 +100,27 @@ export interface LangTagOnImportParams {
     /** The name of the package from which the tag is being imported. */
     packageName: string;
     /** The relative path to the source file within the imported package. */
-    relativePath: string;
+    importedRelativePath: string;
     /** The original variable name assigned to the lang tag in the source library file, if any. */
     originalExportName: string | undefined;
+    /** Parsed JSON translation object from the imported tag. */
+    translations: Record<string, any>;
+    /** Configuration object associated with the imported tag. */
+    config: LangTagTranslationsConfig;
     /** A mutable object that can be used to pass data between multiple `onImport` calls for the same generated file. */
     fileGenerationData: any;
+}
+
+/**
+ * Actions that can be performed within the onImport callback.
+ */
+export interface LangTagOnImportActions {
+    /** Sets the desired file for the generated import. */
+    setFile: (file: string) => void;
+    /** Sets the desired export name for the imported tag. */
+    setExportName: (name: string) => void;
+    /** Sets the configuration for the currently imported tag. */
+    setConfig: (config: LangTagTranslationsConfig) => void;
 }
 
 /**

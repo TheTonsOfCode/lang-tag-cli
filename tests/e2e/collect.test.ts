@@ -48,11 +48,9 @@ const FILE_WITH_LANG_TAGS_TRANSLATIONS_POSITIONS_SWAPPED = `
 describe('collect command e2e tests', () => {
 
     // Functions cannot be stringified
-    const testConfigImportFunction = `({packageName, originalExportName}) => {
-        return {
-            fileName: packageName + '.ts',
-            exportName: originalExportName,
-        };
+    // language=javascript
+    const testConfigImportFunction = `({packageName, originalExportName}, actions) => {
+        actions.setFile(packageName + '.ts')
     }`;
 
     const testConfig = {
@@ -288,7 +286,7 @@ describe('collect command e2e tests', () => {
         });
     });
 
-    it('should handle library imports with --libraries flag', async () => {
+    it('should handle library imports', async () => {
         // Create a library project structure
         const libraryDir = join(TESTS_TEST_DIR, 'node_modules/test-lib');
         mkdirSync(libraryDir, {recursive: true});
@@ -319,7 +317,7 @@ describe('collect command e2e tests', () => {
         expect(existsSync(importedTagFile)).toBe(true);
 
         const importedContent = readFileSync(importedTagFile, 'utf-8');
-        expect(importedContent.endsWith('export const buttonTranslations = lang({"button": {"label": "Click me"}}, {"namespace": "common"});')).toBeTruthy();
+        expect(importedContent).toContain('export const buttonTranslations = lang({"button":{"label":"Click me"}}, {"namespace":"common"});')
     });
 
     it('should handle multiple files with translations', () => {

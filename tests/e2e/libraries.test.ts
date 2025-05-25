@@ -28,12 +28,10 @@ const CONFIG_LIBRARY = {
 };
 
 // language=javascript
-const CONFIG_MAIN_PROJECT_ON_IMPORT_FUNCTION = `(params) => {
-    const {originalExportName, packageName} = params;
-    return {
-        exportName: originalExportName,
-        fileName: packageName + '.ts'
-    }
+const CONFIG_MAIN_PROJECT_ON_IMPORT_FUNCTION = `(params, actions) => {
+    const {packageName} = params;
+
+    actions.setFile(packageName + '.ts');
 }`;
 
 const CONFIG_MAIN_PROJECT = {

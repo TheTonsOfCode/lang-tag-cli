@@ -13,13 +13,12 @@ export const defaultConfig: LangTagConfig = {
     import: {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
-        onImport: ({relativePath, fileGenerationData}: LangTagOnImportParams)=> {
+        onImport: ({importedRelativePath, fileGenerationData}: LangTagOnImportParams, actions)=> {
             const exportIndex = (fileGenerationData.index || 0) + 1;
             fileGenerationData.index = exportIndex;
-            return {
-                fileName: path.basename(relativePath),
-                exportName: `translations${exportIndex}`,
-            };
+
+            actions.setFile(path.basename(importedRelativePath));
+            actions.setExportName(`translations${exportIndex}`);
         }
     },
     isLibrary: false,

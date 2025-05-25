@@ -2,11 +2,13 @@ import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from "@/cli/constants.ts";
 import {messageErrorReadingDirectory, messageImportedFile, messageNodeModulesNotFound} from '@/cli/message';
 import fs from 'fs';
 import * as process from "node:process";
-import path, {resolve} from 'pathe';
+import path, {dirname, resolve} from 'pathe';
 import {LangTagExportData} from "@/cli";
 import {ensureDirectoryExists, readJSON} from "@/cli/commands/utils/file.ts";
 import {LangTagConfig} from "@/cli/config.ts";
 import {writeFile} from "fs/promises";
+import { LangTagTranslationsConfig } from "@/index.ts";
+import JSON5 from "json5";
 
 function findExportJson(dir: string, depth: number = 0, maxDepth: number = 3): string[] {
     if (depth > maxDepth) return [];
@@ -52,8 +54,8 @@ export async function importLibraries(config: LangTagConfig): Promise<void> {
     for (const filePath of files) {
         const exportData: LangTagExportData = await readJSON(filePath);
 
-        // if different language, translate  to base language
-        // exportData.language
+        // TODO: if different language, translate to base language
+        //  exportData.language
 
         for (let langTagFilePath in exportData.files) {
             const fileGenerationData = {};
@@ -61,23 +63,39 @@ export async function importLibraries(config: LangTagConfig): Promise<void> {
             const matches = exportData.files[langTagFilePath].matches;
 
             for (let match of matches) {
-                const result = config.import.onImport({
+                let parsedTranslations = typeof match.translations === 'string' ? JSON5.parse(match.translations) : match.translations;
+                let parsedConfig = typeof match.config === 'string' ? JSON5.parse(match.config) : (match.config === undefined ? {} : match.config) as LangTagTranslationsConfig;
+
+                let file: string = langTagFilePath;
+                let exportName: string = match.variableName || '';
+
+                config.import.onImport({
                     packageName: exportData.packageName,
-                    relativePath: langTagFilePath,
+                    importedRelativePath: langTagFilePath,
                     originalExportName: match.variableName,
+                    translations: parsedTranslations,
+                    config: parsedConfig,
                     fileGenerationData
+                }, {
+                    setFile: (f: string) => { file = f; },
+                    setExportName: (name: string) => { exportName = name; },
+                    setConfig: (newConfig: LangTagTranslationsConfig) => { parsedConfig = newConfig; }
                 });
 
-                let exports = generationFiles[result.fileName];
-                if (!exports) {
-                    exports = {}
-                    generationFiles[result.fileName] = exports;
+                if (!file || !exportName) {
+                    throw new Error(`[lang-tag] onImport did not set fileName or exportName for package: ${exportData.packageName}, file: '${file}' (original: '${langTagFilePath}'), exportName: '${exportName}' (original: ${match.variableName})`);
                 }
 
-                const param1 = config.translationArgPosition === 1 ? match.translations : match.config;
-                const param2 = config.translationArgPosition === 1 ? match.config : match.translations;
+                let exports = generationFiles[file];
+                if (!exports) {
+                    exports = {}
+                    generationFiles[file] = exports;
+                }
 
-                exports[result.exportName] = `${config.tagName}(${param1}, ${param2})`;
+                const param1 = config.translationArgPosition === 1 ? parsedTranslations : parsedConfig;
+                const param2 = config.translationArgPosition === 1 ? parsedConfig : parsedTranslations;
+
+                exports[exportName] = `${config.tagName}(${JSON5.stringify(param1, undefined, 4)}, ${JSON5.stringify(param2, undefined, 4)})`;
             }
         }
     }
@@ -95,7 +113,10 @@ export async function importLibraries(config: LangTagConfig): Promise<void> {
 
         const content = `${config.import.tagImportPath}\n\n${exports}`;
 
+        await ensureDirectoryExists(dirname(filePath));
         await writeFile(filePath, content, 'utf-8');
         messageImportedFile(file);
     }
+
+    if (config.import.onImportFinish) config.import.onImportFinish();
 }
