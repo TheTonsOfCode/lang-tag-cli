@@ -10,6 +10,7 @@ const mockConfig: LangTagTranslationsConfig = {
 const createContext = (value: string, params?: InterpolationParams): TranslationTransformContext<LangTagTranslationsConfig> => ({
     value,
     params,
+    unprefixedPath: 'test.path',
     path: 'test.path', // Dummy value, not used by default transformer
     key: 'path', // Dummy value, not used by default transformer
     parentPath: 'test.', // Dummy value, not used by default transformer
@@ -87,6 +88,7 @@ describe('defaultTranslationTransformer', () => {
         const contextWithValueNotString = {
             value: 12345 as any, // Bypassing type for test
             params: { some: "param" },
+            unprefixedPath: 'test.path',
             path: 'test.path',
             key: 'path',
             parentPath: 'test.',

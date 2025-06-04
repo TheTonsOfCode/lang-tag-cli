@@ -10,6 +10,13 @@ import {
     TESTS_TEST_DIR as _TESTS_TEST_DIR
 } from "./utils.ts";
 import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/cli/constants.ts';
+import {findLangTags} from "@/cli/processor.ts";
+import {LangTagConfig} from "@/cli/config.ts";
+import JSON5 from "json5";
+
+function expectJSON5Equal(a: string | undefined, b: string) {
+    expect(JSON5.stringify(JSON5.parse(a || ''))).toEqual(JSON5.stringify(JSON5.parse(b)));
+}
 
 const SUFFIX = 'collect';
 const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
@@ -317,7 +324,14 @@ describe('collect command e2e tests', () => {
         expect(existsSync(importedTagFile)).toBe(true);
 
         const importedContent = readFileSync(importedTagFile, 'utf-8');
-        expect(importedContent).toContain('export const buttonTranslations = lang({"button":{"label":"Click me"}}, {"namespace":"common"});')
+
+        const commonConfig: Pick<LangTagConfig, 'tagName'> = {
+            tagName: 'lang',
+        }
+        const matches = findLangTags(commonConfig, importedContent);
+        expect(matches).toHaveLength(1);
+        expectJSON5Equal(matches[0].content1, '{"button":{"label":"Click me"}}')
+        expectJSON5Equal(matches[0].content2, '{"namespace":"common"}')
     });
 
     it('should handle multiple files with translations', () => {

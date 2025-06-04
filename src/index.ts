@@ -54,10 +54,12 @@ export type CallableTranslations<T> = {
 export interface TranslationTransformContext<Config extends LangTagTranslationsConfig> {
     /** The LangTag configuration object. */
     config: Config | undefined;
-    /** The path of the direct parent object of the current translation key. */
+    /** The path of the direct parent object of the current translation key, including the base path from config. */
     parentPath: string;
-    /** The full path to the current translation key. */
+    /** The full path to the current translation key, including the base path from config. */
     path: string;
+    /** The path to the current translation key, relative to the root of the translations object (excluding the base path from config). */
+    unprefixedPath: string;
     /** The current translation key. */
     key: string;
     /** The raw string value of the translation. */
@@ -119,6 +121,7 @@ export interface TranslationMappingStrategy<Config extends LangTagTranslationsCo
  * @param strategy - The translation mapping strategy.
  * @param input - The translations object to transform.
  * @param currentParentPath - The current parent path for building full translation keys.
+ * @param currentRelativeParentPath - The current relative parent path for building full translation keys.
  * @returns An object with the same structure as input, but with strings replaced by callable functions.
  * @internal
  */
@@ -129,47 +132,56 @@ function transformTranslationsToFunctions<
     config: Config | undefined,
     strategy: TranslationMappingStrategy<Config>,
     input: T,
-    currentParentPath: string
+    currentParentPath: string, // This includes config.path prefix
+    currentRelativeParentPath: string // This is the path relative to translations root
 ): CallableTranslations<T> {
     const result: Record<string, any> = {};
 
     for (const [originalKey, originalValue] of Object.entries(input)) {
-        const currentPath = `${currentParentPath}${originalKey}`;
+        const currentFullPath = `${currentParentPath}${originalKey}`;
+        const currentRelativePath = currentRelativeParentPath ? `${currentRelativeParentPath}.${originalKey}` : originalKey;
 
         if (typeof originalValue === 'object' && originalValue !== null) {
-            result[originalKey] = transformTranslationsToFunctions(config, strategy, originalValue, `${currentPath}.`);
+            result[originalKey] = transformTranslationsToFunctions(config, strategy, originalValue, `${currentFullPath}.`, currentRelativePath);
         } else if (typeof originalValue === 'string') {
-            const createTranslationFunction = (pathForFunc: string, keyForFunc: string, valueForFunc: string) => {
+            const createTranslationFunction = (pathForFunc: string, unprefixedPathForFunc: string, keyForFunc: string, valueForFunc: string) => {
                 return (params?: InterpolationParams) => strategy.transform({
                     config,
-                    parentPath: currentParentPath, // The path of the direct parent object
-                    path: pathForFunc,        // The full path to this specific translation
-                    key: keyForFunc,          // The key for this specific translation
-                    value: valueForFunc,      // The raw string for this translation
+                    parentPath: currentParentPath, 
+                    path: pathForFunc,        
+                    unprefixedPath: unprefixedPathForFunc,
+                    key: keyForFunc,          
+                    value: valueForFunc,      
                     params
                 });
             };
 
             if (strategy.processKey) {
+                const keyProcessingContext: TranslationKeyProcessorContext<Config> = {
+                    config,
+                    parentPath: currentParentPath,
+                    path: currentFullPath,
+                    unprefixedPath: currentRelativePath,
+                    key: originalKey,
+                    value: originalValue
+                };
+
                 strategy.processKey(
-                    { config, parentPath: currentParentPath, path: currentPath, key: originalKey, value: originalValue},
+                    keyProcessingContext,
                     (newKeyToAdd: string, valueForNewKey: string) => {
                         const pathForNewKey = currentParentPath + newKeyToAdd;
-                        result[newKeyToAdd] = createTranslationFunction(pathForNewKey, newKeyToAdd, valueForNewKey);
+                        const unprefixedPathForNewKey = currentRelativeParentPath ? `${currentRelativeParentPath}.${newKeyToAdd}` : newKeyToAdd;
+                        result[newKeyToAdd] = createTranslationFunction(pathForNewKey, unprefixedPathForNewKey, newKeyToAdd, valueForNewKey);
                     }
                 );
-                // If processKey is used, it might replace or augment the original key.
-                // We add the original key only if it wasn't added by processKey.
-                if (!result[originalKey]) {
-                     result[originalKey] = createTranslationFunction(currentPath, originalKey, originalValue);
+                
+                if (!result.hasOwnProperty(originalKey)) {
+                     result[originalKey] = createTranslationFunction(currentFullPath, currentRelativePath, originalKey, originalValue);
                 }
             } else {
-                // Default behavior: always add the original key
-                result[originalKey] = createTranslationFunction(currentPath, originalKey, originalValue);
+                result[originalKey] = createTranslationFunction(currentFullPath, currentRelativePath, originalKey, originalValue);
             }
         }
-        // If originalValue is neither an object nor a string, it's skipped.
-        // This aligns with LangTagTranslations allowing only string or nested LangTagTranslations.
     }
     return result as CallableTranslations<T>;
 }
@@ -198,7 +210,8 @@ export function createCallableTranslations<
         config,
         strategy,
         translations,
-        basePath
+        basePath,
+        ""
     );
 }
 
@@ -323,9 +336,11 @@ function resolveTranslationFunction<T>(
 
 /**
  * Retrieves a translation function from a nested translation object using a dot-separated path.
+ * It is recommended to use an unprefixed path (a path that does not include the base path from the configuration)
+ * with this function, as it operates on the structure of the callable translations object where keys are unprefixed.
  * @template T - The type of the translations object.
  * @param translations The object containing translation functions.
- * @param dottedPath A string path using dot notation (e.g., "user.profile.greeting").
+ * @param dottedPath A string path using dot notation (e.g., "user.profile.greeting"). This path should generally be unprefixed.
  * @returns The translation function, or null if not found or invalid.
  */
 export function lookupTranslation<T>(translations: CallableTranslations<T>, dottedPath: string): ParameterizedTranslation | null {
