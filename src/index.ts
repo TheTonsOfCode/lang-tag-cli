@@ -242,11 +242,10 @@ type FlexibleValue<T, IsPartial extends boolean> =
  *   If true, all properties at all levels become optional (e.g., `string | undefined`).
  *   If false, properties are required (e.g., `string`).
  */
-export type RecursiveFlexibleTranslations<T, IsPartial extends boolean> = {
-    [P in keyof T]: IsPartial extends true
-        ? FlexibleValue<T[P], IsPartial> | undefined
-        : FlexibleValue<T[P], IsPartial>;
-};
+export type RecursiveFlexibleTranslations<T, IsPartial extends boolean> =
+    IsPartial extends true
+        ? { [P in keyof T]?: FlexibleValue<T[P], IsPartial>; }
+        : { [P in keyof T]: FlexibleValue<T[P], IsPartial>; };
 
 /**
  * Represents a flexible structure for translations where all properties are required, based on an original type `T`.
