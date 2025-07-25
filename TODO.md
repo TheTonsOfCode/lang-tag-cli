@@ -15,6 +15,8 @@
 
 # Features:
 
+- when importing - list all node_modules packages containing lang-tag.exports, then importing them first, and change depth of scanning to 2 folders and 3 organization namespaced folders
+
 - When importing tags via `lang-tag collect -l`, e.g., from an updated package, implement a process to parse local imported tags, then imported ones, then implement a prompting mechanism similar to Drizzle's question system (yes/no) asking whether users want to replace their modified translations with ones updated in the library
 - Implement a collision detection system that throws information about path, file A, file B with tag indices when the same translation path is used in multiple locations (can be helpful for incorrectly written onGenerationConfig functions)
 - Consider adding an onCollision function that automatically resolves path conflicts
