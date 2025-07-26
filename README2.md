@@ -21,7 +21,7 @@ Full functionality is available through advanced CLI tooling that doesn't affect
 - **Library translation import** - `lang-tag import` discovers and imports translations from `node_modules` packages with `.lang-tag.exports.json`, generating integration files that use your project's own tag function
 - **Watch mode** - `lang-tag watch` monitors source files for changes and automatically runs collection when translation tags are modified
 
-### Enterprise-ready Architecture
+### Practical and Flexible Architecture
 
 The solution provides:
 - **Framework agnostic** - works with any JavaScript/TypeScript project, with built-in examples for React and react-i18next integration
@@ -72,16 +72,16 @@ function CheckoutComponent({ name, count }) {
 
 ### Automated Translation Workflow
 
-The `lang-tag` ecosystem provides comprehensive tooling to transform colocated definitions into production-ready translation files:
+The `lang-tag` ecosystem provides tooling to transform colocated definitions into production-ready translation files:
 
 **Intelligent Collection & Organization**
-- The `lang-tag collect` command automatically discovers translation tags throughout your codebase
-- Translations are intelligently organized into namespace-based JSON files (e.g., `public/locales/en/orders.json`)
-- Hierarchical key structures are automatically generated based on configuration rules and component paths
+- The `lang-tag collect` command discovers translation tags throughout your codebase
+- Translations are organized into namespace-based JSON files (e.g., `public/locales/en/orders.json`)
+- Hierarchical key structures can be automatically generated based on configuration rules (eg.: based on component paths)
 
 **Dynamic Configuration Management**
 - Configuration parameters can be automatically generated using `onConfigGeneration` rules
-- Namespace and path assignments can be derived from file structure, component location, or custom logic
+- Namespace and path assignments can be derived from custom logic (eg.: by file structure, component location)
 - The `lang-tag regenerate-tags` command updates source code configurations dynamically
 
 **Development-Time Optimization**
@@ -92,7 +92,7 @@ The `lang-tag` ecosystem provides comprehensive tooling to transform colocated d
 ### Enterprise Integration Capabilities
 
 **Framework Agnostic Architecture**
-- Core library provides building blocks (`createCallableTranslations`) for creating custom tag functions
+- Core library provides building blocks (like `createCallableTranslations`) for creating custom tag functions
 - Seamless integration with existing i18n libraries (i18next, react-i18next, etc.)
 - Maintains compatibility with current translation workflows while enhancing developer experience
 
