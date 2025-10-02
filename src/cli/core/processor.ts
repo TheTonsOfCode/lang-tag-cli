@@ -75,13 +75,33 @@ export class $LT_TagProcessor {
             let parameter1Text = fileContent.substring(matchStartIndex + startMatch[0].length - 1, i);
             let parameter2Text: string | undefined;
 
-            // Skip whitespace and comma
-            while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t' || fileContent[i] === ',')) {
+            // After first object, we expect either ',' (then second object) or ')' (end of call)
+            // Skip whitespace
+            while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
                 i++;
             }
 
-            // If we find another opening brace, it's the second parameter
-            if (i < fileContent.length && fileContent[i] === '{') {
+            if (i >= fileContent.length) {
+                // Reached EOF without finding a closing paren
+                currentIndex = matchStartIndex + 1;
+                continue;
+            }
+
+            if (fileContent[i] === ',') {
+                // Consume comma and any whitespace after it
+                i++;
+                while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
+                    i++;
+                }
+
+                // Now we must see the start of the second object
+                if (i >= fileContent.length || fileContent[i] !== '{') {
+                    // Malformed: comma not followed by an object
+                    currentIndex = matchStartIndex + 1;
+                    continue;
+                }
+
+                // Parse second object
                 braceCount = 1;
                 const secondParamStart = i;
                 i++;
@@ -92,19 +112,34 @@ export class $LT_TagProcessor {
                     i++;
                 }
 
-                if (braceCount === 0) {
-                    parameter2Text = fileContent.substring(secondParamStart, i);
+                if (braceCount !== 0) {
+                    // Unbalanced braces - skip this match
+                    currentIndex = matchStartIndex + 1;
+                    continue;
                 }
+
+                parameter2Text = fileContent.substring(secondParamStart, i);
+
+                // After second object, skip whitespace
+                while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
+                    i++;
+                }
+            } else if (fileContent[i] !== ')') {
+                // No comma and not a closing parenthesis -> malformed (e.g., missing comma before second object)
+                currentIndex = matchStartIndex + 1;
+                continue;
             }
 
-            // Skip to the closing parenthesis
-            while (i < fileContent.length && fileContent[i] !== ')') {
-                i++;
+            // Require closing parenthesis for the tag call
+            if (i >= fileContent.length || fileContent[i] !== ')') {
+                // Scan ahead minimally to see if a ')' appears before a line break with code; conservative: require immediate ')'
+                // For simplicity and correctness with tests, if not immediate ')', treat as malformed
+                currentIndex = matchStartIndex + 1;
+                continue;
             }
 
-            if (i < fileContent.length) {
-                i++; // Include the closing parenthesis
-            }
+            // Include the closing parenthesis
+            i++;
 
             const fullMatch = fileContent.substring(matchStartIndex, i);
 

@@ -1277,6 +1277,20 @@ describe('Error handling and edge cases', () => {
             ]);
         }).toThrow('Tag translations are invalid object!');
     });
+
+    it("should not find tag when '}' appears inside string value without real closing brace", () => {
+        const content = "const text = lang({ key: 'he}llo' ; // missing real closing brace\nconst x = 1;";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(0);
+    });
+
+    it("should not find tag when ')' appears inside string value without real closing paren", () => {
+        const content = "const text = lang({ key: 'he)llo' } ; // missing real closing paren\nconst y = 2;";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(0);
+    });
 });
 
 describe('findLangMatches with different config', () => {
