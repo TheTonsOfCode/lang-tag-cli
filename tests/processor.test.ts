@@ -1068,6 +1068,217 @@ describe('replaceLangMatches', () => {
     });
 });
 
+describe('Error handling and edge cases', () => {
+    const commonConfig: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'> = {
+        tagName: 'lang',
+        translationArgPosition: 1
+    }
+    const processor = new $LT_TagProcessor(commonConfig);
+
+    it('should handle broken syntax - missing closing bracket', () => {
+        const content = "const text = lang({ key: 'hello' }; // missing closing bracket\n const x = 1; function a(){}";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(0);
+    });
+
+    it('should not find tags with broken syntax - missing opening bracket', () => {
+        const content = "const text = lang key: 'hello' }); // missing opening bracket";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(0);
+    });
+
+    it('should not find tags with broken syntax - unclosed string', () => {
+        const content = "const text = lang({ key: 'hello }); // unclosed string";
+        const tags = processor.extractTags(content);
+
+        // The processor might still find the tag but it should be invalid
+        expect(tags).toHaveLength(1);
+        expect(tags[0].validity).toBe('invalid-param-1');
+    });
+
+    it('should handle broken syntax - missing comma', () => {
+        const content = "const text = lang({ key: 'hello' } { fallback: 'hi' }); // missing comma";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(0);
+    });
+
+    it('should not find tags with broken syntax - nested unclosed brackets', () => {
+        const content = "const text = lang({ key: 'hello', nested: { inner: 'value' }); // missing closing bracket";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(0);
+    });
+
+    it('should handle malformed JSON in parameters', () => {
+        const content = "const text = lang({ key: 'hello', invalid: json }); // invalid JSON";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(1);
+        expect(tags[0].validity).toBe('invalid-param-1');
+    });
+
+    it('should handle malformed JSON in second parameter', () => {
+        const content = "const text = lang({ key: 'hello' }, { namespace: invalid json });";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(1);
+        expect(tags[0].validity).toBe('invalid-param-2');
+    });
+
+    it('should throw error when replaceTags is called without translations and config', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0] } // No translations or config
+            ]);
+        }).toThrow('Replacement data is required!');
+    });
+
+    it('should throw error when replaceTags is called with invalid translations object', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], translations: "invalid json syntax" }
+            ]);
+        }).toThrow('Tag translations are invalid object!');
+    });
+
+    it('should throw error when replaceTags is called with invalid config object', () => {
+        const content = "const text = lang({ key: 'hello' }, { namespace: 'common' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], config: "invalid json syntax" }
+            ]);
+        }).toThrow('Tag config is invalid object!');
+    });
+
+    it('should handle empty replaceTags array', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const result = processor.replaceTags(content, []);
+
+        expect(result).toBe(content); // Should return unchanged content
+    });
+
+    it('should handle replaceTags with undefined translations and config', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], translations: undefined, config: undefined }
+            ]);
+        }).toThrow('Replacement data is required!');
+    });
+
+    it('should handle replaceTags with null translations and config', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], translations: null, config: null }
+            ]);
+        }).toThrow('Replacement data is required!');
+    });
+
+    it('should handle replaceTags with empty string translations and config', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], translations: '', config: '' }
+            ]);
+        }).toThrow('Replacement data is required!');
+    });
+
+    it('should handle replaceTags with incomplete object syntax', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], translations: "{ key: 'hello'" } // Missing closing brace
+            ]);
+        }).toThrow('Tag translations are invalid object!');
+    });
+
+    it('should handle replaceTags with incomplete config syntax', () => {
+        const content = "const text = lang({ key: 'hello' }, { namespace: 'common' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], config: "{ namespace: 'ui'" } // Missing closing brace
+            ]);
+        }).toThrow('Tag config is invalid object!');
+    });
+
+    it('should handle replaceTags with malformed nested objects', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], translations: "{ key: 'hello', nested: { inner: 'value'" } // Missing closing braces
+            ]);
+        }).toThrow('Tag translations are invalid object!');
+    });
+
+    it('should handle replaceTags with invalid array syntax', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], translations: "{ key: 'hello', items: ['item1', 'item2'" } // Missing closing bracket
+            ]);
+        }).toThrow('Tag translations are invalid object!');
+    });
+
+    it('should handle replaceTags with invalid string quotes', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], translations: "{ key: 'hello', message: \"unclosed string }" } // Unclosed string
+            ]);
+        }).toThrow('Tag translations are invalid object!');
+    });
+
+    it('should handle replaceTags with invalid number syntax', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], translations: "{ key: 'hello', count: 123abc }" } // Invalid number
+            ]);
+        }).toThrow('Tag translations are invalid object!');
+    });
+
+    it('should handle replaceTags with invalid boolean syntax', () => {
+        const content = "const text = lang({ key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        expect(() => {
+            processor.replaceTags(content, [
+                { tag: tags[0], translations: "{ key: 'hello', enabled: tru }" } // Invalid boolean
+            ]);
+        }).toThrow('Tag translations are invalid object!');
+    });
+});
+
 describe('findLangMatches with different config', () => {
     const differentConfig: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'> = {
         tagName: 't',
