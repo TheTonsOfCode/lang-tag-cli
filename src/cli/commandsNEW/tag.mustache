@@ -1,0 +1,81 @@
+import {
+    CallableTranslations,
+    createCallableTranslations,
+    LangTagTranslations,
+    LangTagTranslationsConfig
+} from 'lang-tag';
+import { ReactNode, useMemo } from 'react';
+
+export function lang<T extends LangTagTranslations>(
+    baseTranslations: T,
+    config?: LangTagTranslationsConfig,
+) {
+    // SoonTM implement some library
+    const client = () => {
+        return useMemo(
+            () =>
+                createCallableTranslations(baseTranslations, config, {
+                    transform: ({ value, params }) =>
+                        reactProcessPlaceholders(value, params) as unknown as string,
+                }),
+            [],
+        );
+        // return createCallableTranslations(baseTranslations, config, {
+        // 	transform: ({ value, params }) =>
+        // 		processPlaceholders(value, params),
+        // });
+    };
+
+    // server side
+    const server = () => {
+        // TODO: retrieve language from cookies there
+
+        return createCallableTranslations(baseTranslations, config, {
+            transform: ({ value, params }) =>
+                reactProcessPlaceholders(value, params) as unknown as string,
+        });
+    };
+
+    return {
+        client,
+        server,
+        Type: {} as CallableTranslations<T>,
+    };
+}
+
+/**
+ * Replaces placeholders in translations with React nodes.
+ * Placeholders use the format [[key]], for example:
+ * "Hello [[username]]!"
+ */
+export function reactProcessPlaceholders(
+    translation: string,
+    params?: { [key: string]: ReactNode },
+): ReactNode[] {
+    if (typeof translation !== 'string') return [''];
+
+    const parts: ReactNode[] = [];
+    let lastIndex = 0;
+
+    translation.replace(/{{ "{{(.*?)}}" }}/g, (match, placeholder, offset) => {
+        if (lastIndex < offset) {
+            parts.push(translation.slice(lastIndex, offset));
+        }
+
+        const key = placeholder.trim();
+        if (params && key in params) {
+            parts.push(params[key]);
+        } else {
+            parts.push('');
+        }
+
+        lastIndex = offset + match.length;
+        return match;
+    });
+
+    if (lastIndex < translation.length) {
+        parts.push(translation.slice(lastIndex));
+    }
+
+    return parts;
+}

@@ -1,5 +1,5 @@
 import {writeFile} from 'fs/promises';
-import {messageExistingConfiguration, messageInitializedConfiguration} from '@/cli/message';
+import {messageExistingConfiguration, messageInitializedConfiguration} from '@/cli/message.ts';
 import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
 import {existsSync} from "fs";
 
@@ -28,7 +28,7 @@ module.exports = config;
 /**
  * Initialize project with default configuration
  */
-export async function initConfig() {
+export async function $LT_CMD_InitConfig() {
     if (existsSync(CONFIG_FILE_NAME)) {
         messageExistingConfiguration();
         return;

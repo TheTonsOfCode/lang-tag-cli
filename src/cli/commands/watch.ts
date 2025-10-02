@@ -2,11 +2,11 @@ import chokidar from 'chokidar';
 import path from 'path';
 import micromatch from 'micromatch';
 import {LangTagConfig} from '@/cli/config';
-import {readConfig} from '@/cli/commands/utils/read-config';
+import {$LT_ReadConfig} from '@/cli/core/io/read-config.ts';
 import {collectTranslations} from './collect';
 import {checkAndRegenerateFileLangTags} from "@/cli/commands/core/regenerate-config.ts";
 import {gatherTranslationsToNamespaces} from "@/cli/commands/core/collect-namespaces.ts";
-import {saveNamespaces} from "@/cli/commands/core/save-namespaces.ts";
+import {$LT_WriteToNamespaces} from "@/cli/core/io/write-to-namespaces.ts";
 import {
     messageErrorInFileWatcher,
     messageLangTagTranslationConfigRegenerated,
@@ -42,7 +42,7 @@ function getBasePath(pattern: string): string {
 
 export async function watchTranslations() {
     const cwd = process.cwd();
-    const config = await readConfig(cwd);
+    const config = await $LT_ReadConfig(cwd);
 
     await collectTranslations();
 
@@ -110,7 +110,7 @@ async function handleFile(config: LangTagConfig, cwdRelativeFilePath: string, ev
 
     const {namespaces} = gatherTranslationsToNamespaces([cwdRelativeFilePath], config);
 
-    const changedNamespaces = await saveNamespaces(config, namespaces);
+    const changedNamespaces = await $LT_WriteToNamespaces(config, namespaces);
     if (changedNamespaces.length > 0) {
         messageNamespacesUpdated(config, changedNamespaces)
     }

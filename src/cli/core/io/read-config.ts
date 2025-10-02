@@ -27,7 +27,7 @@ export const defaultConfig: LangTagConfig = {
     onConfigGeneration: (params: LangTagOnConfigGenerationParams) => undefined,
 };
 
-export async function readConfig(projectPath: string): Promise<LangTagConfig> {
+export async function $LT_ReadConfig(projectPath: string): Promise<LangTagConfig> {
     const configPath = resolve(projectPath, CONFIG_FILE_NAME);
 
     if (!existsSync(configPath)) {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { readConfig, defaultConfig } from '@/cli/commands/utils/read-config.ts';
+import { $LT_ReadConfig, defaultConfig } from '@/cli/core/io/read-config.ts';
 import { CONFIG_FILE_NAME } from '@/cli/constants.ts';
 import { resolve } from 'pathe';
 import * as fs from 'fs';
@@ -37,7 +37,7 @@ describe('readConfig', () => {
     it('should throw error if config file does not exist', async () => {
         vi.mocked(fs.existsSync).mockReturnValue(false);
 
-        await expect(readConfig(projectPath)).rejects.toThrow(
+        await expect($LT_ReadConfig(projectPath)).rejects.toThrow(
             `No "${CONFIG_FILE_NAME}" detected`
         );
         expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
@@ -55,7 +55,7 @@ describe('readConfig', () => {
             default: userConfig
         }));
 
-        const config = await readConfig(projectPath);
+        const config = await $LT_ReadConfig(projectPath);
 
         expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
         expect(config).toEqual({
@@ -76,7 +76,7 @@ describe('readConfig', () => {
             default: undefined
         }));
 
-        await expect(readConfig(projectPath)).rejects.toThrow(
+        await expect($LT_ReadConfig(projectPath)).rejects.toThrow(
             'Config found, but default export is undefined'
         );
         expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
@@ -93,7 +93,7 @@ describe('readConfig', () => {
             default: partialUserConfig
         }));
 
-        const config = await readConfig(projectPath);
+        const config = await $LT_ReadConfig(projectPath);
 
         expect(config.language).toBe('fr');
         expect(config.tagName).toBe(defaultConfig.tagName);
@@ -114,7 +114,7 @@ describe('readConfig', () => {
             default: partialImportConfig
         }));
 
-        const config = await readConfig(projectPath);
+        const config = await $LT_ReadConfig(projectPath);
 
         expect(config.import.tagImportPath).toBe('import { customTag } from "custom/path"');
         expect(config.import.dir).toBe(defaultConfig.import.dir);

@@ -1,15 +1,15 @@
 import {LangTagConfig} from "@/cli/config.ts";
-import {ensureDirectoryExists, readJSON, writeJSON} from "@/cli/commands/utils/file.ts";
+import {$LT_EnsureDirectoryExists, $LT_ReadJSON, $LT_WriteJSON} from "@/cli/core/io/file.ts";
 import {resolve} from "pathe";
 import process from "node:process";
-import {messageOriginalNamespaceNotFound, messageWrittenExportsFile} from "@/cli/message";
-import {deepMergeTranslations} from "@/cli/commands/utils/merge";
+import {messageOriginalNamespaceNotFound} from "@/cli/message.ts";
+import {deepMergeTranslations} from "@/cli/commands/utils/merge.ts";
 
-export async function saveNamespaces(config: LangTagConfig, namespaces: Record<string, Record<string, any>>): Promise<string[]> {
+export async function $LT_WriteToNamespaces(config: LangTagConfig, namespaces: Record<string, Record<string, any>>): Promise<string[]> {
 
     const changedNamespaces: string[] = [];
 
-    await ensureDirectoryExists(config.outputDir);
+    await $LT_EnsureDirectoryExists(config.outputDir);
 
     for (let namespace of Object.keys(namespaces)) {
         if (!namespace) {
@@ -24,14 +24,14 @@ export async function saveNamespaces(config: LangTagConfig, namespaces: Record<s
 
         let originalJSON = {};
         try {
-            originalJSON = await readJSON(filePath);
+            originalJSON = await $LT_ReadJSON(filePath);
         } catch (e) {
             messageOriginalNamespaceNotFound(filePath);
         }
 
         if (deepMergeTranslations(originalJSON, namespaces[namespace])) {
             changedNamespaces.push(namespace);
-            await writeJSON(filePath, originalJSON);
+            await $LT_WriteJSON(filePath, originalJSON);
         }
     }
 

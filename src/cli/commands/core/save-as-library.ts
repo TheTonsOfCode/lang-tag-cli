@@ -1,5 +1,5 @@
 import {LangTagConfig} from "@/cli/config.ts";
-import {readJSON, writeJSON} from "@/cli/commands/utils/file.ts";
+import {$LT_ReadJSON, $LT_WriteJSON} from "@/cli/core/io/file.ts";
 import process from "node:process";
 import {messageErrorInFile, messageWrittenExportsFile} from "@/cli/message";
 import {readFileSync} from "fs";
@@ -12,7 +12,7 @@ export async function saveAsLibrary(files: string[], config: LangTagConfig) {
 
     const cwd = process.cwd();
 
-    const packageJson: any = await readJSON(path.resolve(cwd, 'package.json'));
+    const packageJson: any = await $LT_ReadJSON(path.resolve(cwd, 'package.json'));
 
     if (!packageJson) {
         throw new Error('package.json not found');
@@ -56,6 +56,6 @@ export async function saveAsLibrary(files: string[], config: LangTagConfig) {
         files: langTagFiles
     };
 
-    await writeJSON(EXPORTS_FILE_NAME, data);
+    await $LT_WriteJSON(EXPORTS_FILE_NAME, data);
     messageWrittenExportsFile();
 }

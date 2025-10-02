@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import {program} from 'commander';
-import {collectTranslations} from '@/cli/commands/collect';
 import {regenerateTags} from '@/cli/commands/regenerate-tags';
 import {watchTranslations} from '@/cli/commands/watch';
-import {initConfig} from '@/cli/commands/init';
+import {$LT_CMD_InitConfig} from '@/cli/commandsNEW/cmd-init.ts';
 import {importTranslations} from "@/cli/commands/import";
+import {$LT_CMD_Collect} from "@/cli/commandsNEW/cmd-collect.ts";
 
 export function createCli() {
     program
@@ -17,7 +17,7 @@ export function createCli() {
         .command('collect')
         .alias('c')
         .description('Collect translations from source files')
-        .action(collectTranslations);
+        .action($LT_CMD_Collect);
 
     program
         .command('import')
@@ -40,7 +40,12 @@ export function createCli() {
     program
         .command('init')
         .description('Initialize project with default configuration')
-        .action(initConfig);
+        .action($LT_CMD_InitConfig);
+
+    program
+        .command('init-tag')
+        .description('Initialize project with default configuration')
+        .action($LT_CMD_InitConfig);
 
     return program;
 }

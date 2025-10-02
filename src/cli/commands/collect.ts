@@ -1,8 +1,8 @@
-import {readConfig} from '@/cli/commands/utils/read-config';
+import {$LT_ReadConfig} from '@/cli/core/io/read-config.ts';
 import {globby} from 'globby';
 import * as process from "node:process";
 import {gatherTranslationsToNamespaces} from "./core/collect-namespaces";
-import {saveNamespaces} from "./core/save-namespaces.ts";
+import {$LT_WriteToNamespaces} from "@/cli/core/io/write-to-namespaces.ts";
 import {
     messageCollectTranslations,
     messageFoundTranslationKeys,
@@ -14,7 +14,7 @@ import {saveAsLibrary} from "@/cli/commands/core/save-as-library.ts";
 export async function collectTranslations() {
     messageCollectTranslations();
 
-    const config = await readConfig(process.cwd());
+    const config = await $LT_ReadConfig(process.cwd());
 
     const files = await globby(config.includes, {
         cwd: process.cwd(),
@@ -29,7 +29,7 @@ export async function collectTranslations() {
 
         messageFoundTranslationKeys(totalKeys);
 
-        const changedNamespaces = await saveNamespaces(config, namespaces);
+        const changedNamespaces = await $LT_WriteToNamespaces(config, namespaces);
 
         if (changedNamespaces.length > 0) {
             messageNamespacesUpdated(config, changedNamespaces);

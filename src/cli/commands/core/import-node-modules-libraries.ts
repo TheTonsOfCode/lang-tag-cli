@@ -4,7 +4,7 @@ import fs from 'fs';
 import * as process from "node:process";
 import path, {dirname, resolve} from 'pathe';
 import {LangTagExportData} from "@/cli";
-import {ensureDirectoryExists, readJSON} from "@/cli/commands/utils/file.ts";
+import {$LT_EnsureDirectoryExists, $LT_ReadJSON} from "@/cli/core/io/file.ts";
 import {LangTagConfig} from "@/cli/config.ts";
 import {writeFile} from "fs/promises";
 import { LangTagTranslationsConfig } from "@/index.ts";
@@ -47,12 +47,12 @@ function getExportFiles(): string[] {
 export async function importLibraries(config: LangTagConfig): Promise<void> {
     const files = getExportFiles();
 
-    await ensureDirectoryExists(config.import.dir);
+    await $LT_EnsureDirectoryExists(config.import.dir);
 
     const generationFiles: Record<string /*fileName*/, Record<string /*export name*/, string>> = {}
 
     for (const filePath of files) {
-        const exportData: LangTagExportData = await readJSON(filePath);
+        const exportData: LangTagExportData = await $LT_ReadJSON(filePath);
 
         // TODO: if different language, translate to base language
         //  exportData.language
@@ -113,7 +113,7 @@ export async function importLibraries(config: LangTagConfig): Promise<void> {
 
         const content = `${config.import.tagImportPath}\n\n${exports}`;
 
-        await ensureDirectoryExists(dirname(filePath));
+        await $LT_EnsureDirectoryExists(dirname(filePath));
         await writeFile(filePath, content, 'utf-8');
         messageImportedFile(file);
     }

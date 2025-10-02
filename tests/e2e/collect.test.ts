@@ -201,16 +201,16 @@ describe('collect command e2e tests', () => {
         expect(Array.isArray(matches)).toBeTruthy();
         expect(matches.length).toBe(3);
 
-        expect(matches[0].translations).toBe("{\"hello\": \"Hello World\"}");
-        expect(matches[0].config).toBe("{\n    namespace: 'common',\n}");
+        expect(JSON5.parse(matches[0].translations)).toEqual({ hello: "Hello World" });
+        expect(JSON5.parse(matches[0].config)).toEqual({ namespace: 'common' });
         expect(matches[0].variableName).toBe("translations1");
 
-        expect(matches[1].translations).toBe("{\"bye\": \"Goodbye\"}");
-        expect(matches[1].config).toBe("{\n    namespace: 'common',\n}");
+        expect(JSON5.parse(matches[1].translations)).toEqual({ bye: "Goodbye" });
+        expect(JSON5.parse(matches[1].config)).toEqual({ namespace: 'common' });
         expect(matches[1].variableName).toBe("translations2");
 
-        expect(matches[2].translations).toBe("{\"error\": \"Error occurred\"}");
-        expect(matches[2].config).toBe("{\n    namespace: 'errors',\n}");
+        expect(JSON5.parse(matches[2].translations)).toEqual({ error: "Error occurred" });
+        expect(JSON5.parse(matches[2].config)).toEqual({ namespace: 'errors' });
         expect(matches[2].variableName).toBe("translations3");
     });
 

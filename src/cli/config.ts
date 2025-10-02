@@ -1,9 +1,4 @@
 import {LangTagTranslationsConfig} from "@/index.ts";
-import path, {resolve} from 'pathe';
-import {existsSync} from 'fs';
-import {pathToFileURL} from 'url';
-import {CONFIG_FILE_NAME} from './constants';
-import {messageErrorReadingConfig} from "@/cli/message";
 
 export interface LangTagConfig {
     /**
@@ -30,6 +25,18 @@ export interface LangTagConfig {
      */
     outputDir: string;
 
+    collect?: {
+        /**
+         * @default 'common'
+         */
+        defaultNamespace?: string;
+
+        // TODO: jesli biblioteka to nie dawac namespace
+        // TODO: jesli normalne to dawac namespace jako defaultNamespace i path jako: ''
+        onCollect?: (tag: any, isLibrary: boolean) => LangTagTranslationsConfig;
+
+        onConflictResolution?: (tag: any, tagB: any) => LangTagTranslationsConfig;
+    }
 
     import: {
         /**

@@ -1,10 +1,10 @@
-import {readConfig} from '@/cli/commands/utils/read-config';
+import {$LT_ReadConfig} from '@/cli/core/io/read-config.ts';
 import { checkAndRegenerateFileLangTags } from './core/regenerate-config';
 import { messageLangTagTranslationConfigRegenerated, messageNoChangesMade } from '@/cli/message';
 import { globby } from 'globby';
 
 export async function regenerateTags() {
-    const config = await readConfig(process.cwd());
+    const config = await $LT_ReadConfig(process.cwd());
 
     const files = await globby(config.includes, {
         cwd: process.cwd(),
