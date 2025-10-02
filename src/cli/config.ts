@@ -31,10 +31,16 @@ export interface LangTagConfig {
          */
         defaultNamespace?: string;
 
-        // TODO: jesli biblioteka to nie dawac namespace
-        // TODO: jesli normalne to dawac namespace jako defaultNamespace i path jako: ''
-        onCollect?: (tag: any, isLibrary: boolean) => LangTagTranslationsConfig;
+        /**
+         * A function called when the collected translation configuration needs to be fixed or validated.
+         * Allows modification of the configuration before it's saved to the output files.
+         */
+        onCollectConfigFix?: (config: LangTagTranslationsConfig, langTagConfig: LangTagConfig) => LangTagTranslationsConfig;
 
+        /**
+         * A function called when there are conflicts between translation tags (e.g., same key in different namespaces).
+         * Allows custom resolution logic for handling duplicate or conflicting translations.
+         */
         onConflictResolution?: (tag: any, tagB: any) => LangTagTranslationsConfig;
     }
 

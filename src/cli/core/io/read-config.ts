@@ -10,6 +10,17 @@ export const defaultConfig: LangTagConfig = {
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build'],
     outputDir: 'locales/en',
+    collect: {
+        defaultNamespace: 'common',
+        onCollectConfigFix: (config, langTagConfig) => {
+            if (langTagConfig.isLibrary) return config;
+
+            if (!config) return { path: '', namespace: langTagConfig.collect!.defaultNamespace!};
+            if (!config.path) config.path = '';
+            if (!config.namespace) config.namespace = langTagConfig.collect!.defaultNamespace!;
+            return config;
+        }
+    },
     import: {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
@@ -49,6 +60,10 @@ export async function $LT_ReadConfig(projectPath: string): Promise<LangTagConfig
             import: {
                 ...defaultConfig.import,
                 ...userConfig.import,
+            },
+            collect: {
+                ...defaultConfig.collect,
+                ...userConfig.collect,
             }
         };
     } catch (error) {

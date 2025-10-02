@@ -82,7 +82,7 @@ export function $LT_CreateDefaultLogger(debugMode: boolean): $LT_Logger {
         info: (msg, params) => log(ANSI_COLORS.blue, msg, params),
         success: (msg, params) => log(ANSI_COLORS.green, msg, params),
         warn: (msg, params) => log(ANSI_COLORS.yellow, msg, params),
-        error: (msg, params) => log(ANSI_COLORS.red, msg, params),
+        error: (msg, params) => log(ANSI_COLORS.red, msg || 'empty error message', params),
         debug: (msg, params) => {
             if (!debugMode) return;
             log(ANSI_COLORS.gray, msg, params);

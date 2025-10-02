@@ -19,7 +19,10 @@ const config = {
         //}
 
         return undefined
-    }
+    },
+    collect: {
+        defaultNamespace: 'common',
+    },
 };
 
 module.exports = config;
@@ -40,6 +43,6 @@ export async function $LT_CMD_InitConfig() {
         await writeFile(CONFIG_FILE_NAME, DEFAULT_INIT_CONFIG, 'utf-8');
         logger.success('Configuration file created successfully');
     } catch (error: any) {
-        logger.error(error?.message || 'empty error message');
+        logger.error(error?.message);
     }
 }
