@@ -646,8 +646,8 @@ describe('replaceLangMatches', () => {
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: "{}" }, // empty config string
-            { tag: tags[1], config: "{ ns: null, empty: '' }" } // null, empty string (removed undefined as it's not valid JSON5)
+            { tag: tags[0], config: "{}" }, 
+            { tag: tags[1], config: "{ ns: null, empty: '' }" }
         ]
 
         const result = processor.replaceTags(content, replacements);
@@ -726,5 +726,164 @@ describe('replaceLangMatches', () => {
         expect(tag1.parameterConfig.settings['quoted-key']).toBe('value with "quotes"');
         expect(tag1.parameterConfig.settings.multiline).toBe('multiline\nstring');
         expect(tag1.parameterConfig.settings.pattern).toBe('test-pattern');
+    });
+
+    it('should preserve comments in translations when replacing config only', () => {
+        const content = `const translations = lang({
+            // This is a comment
+            key: 'hello',
+            // Another comment
+            message: 'world'
+        }, { namespace: 'common' });`;
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { tag: tags[0], config: { namespace: 'ui', fallback: true } }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        // Check that the result contains the original comments
+        expect(tag1.parameter1Text).toContain('// This is a comment');
+        expect(tag1.parameter1Text).toContain('// Another comment');
+        expect(tag1.variableName).toBe('translations')
+        expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
+        expect(tag1.parameterTranslations.message).toBe('world'); // unchanged
+        expect(tag1.parameterConfig.namespace).toBe('ui');
+        expect(tag1.parameterConfig.fallback).toBe(true);
+    });
+
+    it('should preserve comments in multiple tags when replacing config only', () => {
+        const content = `const t1 = lang({
+            // First comment
+            key: 'hello'
+        }, { ns: 'common' }); 
+        const t2 = lang({
+            // Second comment
+            key: 'hi',
+            // Third comment
+            message: 'there'
+        }, { ns: 'ui' });`;
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { tag: tags[0], config: { ns: 'app', debug: true } },
+            { tag: tags[1], config: { ns: 'admin', debug: false } }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(2);
+        const tag1 = finalTags[0];
+        // Check that all comments are preserved
+        expect(tag1.parameter1Text).toContain('// First comment');
+        expect(tag1.variableName).toBe('t1')
+        expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
+        expect(tag1.parameterConfig.ns).toBe('app');
+        expect(tag1.parameterConfig.debug).toBe(true);
+        
+        const tag2 = finalTags[1];
+        // Check that all comments are preserved
+        expect(tag2.parameter1Text).toContain('// Second comment');
+        expect(tag2.parameter1Text).toContain('// Third comment');
+        expect(tag2.variableName).toBe('t2')
+        expect(tag2.parameterTranslations.key).toBe('hi'); // unchanged
+        expect(tag2.parameterTranslations.message).toBe('there'); // unchanged
+        expect(tag2.parameterConfig.ns).toBe('admin');
+        expect(tag2.parameterConfig.debug).toBe(false);
+    });
+
+    it('should preserve comments in complex nested translations when replacing config only', () => {
+        const content = `const translations = lang({
+            // Main translations object
+            menu: {
+                // Menu items comment
+                items: [
+                    {label: "Home"}, // Home item
+                    {label: "About"} // About item
+                ]
+            },
+            user: {
+                // User profile comment
+                profile: "Profile"
+            }
+        }, { namespace: 'common' });`;
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { tag: tags[0], config: { namespace: 'advanced', settings: { debug: true } } }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        // Check that all comments are preserved
+        expect(tag1.parameter1Text).toContain('// Main translations object');
+        expect(tag1.parameter1Text).toContain('// Menu items comment');
+        expect(tag1.parameter1Text).toContain('// Home item');
+        expect(tag1.parameter1Text).toContain('// About item');
+        expect(tag1.parameter1Text).toContain('// User profile comment');
+        expect(tag1.variableName).toBe('translations')
+        expect(tag1.parameterTranslations.menu.items).toHaveLength(2);
+        expect(tag1.parameterTranslations.menu.items[0].label).toBe('Home');
+        expect(tag1.parameterTranslations.menu.items[1].label).toBe('About');
+        expect(tag1.parameterTranslations.user.profile).toBe('Profile');
+        expect(tag1.parameterConfig.namespace).toBe('advanced');
+        expect(tag1.parameterConfig.settings.debug).toBe(true);
+    });
+
+    it('should preserve various comment types when replacing config only', () => {
+        const content = `const translations = lang({
+            // Single line comment
+            key: 'hello',
+            /* Multi-line comment
+               with multiple lines */
+            message: 'world',
+            // TODO: Fix this later
+            temp: 'value',
+            /* Another multi-line
+               comment */
+            final: 'done'
+        }, { namespace: 'common' });`;
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { tag: tags[0], config: { namespace: 'ui', fallback: true } }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        // Check that all comments are preserved
+        expect(tag1.parameter1Text).toContain('// Single line comment');
+        expect(tag1.parameter1Text).toContain('/* Multi-line comment');
+        expect(tag1.parameter1Text).toContain('with multiple lines */');
+        expect(tag1.parameter1Text).toContain('// TODO: Fix this later');
+        expect(tag1.parameter1Text).toContain('/* Another multi-line');
+        expect(tag1.parameter1Text).toContain('comment */');
+        expect(tag1.variableName).toBe('translations')
+        expect(tag1.parameterTranslations.key).toBe('hello');
+        expect(tag1.parameterTranslations.message).toBe('world');
+        expect(tag1.parameterTranslations.temp).toBe('value');
+        expect(tag1.parameterTranslations.final).toBe('done');
+        expect(tag1.parameterConfig.namespace).toBe('ui');
+        expect(tag1.parameterConfig.fallback).toBe(true);
     });
 });
