@@ -1,7 +1,7 @@
 import {$LT_ReadConfig} from '@/cli/core/io/read-config.ts';
-import { checkAndRegenerateFileLangTags } from './core/regenerate-config';
-import { messageLangTagTranslationConfigRegenerated, messageNoChangesMade } from '@/cli/message';
-import { globby } from 'globby';
+import {checkAndRegenerateFileLangTags} from './core/regenerate-config';
+import {messageLangTagTranslationConfigRegenerated, messageNoChangesMade} from '@/cli/message';
+import {globby} from 'globby';
 
 export async function regenerateTags() {
     const config = await $LT_ReadConfig(process.cwd());

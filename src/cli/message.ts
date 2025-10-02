@@ -1,7 +1,6 @@
 import {miniChalk} from "@/cli/commands/utils/mini-chalk.ts";
 import {LangTagConfig} from "@/cli/config.ts";
 import {LangTagMatch} from "@/cli/processor.ts";
-import {EXPORTS_FILE_NAME} from "@/cli/constants.ts";
 
 function time(): string {
     const now = new Date();
@@ -36,26 +35,10 @@ export function messageLangTagTranslationConfigRegenerated(filePath: string) {
     info(`Lang tag configurations written for file "${filePath}"`);
 }
 
-export function messageCollectTranslations() {
-    info('Collecting translations from source files...');
-}
-
 export function messageWatchMode() {
     info('Starting watch mode for translations...');
     info('Watching for changes...');
     info('Press Ctrl+C to stop watching');
-}
-
-export function messageFoundTranslationKeys(totalKeys: number) {
-    info(`Found ${totalKeys} translation keys`);
-}
-
-export function messageExistingConfiguration() {
-    success(`Configuration file already exists. Please remove the existing configuration file before creating a new default one`);
-}
-
-export function messageInitializedConfiguration() {
-    success(`Configuration file created successfully`);
 }
 
 export function messageNoChangesMade() {
@@ -64,10 +47,6 @@ export function messageNoChangesMade() {
 
 export function messageNodeModulesNotFound() {
     warning('"node_modules" directory not found.');
-}
-
-export function messageWrittenExportsFile() {
-    success(`Written ${EXPORTS_FILE_NAME}`);
 }
 
 export function messageImportedFile(fileName: string) {

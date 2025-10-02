@@ -1,4 +1,4 @@
-import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from "@/cli/constants.ts";
+import {EXPORTS_FILE_NAME} from "@/cli/constants.ts";
 import {messageErrorReadingDirectory, messageImportedFile, messageNodeModulesNotFound} from '@/cli/message';
 import fs from 'fs';
 import * as process from "node:process";
@@ -7,7 +7,7 @@ import {LangTagExportData} from "@/cli";
 import {$LT_EnsureDirectoryExists, $LT_ReadJSON} from "@/cli/core/io/file.ts";
 import {LangTagConfig} from "@/cli/config.ts";
 import {writeFile} from "fs/promises";
-import { LangTagTranslationsConfig } from "@/index.ts";
+import {LangTagTranslationsConfig} from "@/index.ts";
 import JSON5 from "json5";
 
 function findExportJson(dir: string, depth: number = 0, maxDepth: number = 3): string[] {

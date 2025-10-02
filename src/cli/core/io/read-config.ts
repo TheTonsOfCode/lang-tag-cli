@@ -3,7 +3,7 @@ import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
 import {existsSync} from "fs";
 import {pathToFileURL} from "url";
 import {messageErrorReadingConfig} from "@/cli/message.ts";
-import {LangTagOnConfigGenerationParams, LangTagConfig, LangTagOnImportParams} from "@/cli/config.ts";
+import {LangTagConfig, LangTagOnConfigGenerationParams, LangTagOnImportParams} from "@/cli/config.ts";
 
 export const defaultConfig: LangTagConfig = {
     tagName: 'lang',
