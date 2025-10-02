@@ -124,6 +124,15 @@ export class $LT_TagProcessor {
                 while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
                     i++;
                 }
+
+                // Handle trailing comma after second parameter (Prettier formatting)
+                if (i < fileContent.length && fileContent[i] === ',') {
+                    i++; // consume the comma
+                    // Skip whitespace after comma
+                    while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
+                        i++;
+                    }
+                }
             } else if (fileContent[i] !== ')') {
                 // No comma and not a closing parenthesis -> malformed (e.g., missing comma before second object)
                 currentIndex = matchStartIndex + 1;
