@@ -2,10 +2,7 @@ import chokidar from 'chokidar';
 import path from 'path';
 import micromatch from 'micromatch';
 import {LangTagConfig} from '@/cli/config';
-import {$LT_ReadConfig} from '@/cli/core/io/read-config.ts';
-import {collectTranslations} from './collect';
 import {checkAndRegenerateFileLangTags} from "@/cli/commands/core/regenerate-config.ts";
-import {gatherTranslationsToNamespaces} from "@/cli/commands/core/collect-namespaces.ts";
 import {$LT_WriteToNamespaces} from "@/cli/core/io/write-to-namespaces.ts";
 import {
     messageErrorInFileWatcher,
@@ -13,6 +10,11 @@ import {
     messageNamespacesUpdated,
     messageWatchMode
 } from "@/cli/message.ts";
+import {$LT_GetCommandEssentials} from "@/cli/commandsNEW/setup.ts";
+import {$LT_Logger} from "@/cli/core/logger.ts";
+import {$LT_CMD_Collect} from "@/cli/commandsNEW/cmd-collect.ts";
+import {$LT_CollectCandidateFilesWithTags} from "@/cli/core/collect/collect-tags.ts";
+import {$LT_GroupTagsToNamespaces} from "@/cli/core/collect/group-tags-to-namespaces.ts";
 
 function getBasePath(pattern: string): string {
     const globStartIndex = pattern.indexOf('*');
@@ -42,9 +44,11 @@ function getBasePath(pattern: string): string {
 
 export async function watchTranslations() {
     const cwd = process.cwd();
-    const config = await $LT_ReadConfig(cwd);
+    const {config, logger} = await $LT_GetCommandEssentials();
 
-    await collectTranslations();
+    // TODO: przerobic ze to bardziej per plik collectuje
+    // TODO: to jest chyba dobrze bo watch przy pierwszym uruchomieniu powinien zgarnac translacje
+    await $LT_CMD_Collect();
 
     // Chokidar doesn't seem to handle glob patterns reliably, especially during tests.
     // To unify watching behavior in both tests and production:
@@ -84,15 +88,15 @@ export async function watchTranslations() {
     messageWatchMode();
 
     watcher
-        .on('change', async filePath => await handleFile(config, filePath, 'change'))
-        .on('add', async filePath => await handleFile(config, filePath, 'add'))
+        .on('change', async filePath => await handleFile(config, logger, filePath, 'change'))
+        .on('add', async filePath => await handleFile(config, logger, filePath, 'add'))
         // .on('unlink', async filePath => await handleFile(config, filePath, 'unlink'))
         .on('error', error => {
             messageErrorInFileWatcher(error);
         });
 }
 
-async function handleFile(config: LangTagConfig, cwdRelativeFilePath: string, event: string) {
+async function handleFile(config: LangTagConfig, logger: $LT_Logger, cwdRelativeFilePath: string, event: string) {
     // Check if the path matches any of the original glob patterns
     if (!micromatch.isMatch(cwdRelativeFilePath, config.includes)) {
         return;
@@ -108,9 +112,11 @@ async function handleFile(config: LangTagConfig, cwdRelativeFilePath: string, ev
         messageLangTagTranslationConfigRegenerated(cwdRelativeFilePath);
     }
 
-    const {namespaces} = gatherTranslationsToNamespaces([cwdRelativeFilePath], config);
+    const files = await $LT_CollectCandidateFilesWithTags({filesToScan: [cwdRelativeFilePath], config, logger});
 
-    const changedNamespaces = await $LT_WriteToNamespaces(config, namespaces);
+    const namespaces = await $LT_GroupTagsToNamespaces({logger, files})
+
+    const changedNamespaces = await $LT_WriteToNamespaces({config, namespaces, logger});
     if (changedNamespaces.length > 0) {
         messageNamespacesUpdated(config, changedNamespaces)
     }

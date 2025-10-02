@@ -1,12 +1,12 @@
 import path from "path";
 import process from "node:process";
-import { readFileSync } from "fs";
+import {readFileSync} from "fs";
 
-import { globby } from "globby";
+import {globby} from "globby";
 
-import { LangTagConfig } from "@/cli/config.ts";
-import { $LT_Logger } from "@/cli/core/logger.ts";
-import { $LT_Tag, $LT_TagProcessor } from "@/cli/core/processor.ts";
+import {LangTagConfig} from "@/cli/config.ts";
+import {$LT_Logger} from "@/cli/core/logger.ts";
+import {$LT_Tag, $LT_TagProcessor} from "@/cli/core/processor.ts";
 
 export interface $LT_TagCandidateFile {
 
@@ -18,19 +18,19 @@ interface Props {
 
     config: LangTagConfig;
     logger: $LT_Logger;
+    filesToScan?: string[]
 }
 
-export async function $LT_CollectCandidateFilesWithTags({config, logger}: Props): Promise<$LT_TagCandidateFile[]> {
-
+export async function $LT_CollectCandidateFilesWithTags(props: Props): Promise<$LT_TagCandidateFile[]> {
+    const {config, logger} = props;
     const processor = new $LT_TagProcessor(config);
 
     const cwd = process.cwd();
 
-    const filesToScan = await globby(config.includes, {
-        cwd,
-        ignore: config.excludes,
-        absolute: true
-    });
+    let filesToScan = props.filesToScan;
+    if (!filesToScan) {
+        filesToScan = await globby(config.includes, {cwd, ignore: config.excludes, absolute: true});
+    }
 
     const candidates: $LT_TagCandidateFile[] = [];
 

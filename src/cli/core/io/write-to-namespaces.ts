@@ -2,10 +2,14 @@ import {LangTagConfig} from "@/cli/config.ts";
 import {$LT_EnsureDirectoryExists, $LT_ReadJSON, $LT_WriteJSON} from "@/cli/core/io/file.ts";
 import {resolve} from "pathe";
 import process from "node:process";
-import {messageOriginalNamespaceNotFound} from "@/cli/message.ts";
 import {deepMergeTranslations} from "@/cli/commands/utils/merge.ts";
+import {$LT_Logger} from "@/cli/core/logger.ts";
 
-export async function $LT_WriteToNamespaces(config: LangTagConfig, namespaces: Record<string, Record<string, any>>): Promise<string[]> {
+export async function $LT_WriteToNamespaces({config, namespaces, logger}: {
+    config: LangTagConfig,
+    namespaces: Record<string, Record<string, any>>
+    logger: $LT_Logger
+}): Promise<string[]> {
 
     const changedNamespaces: string[] = [];
 
@@ -26,7 +30,7 @@ export async function $LT_WriteToNamespaces(config: LangTagConfig, namespaces: R
         try {
             originalJSON = await $LT_ReadJSON(filePath);
         } catch (e) {
-            messageOriginalNamespaceNotFound(filePath);
+            logger.warn(`Original namespace file "{namespace}.json" not found. A new one will be created.`, { namespace })
         }
 
         if (deepMergeTranslations(originalJSON, namespaces[namespace])) {

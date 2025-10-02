@@ -24,11 +24,7 @@ export async function $LT_CMD_Collect() {
     const totalTags = files.reduce((sum, file) => sum + file.tags.length, 0);
     logger.debug('Found {totalTags} translation tags', { totalTags });
 
-
-    // TODO: przerobic w srodku i przekazywac logger
-
-
-    const changedNamespaces = await $LT_WriteToNamespaces(config, namespaces);
+    const changedNamespaces = await $LT_WriteToNamespaces({config, namespaces, logger});
 
     if (!changedNamespaces?.length) {
         logger.info('No changes were made based on the current configuration and files')

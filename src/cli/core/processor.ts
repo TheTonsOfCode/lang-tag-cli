@@ -26,12 +26,13 @@ export interface $LT_Tag {
 export interface $LT_TagReplaceData {
     tag: $LT_Tag;
 
-    newConfig: any;
+    translations?: string | any;
+    config?: string | any;
 }
 
 export class $LT_TagProcessor {
 
-    constructor(private config: LangTagConfig) {}
+    constructor(private config: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'>) {}
 
     public extractTags(fileContent: string): $LT_Tag[] {
         const tagName = this.config.tagName;
@@ -157,18 +158,52 @@ export class $LT_TagProcessor {
 
         const replaceMap: Map<$LT_Tag, string> = new Map();
 
-        replacements.forEach(({tag, newConfig}) => {
+        replacements.forEach(R => {
+            if (!R.translations && !R.config) {
+                throw new Error('Replacement data is required!')
+            }
 
-            const newConfigString = JSON5.stringify(JSON5.parse(newConfig), undefined, 4);
-            const tagTranslationsContent = this.config.translationArgPosition === 1 ? tag.parameter1Text : tag.parameter2Text;
+            const tag = R.tag;
 
-            const arg1 = this.config.translationArgPosition === 1  ? tagTranslationsContent : newConfigString;
-            const arg2 = this.config.translationArgPosition === 1  ? newConfigString : tagTranslationsContent;
+            let newTranslationsString = R.translations;
+            // We do not use "tag.parameterTranslations" in order to preserve translations object comments, etc.
+            if (!newTranslationsString) newTranslationsString = this.config.translationArgPosition === 1 ? tag.parameter1Text : tag.parameter2Text;
+            else if (typeof newTranslationsString !== 'string') newTranslationsString = JSON5.stringify(newTranslationsString);
+            if (!newTranslationsString) throw new Error('Tag must have translations provided!');
+            try {
+                JSON5.parse(newTranslationsString);
+            } catch (error) {
+                throw new Error(`Tag translations are invalid object! Translations: ${newTranslationsString}`)
+            }
 
-            const tagFunction = `${this.config.tagName}(${arg1}, ${arg2})`;
-            if (tag.variableName) return ` ${tag.variableName} = ${tagFunction}`;
+            let newConfigString = R.config;
+            if (!newConfigString) newConfigString = tag.parameterConfig;
+            if (newConfigString) {
+                try {
+                    if (typeof newConfigString === 'string') JSON5.parse(newConfigString);
+                    else newConfigString = JSON5.stringify(newConfigString);
+                } catch (error) {
+                    throw new Error(`Tag config is invalid object! Config: ${newConfigString}`)
+                }
+            }
 
-            replaceMap.set(tag, tagFunction);
+            // TODO:
+            // TODO:
+            // TODO:
+            // TODO:   HERE:  Cała logika formatowania wcięć itd w przyszłości
+            // TODO:
+            // TODO:
+            // TODO:
+
+            const arg1 = this.config.translationArgPosition === 1  ? newTranslationsString : newConfigString;
+            const arg2 = this.config.translationArgPosition === 1  ? newConfigString : newTranslationsString;
+
+            let tagFunction = `${this.config.tagName}(${arg1}`;
+            if (arg2) tagFunction += `, ${arg2}`;
+            tagFunction += ")";
+
+            if (tag.variableName) replaceMap.set(tag, ` ${tag.variableName} = ${tagFunction}`);
+            else replaceMap.set(tag, tagFunction);
         })
 
         let offset = 0;

@@ -4,6 +4,9 @@ export interface $LT_Logger {
     warn(message: string, params?: Record<string, any>): void;
     error(message: string, params?: Record<string, any>): void;
     debug(message: string, params?: Record<string, any>): void;
+
+    // TODO:
+    errorLinePreview(tag: any): void;
 }
 
 const ANSI_COLORS: Record<string, string> = {
@@ -13,7 +16,7 @@ const ANSI_COLORS: Record<string, string> = {
     green: '\x1b[32m',
     yellow: '\x1b[33m',
     red: '\x1b[31m',
-    gray: '\x1b[90m',
+    gray: '\x1b[37m',
     cyan: '\x1b[36m',
     bold: '\x1b[1m',
 };
@@ -60,8 +63,16 @@ function log(baseColor: string, message: string, params?: Record<string, any>) {
         )
         .join('');
 
-    // Static colored "LangTag" prefix
-    const prefix = `${ANSI_COLORS.bold}${ANSI_COLORS.cyan}LangTag${ANSI_COLORS.reset} `;
+    const now = new Date();
+    const time = `${now.getHours().toString().padStart(2, '0')}:` +
+        `${now.getMinutes().toString().padStart(2, '0')}:` +
+        `${now.getSeconds().toString().padStart(2, '0')}`;
+
+    const prefix =
+        // Static colored "LangTag" prefix
+        //`${ANSI_COLORS.bold}${ANSI_COLORS.cyan}LangTag${ANSI_COLORS.reset} ` +
+        // Time
+        `${ANSI_COLORS.gray}[${time}]${ANSI_COLORS.reset} `;
 
     console.log(`${prefix}${baseColor}${coloredMessage}${ANSI_COLORS.reset}`);
 }

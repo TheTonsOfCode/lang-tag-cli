@@ -74,9 +74,6 @@ export function messageImportedFile(fileName: string) {
     success(`Imported node_modules file: "${fileName}"`);
 }
 
-export function messageOriginalNamespaceNotFound(filePath: string) {
-    warning(`Original namespace file "${filePath}" not found. A new one will be created.`);
-}
 
 export function messageErrorInFile(e: string, file: string, match: LangTagMatch) {
     error(e + `
@@ -101,9 +98,6 @@ export function messageErrorReadingDirectory(dir: string, e: unknown) {
     error(`Error reading directory "${dir}": ${String(e)}`);
 }
 
-export function messageSkippedEmptyNamespace(namespace: string, keysCount: number) {
-    warning(`Skipped empty namespace "${namespace}" with ${keysCount} keys.`);
-}
 
 export function messageImportLibraries() {
     info('Importing translations from libraries...');
