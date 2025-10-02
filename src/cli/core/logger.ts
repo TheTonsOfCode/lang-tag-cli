@@ -87,5 +87,9 @@ export function $LT_CreateDefaultLogger(debugMode: boolean): $LT_Logger {
             if (!debugMode) return;
             log(ANSI_COLORS.gray, msg, params);
         },
+        errorLinePreview: (tag) => {
+            // TODO: Implement error line preview functionality
+            console.log(`${ANSI_COLORS.red}Error in tag: ${JSON.stringify(tag)}${ANSI_COLORS.reset}`);
+        },
     };
 }
