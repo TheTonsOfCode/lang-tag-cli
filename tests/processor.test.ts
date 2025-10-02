@@ -886,4 +886,243 @@ describe('replaceLangMatches', () => {
         expect(tag1.parameterConfig.namespace).toBe('ui');
         expect(tag1.parameterConfig.fallback).toBe(true);
     });
+
+    it('should replace both translations and config with objects', () => {
+        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { 
+                tag: tags[0], 
+                translations: { key: 'greeting', message: 'Hello World' },
+                config: { namespace: 'ui', fallback: true }
+            }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('translations')
+        expect(tag1.parameterTranslations.key).toBe('greeting');
+        expect(tag1.parameterTranslations.message).toBe('Hello World');
+        expect(tag1.parameterConfig.namespace).toBe('ui');
+        expect(tag1.parameterConfig.fallback).toBe(true);
+    });
+
+    it('should replace both translations and config with strings', () => {
+        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { 
+                tag: tags[0], 
+                translations: "{ key: 'greeting', message: 'Hello World' }",
+                config: "{ namespace: 'ui', fallback: true }"
+            }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('translations')
+        expect(tag1.parameterTranslations.key).toBe('greeting');
+        expect(tag1.parameterTranslations.message).toBe('Hello World');
+        expect(tag1.parameterConfig.namespace).toBe('ui');
+        expect(tag1.parameterConfig.fallback).toBe(true);
+    });
+
+    it('should replace with mixed object/string formats', () => {
+        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { 
+                tag: tags[0], 
+                translations: { key: 'greeting', message: 'Hello World' }, // object
+                config: "{ namespace: 'ui', fallback: true }" // string
+            }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('translations')
+        expect(tag1.parameterTranslations.key).toBe('greeting');
+        expect(tag1.parameterTranslations.message).toBe('Hello World');
+        expect(tag1.parameterConfig.namespace).toBe('ui');
+        expect(tag1.parameterConfig.fallback).toBe(true);
+    });
+
+    it('should replace with mixed string/object formats', () => {
+        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { 
+                tag: tags[0], 
+                translations: "{ key: 'greeting', message: 'Hello World' }", // string
+                config: { namespace: 'ui', fallback: true } // object
+            }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('translations')
+        expect(tag1.parameterTranslations.key).toBe('greeting');
+        expect(tag1.parameterTranslations.message).toBe('Hello World');
+        expect(tag1.parameterConfig.namespace).toBe('ui');
+        expect(tag1.parameterConfig.fallback).toBe(true);
+    });
+
+    it('should replace multiple tags with both parameters using different formats', () => {
+        const content = "const t1 = lang({ key: 'hello' }, { ns: 'common' }); const t2 = lang({ key: 'hi' }, { ns: 'ui' });";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { 
+                tag: tags[0], 
+                translations: { key: 'greeting', message: 'Hello' }, // object
+                config: "{ ns: 'app', debug: true }" // string
+            },
+            { 
+                tag: tags[1], 
+                translations: "{ key: 'salutation', message: 'Hi there' }", // string
+                config: { ns: 'admin', debug: false } // object
+            }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(2);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('t1')
+        expect(tag1.parameterTranslations.key).toBe('greeting');
+        expect(tag1.parameterTranslations.message).toBe('Hello');
+        expect(tag1.parameterConfig.ns).toBe('app');
+        expect(tag1.parameterConfig.debug).toBe(true);
+        
+        const tag2 = finalTags[1];
+        expect(tag2.variableName).toBe('t2')
+        expect(tag2.parameterTranslations.key).toBe('salutation');
+        expect(tag2.parameterTranslations.message).toBe('Hi there');
+        expect(tag2.parameterConfig.ns).toBe('admin');
+        expect(tag2.parameterConfig.debug).toBe(false);
+    });
+
+    it('should handle complex scenarios with both parameters', () => {
+        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+
+        const tags = processor.extractTags(content);
+
+        const complexTranslations = {
+            menu: {
+                items: [
+                    {label: "Home", url: "/"},
+                    {label: "About", url: "/about"}
+                ]
+            },
+            user: {
+                profile: {
+                    name: "John",
+                    settings: {
+                        theme: "dark",
+                        language: "en"
+                    }
+                }
+            }
+        };
+
+        const complexConfig = {
+            namespace: 'advanced',
+            settings: {
+                fallback: true,
+                debug: false,
+                features: {
+                    interpolation: true,
+                    pluralization: false
+                }
+            }
+        };
+
+        const replacements: $LT_TagReplaceData[] = [
+            { 
+                tag: tags[0], 
+                translations: complexTranslations,
+                config: complexConfig
+            }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('translations')
+        expect(tag1.parameterTranslations.menu.items).toHaveLength(2);
+        expect(tag1.parameterTranslations.menu.items[0].label).toBe('Home');
+        expect(tag1.parameterTranslations.user.profile.name).toBe('John');
+        expect(tag1.parameterTranslations.user.profile.settings.theme).toBe('dark');
+        expect(tag1.parameterConfig.namespace).toBe('advanced');
+        expect(tag1.parameterConfig.settings.fallback).toBe(true);
+        expect(tag1.parameterConfig.settings.features.interpolation).toBe(true);
+    });
+
+    it('should replace both parameters without variable assignment', () => {
+        const content = "lang({ key: 'hello' }, { ns: 'common' }); lang({ key: 'hi' }, { ns: 'ui' });";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { 
+                tag: tags[0], 
+                translations: { key: 'greeting', message: 'Hello' },
+                config: "{ ns: 'app', debug: true }"
+            },
+            { 
+                tag: tags[1], 
+                translations: "{ key: 'salutation', message: 'Hi there' }",
+                config: { ns: 'admin', debug: false }
+            }
+        ]
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(2);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBeUndefined();
+        expect(tag1.parameterTranslations.key).toBe('greeting');
+        expect(tag1.parameterTranslations.message).toBe('Hello');
+        expect(tag1.parameterConfig.ns).toBe('app');
+        expect(tag1.parameterConfig.debug).toBe(true);
+        
+        const tag2 = finalTags[1];
+        expect(tag2.variableName).toBeUndefined();
+        expect(tag2.parameterTranslations.key).toBe('salutation');
+        expect(tag2.parameterTranslations.message).toBe('Hi there');
+        expect(tag2.parameterConfig.ns).toBe('admin');
+        expect(tag2.parameterConfig.debug).toBe(false);
+    });
 });
