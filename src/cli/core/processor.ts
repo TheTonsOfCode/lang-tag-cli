@@ -133,7 +133,7 @@ export class $LT_TagProcessor {
             // Require closing parenthesis for the tag call
             if (i >= fileContent.length || fileContent[i] !== ')') {
                 // Scan ahead minimally to see if a ')' appears before a line break with code; conservative: require immediate ')'
-                // For simplicity and correctness with tests, if not immediate ')', treat as malformed
+                // For simplicity, if not immediate ')', treat as malformed
                 currentIndex = matchStartIndex + 1;
                 continue;
             }

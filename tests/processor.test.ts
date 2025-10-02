@@ -1279,7 +1279,7 @@ describe('Error handling and edge cases', () => {
     });
 
     it("should not find tag when '}' appears inside string value without real closing brace", () => {
-        const content = "const text = lang({ key: 'he}llo' ; // missing real closing brace\nconst x = 1;";
+        const content = "const text = lang({ key: 'he}llo');\nconst x = 1;";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(0);
