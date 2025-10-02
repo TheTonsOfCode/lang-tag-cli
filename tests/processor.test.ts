@@ -126,6 +126,38 @@ describe('findLangMatches', () => {
             }`);
         expect(tags[0].parameter2Text).toBe(`{"namespace": "common"}`);
     });
+
+    it('should find lang match with trailing comma after second argument (Prettier formatting)', () => {
+        const content = `export const authTranslations = lang(
+    {
+        common: {
+            signIn: 'Sign In',
+        },
+    },
+    { namespace: 'auth' },
+);`;
+        
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(1);
+        expect(tags[0].fullMatch).toBe(` authTranslations = lang(
+    {
+        common: {
+            signIn: 'Sign In',
+        },
+    },
+    { namespace: 'auth' },
+)`);
+        expect(tags[0].variableName).toBe("authTranslations");
+        expect(tags[0].parameter1Text).toBe(`{
+        common: {
+            signIn: 'Sign In',
+        },
+    }`);
+        expect(tags[0].parameter2Text).toBe(`{ namespace: 'auth' }`);
+        expect(tags[0].parameterTranslations.common.signIn).toBe('Sign In');
+        expect(tags[0].parameterConfig.namespace).toBe('auth');
+    });
 });
 
 describe('replaceLangMatches', () => {
