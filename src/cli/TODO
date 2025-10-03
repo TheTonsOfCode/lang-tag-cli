@@ -1,6 +1,7 @@
 
 
 - komenda od init-taga
+    // TODO: if library to cos (np. InputType)
 
 - rozwiazywanie konfliktow z pokazywaniem w jakich plikach i dlaczego
 
@@ -10,18 +11,10 @@ jak sie daje prefix:
     'file://' + file + ":11:4"
     i do tego linie to tworzy się link w konsoli ktory przenosi do pliku
     zrobic tak:
- (file:///Users/paweldabrowa/homedev/lang-tag/.e2e-tests/.template-regenerate/node_modules/lang-tag/cli/index.js:395:30)
+ (file:///Users/pawel/homedev/lang-tag/.e2e-tests/.template-regenerate/node_modules/lang-tag/cli/index.js:395:30)
 
 
  - onConfigurationGeneration, undefined powinno usuwac konfiguracje, a powinna byc inna zmienna 'save: true'
 
  - processPlaceholders do templatki
     i wywalic defaultTranslationTransformer
-
-
-
-    // TODO: jesli typescript w projekcie to .ts, a jak nie ma to .js
-    // TODO: nazwa taga to cos
-    // TODO: brac pod uwage arg
-    // TODO: if library to cos (np. InputType)
-    // TODO: if react to useMemo

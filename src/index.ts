@@ -74,7 +74,7 @@ export interface TranslationTransformContext<Config extends LangTagTranslationsC
  * @param transformContext - The context for the transformation.
  * @returns The transformed translation string.
  */
-type TranslationTransformer<Config extends LangTagTranslationsConfig> = (transformContext: TranslationTransformContext<Config>) => string;
+export type TranslationTransformer<Config extends LangTagTranslationsConfig> = (transformContext: TranslationTransformContext<Config>) => string;
 
 /**
  * Context provided to a translation key processor function.
@@ -346,33 +346,3 @@ export function lookupTranslation<T>(translations: CallableTranslations<T>, dott
     const pathSegments = dottedPath.split('.');
     return resolveTranslationFunction(translations, pathSegments);
 }
-
-/**
- * Processes placeholders in a translation string.
- * If the input `translation` is not a string, it returns an empty string.
- * Otherwise, it replaces placeholders in the format `{{placeholder}}` with values from `params`.
- * If a placeholder is not found in `params`, it's replaced with an empty string.
- * @param translation The translation value to process. Can be of any type.
- * @param params Optional interpolation parameters.
- * @returns The processed string, or an empty string if the input was not a string.
- */
-export function processPlaceholders(translation: any, params?: InterpolationParams): string {
-    if (typeof translation !== 'string') {
-        // As a safeguard, return an empty string if the input is not a string.
-        return '';
-    }
-    return translation.replace(/{{(.*?)}}/g, (_: any, placeholder: string) => {
-        const trimmedPlaceholder = placeholder.trim();
-        return params?.[trimmedPlaceholder] !== undefined ? String(params[trimmedPlaceholder]) : '';
-    });
-}
-
-// TODO: to remove
-/**
- * Default transformer for translations.
- * Uses `processPlaceholders` to replace placeholders in the format `{{placeholder}}`
- * with values from `params`.
- */
-export const defaultTranslationTransformer: TranslationTransformer<LangTagTranslationsConfig> = ({ value, params }) => {
-    return processPlaceholders(value, params);
-};

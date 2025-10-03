@@ -87,7 +87,8 @@ export function {{tagName}}<T extends LangTagTranslations>(
  * Replaces placeholders in translations with React nodes.
  * Placeholders use the format {{tmpPlaceholder1}}, for example:
  * const translations = {{tagName}}({ hello: "Hello {{tmpPlaceholder2}}!" });
- * translations.client().hello({ username: <span className="font-bold">John</span> });
+ * translations.client().hello({ username: "Paul" });
+ * translations.client().hello({ username: <span className="font-bold">Paul</span> });
  */
 export function reactProcessPlaceholders(
     translation: string,
@@ -132,7 +133,7 @@ export function reactProcessPlaceholders(
  * Replaces placeholders in translations with string values.
  * Placeholders use the format {{tmpPlaceholder1}}, for example:
  * const translations = {{tagName}}({ hello: "Hello {{tmpPlaceholder2}}!" });
- * translations.client().hello({ username: "John" });
+ * translations.client().hello({ username: "Paul" });
  */
 export function processPlaceholders(
     translation: string,
