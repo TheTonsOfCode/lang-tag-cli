@@ -1,13 +1,14 @@
-import {describe, it, expect, vi} from 'vitest';
-import {createCallableTranslations, lookupTranslation} from '@/index.ts';
-import {defaultTranslationTransformer} from './_shared-transformer.ts';
+import {describe, expect, it, vi} from 'vitest';
 import type {
+    CallableTranslations,
     LangTagTranslations,
     LangTagTranslationsConfig,
-    TranslationMappingStrategy,
     TranslationKeyProcessorContext,
-    CallableTranslations,
+    TranslationMappingStrategy,
 } from '@/index.ts';
+import {createCallableTranslations, lookupTranslation, TranslationTransformer} from '@/index.ts';
+
+const translationTransformer: TranslationTransformer<LangTagTranslationsConfig> = ({ value }) => value;
 
 describe('createCallableTranslations with unprefixedPath', () => {
     const translations = {
@@ -21,7 +22,7 @@ describe('createCallableTranslations with unprefixedPath', () => {
 
     it('should provide correct unprefixedPath to transform when config.path is set', () => {
         const config: LangTagTranslationsConfig = {namespace: 'test', path: 'my.prefix'};
-        const transformMock = vi.fn(defaultTranslationTransformer);
+        const transformMock = vi.fn(translationTransformer);
         const strategy: TranslationMappingStrategy<typeof config> = {
             transform: transformMock,
         };
@@ -66,7 +67,7 @@ describe('createCallableTranslations with unprefixedPath', () => {
 
     it('should provide correct unprefixedPath to transform when config.path is NOT set', () => {
         const config: LangTagTranslationsConfig = {namespace: 'test'};
-        const transformMock = vi.fn(defaultTranslationTransformer);
+        const transformMock = vi.fn(translationTransformer);
         const strategy: TranslationMappingStrategy<typeof config> = {
             transform: transformMock,
         };
@@ -116,7 +117,7 @@ describe('createCallableTranslations with unprefixedPath', () => {
             addProcessedKey(context.key, context.value);
         });
         const strategy: TranslationMappingStrategy<typeof config> = {
-            transform: defaultTranslationTransformer,
+            transform: translationTransformer,
             processKey: processKeyMock,
         };
 
@@ -162,7 +163,7 @@ describe('createCallableTranslations with unprefixedPath', () => {
             addProcessedKey(context.key, context.value);
         });
         const strategy: TranslationMappingStrategy<typeof config> = {
-            transform: defaultTranslationTransformer,
+            transform: translationTransformer,
             processKey: processKeyMock,
         };
 

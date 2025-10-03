@@ -139,8 +139,11 @@ export function reactProcessPlaceholders(
 /**
  * Replaces placeholders in translations with string values.
  * Placeholders use the format {{tmpPlaceholder1}}, for example:
+ * --- Translation Definition ---
  * const translations = {{tagName}}({ hello: "Hello {{tmpPlaceholder2}}!" });
- * translations.client().hello({ username: "Paul" });
+ * --- Translation ---
+ * const t = translations.client();
+ * t.hello({ username: "Paul" })
  */
 export function processPlaceholders(
     translation: string,
