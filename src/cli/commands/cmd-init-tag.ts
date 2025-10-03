@@ -3,6 +3,7 @@ import {$LT_GetCommandEssentials} from "@/cli/commands/setup.ts";
 import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { readFile, writeFile, mkdir } from 'fs/promises';
+import { fileURLToPath } from 'url';
 import mustache from 'mustache';
 
 // Define command line options interface
@@ -58,7 +59,7 @@ function detectReact(packageJson: any): boolean {
 
 // Use mustache for template rendering
 function renderTemplate(template: string, data: Record<string, any>): string {
-    return mustache.render(template, data);
+    return mustache.render(template, data, {}, { escape: (text) => text });
 }
 
 // Write file with directory creation
@@ -98,20 +99,22 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
     
     // Display selected options
     logger.info('Initializing lang-tag with the following options:');
-    logger.info(`  Tag name: ${tagName}`);
-    logger.info(`  Library mode: ${isLibrary ? 'Yes' : 'No'}`);
-    logger.info(`  React optimizations: ${isReact ? 'Yes' : 'No'}`);
-    logger.info(`  TypeScript: ${isTypeScript ? 'Yes' : 'No'}`);
-    logger.info(`  Output path: ${outputPath}`);
+    logger.info('  Tag name: {tagName}', { tagName });
+    logger.info('  Library mode: {isLibrary}', { isLibrary: isLibrary ? 'Yes' : 'No' });
+    logger.info('  React optimizations: {isReact}', { isReact: isReact ? 'Yes' : 'No' });
+    logger.info('  TypeScript: {isTypeScript}', { isTypeScript: isTypeScript ? 'Yes' : 'No' });
+    logger.info('  Output path: {outputPath}', { outputPath });
     
     // Read mustache template
-    const templatePath = join(__dirname, 'tag.mustache');
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+    const templatePath = join(__dirname, 'commands', 'tag.mustache');
     let template: string;
     
     try {
         template = readFileSync(templatePath, 'utf-8');
     } catch (error) {
-        logger.error(`Failed to read template file: ${templatePath}`);
+        logger.error('Failed to read template file: {templatePath}', { templatePath });
         return;
     }
     
@@ -141,7 +144,7 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
     
     // Check if output file already exists
     if (existsSync(outputPath)) {
-        logger.warn(`File already exists: ${outputPath}`);
+        logger.warn('File already exists: {outputPath}', { outputPath });
         logger.info('Use --output to specify a different path or remove the existing file');
         return;
     }
@@ -149,16 +152,19 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
     // Write the rendered content to the output file
     try {
         await writeFileWithDirs(outputPath, renderedContent);
-        logger.success(`Lang-tag file created successfully: ${outputPath}`);
+        logger.success('Lang-tag file created successfully: {outputPath}', { outputPath });
         
         // Display usage instructions
         logger.info('\nNext steps:');
-        logger.info(`1. Import the ${tagName} function in your files:`);
-        logger.info(`   import { ${tagName} } from './${outputPath.replace(/^src\//, '')}';`);
+        logger.info('1. Import the {tagName} function in your files:', { tagName });
+        logger.info('   import { {tagName} } from \'./{importPath}\';', { 
+            tagName, 
+            importPath: outputPath.replace(/^src\//, '') 
+        });
         logger.info('2. Create your translation objects and use the tag function');
         logger.info('3. Run "lang-tag collect" to extract translations');
         
     } catch (error: any) {
-        logger.error(`Failed to write file: ${error?.message}`);
+        logger.error('Failed to write file: {error}', { error: error?.message });
     }
 }

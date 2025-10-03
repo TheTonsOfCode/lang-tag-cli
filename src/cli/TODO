@@ -15,6 +15,10 @@ jak sie daje prefix:
 
  - onConfigurationGeneration, undefined powinno usuwac konfiguracje, a powinna byc inna zmienna 'save: true'
 
+ - processPlaceholders do templatki
+    i wywalic defaultTranslationTransformer
+
+
 
     // TODO: jesli typescript w projekcie to .ts, a jak nie ma to .js
     // TODO: nazwa taga to cos

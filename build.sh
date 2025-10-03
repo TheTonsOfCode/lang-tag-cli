@@ -25,6 +25,9 @@ fi
 echo "Copying files to dist..."
 [ -f "README.md" ] && cp README.md dist/
 [ -f "LICENSE" ] && cp LICENSE dist/
+# Copy mustache template for init-tag command
+mkdir -p dist/cli/commands
+[ -f "src/cli/commands/tag.mustache" ] && cp src/cli/commands/tag.mustache dist/cli/commands/
 # Exclude docs. README links points to github
 #cp -r docs dist/docs/
 
