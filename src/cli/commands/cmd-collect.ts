@@ -12,8 +12,6 @@ export async function $LT_CMD_Collect() {
 
     const files = await $LT_CollectCandidateFilesWithTags({config, logger})
 
-    //TODO: resolve namespace i path jako ''
-
     if (config.isLibrary) {
         await $LT_WriteAsExportFile({config, logger, files})
         return;

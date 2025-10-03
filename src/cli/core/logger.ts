@@ -77,7 +77,7 @@ function log(baseColor: string, message: string, params?: Record<string, any>) {
     console.log(`${prefix}${baseColor}${coloredMessage}${ANSI_COLORS.reset}`);
 }
 
-export function $LT_CreateDefaultLogger(debugMode: boolean): $LT_Logger {
+export function $LT_CreateDefaultLogger(debugMode?: boolean): $LT_Logger {
     return {
         info: (msg, params) => log(ANSI_COLORS.blue, msg, params),
         success: (msg, params) => log(ANSI_COLORS.green, msg, params),

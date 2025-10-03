@@ -1,6 +1,6 @@
 import {$LT_TagCandidateFile} from "@/cli/core/collect/collect-tags.ts";
 import {$LT_Logger} from "@/cli/core/logger.ts";
-import {deepMergeTranslations} from "@/cli/commands/utils/merge.ts";
+import {deepMergeTranslations} from "@/cli/core/merge.ts";
 
 export async function $LT_GroupTagsToNamespaces({logger, files}: {
     logger: $LT_Logger,

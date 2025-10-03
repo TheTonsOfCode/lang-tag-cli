@@ -2,17 +2,12 @@ import chokidar from 'chokidar';
 import path from 'path';
 import micromatch from 'micromatch';
 import {LangTagConfig} from '@/cli/config';
-import {checkAndRegenerateFileLangTags} from "@/cli/commands/core/regenerate-config.ts";
+import {checkAndRegenerateFileLangTags} from "@/cli/core/regenerate/regenerate-config.ts";
 import {$LT_WriteToNamespaces} from "@/cli/core/io/write-to-namespaces.ts";
-import {
-    messageErrorInFileWatcher,
-    messageLangTagTranslationConfigRegenerated,
-    messageNamespacesUpdated,
-    messageWatchMode
-} from "@/cli/message.ts";
-import {$LT_GetCommandEssentials} from "@/cli/commandsNEW/setup.ts";
+import {messageLangTagTranslationConfigRegenerated, messageNamespacesUpdated} from "@/cli/message.ts";
+import {$LT_GetCommandEssentials} from "@/cli/commands/setup.ts";
 import {$LT_Logger} from "@/cli/core/logger.ts";
-import {$LT_CMD_Collect} from "@/cli/commandsNEW/cmd-collect.ts";
+import {$LT_CMD_Collect} from "@/cli/commands/cmd-collect.ts";
 import {$LT_CollectCandidateFilesWithTags} from "@/cli/core/collect/collect-tags.ts";
 import {$LT_GroupTagsToNamespaces} from "@/cli/core/collect/group-tags-to-namespaces.ts";
 
@@ -43,8 +38,9 @@ function getBasePath(pattern: string): string {
 }
 
 export async function watchTranslations() {
-    const cwd = process.cwd();
     const {config, logger} = await $LT_GetCommandEssentials();
+
+    const cwd = process.cwd();
 
     // TODO: przerobic ze to bardziej per plik collectuje
     // TODO: to jest chyba dobrze bo watch przy pierwszym uruchomieniu powinien zgarnac translacje
@@ -70,9 +66,9 @@ export async function watchTranslations() {
     // https://github.com/paulmillr/chokidar/issues/773
     const ignored = [...config.excludes, '**/.git/**'] // Keep ignored patterns
 
-    console.log('Original patterns:', config.includes);
-    console.log('Watching base directories:', finalDirsToWatch); // Log base directories
-    console.log('Ignoring patterns:', ignored);
+    // console.log('Original patterns:', config.includes);
+    // console.log('Watching base directories:', finalDirsToWatch); // Log base directories
+    // console.log('Ignoring patterns:', ignored);
 
     const watcher = chokidar.watch(finalDirsToWatch, { // Watch base directories
         cwd: cwd,
@@ -85,14 +81,16 @@ export async function watchTranslations() {
         }
     });
 
-    messageWatchMode();
+    logger.info('Starting watch mode for translations...');
+    logger.info('Watching for changes...');
+    logger.info('Press Ctrl+C to stop watching');
 
     watcher
         .on('change', async filePath => await handleFile(config, logger, filePath, 'change'))
         .on('add', async filePath => await handleFile(config, logger, filePath, 'add'))
         // .on('unlink', async filePath => await handleFile(config, filePath, 'unlink'))
         .on('error', error => {
-            messageErrorInFileWatcher(error);
+            logger.error('Error in file watcher: {error}', {error});
         });
 }
 
@@ -106,7 +104,7 @@ async function handleFile(config: LangTagConfig, logger: $LT_Logger, cwdRelative
 
     const absoluteFilePath = path.join(cwd, cwdRelativeFilePath);
 
-    const dirty = await checkAndRegenerateFileLangTags(config, absoluteFilePath, cwdRelativeFilePath);
+    const dirty = await checkAndRegenerateFileLangTags(config, logger, absoluteFilePath, cwdRelativeFilePath);
 
     if (dirty) {
         messageLangTagTranslationConfigRegenerated(cwdRelativeFilePath);

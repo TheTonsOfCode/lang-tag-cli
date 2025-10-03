@@ -2,7 +2,6 @@ import path, {resolve} from "pathe";
 import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
 import {existsSync} from "fs";
 import {pathToFileURL} from "url";
-import {messageErrorReadingConfig} from "@/cli/message.ts";
 import {LangTagConfig, LangTagOnConfigGenerationParams, LangTagOnImportParams} from "@/cli/config.ts";
 
 export const defaultConfig: LangTagConfig = {
@@ -54,6 +53,14 @@ export async function $LT_ReadConfig(projectPath: string): Promise<LangTagConfig
 
         const userConfig: Partial<LangTagConfig> = configModule.default || {};
 
+        const tn = (userConfig.tagName || '')
+            .toLowerCase()
+            .replace(/[-_\s]/g, '');
+
+        if (tn.includes('langtag')) {
+            throw new Error('Custom tagName cannot include "langtag"! (It is not recommended for use with libraries)\n');
+        }
+
         return {
             ...defaultConfig,
             ...userConfig,
@@ -67,7 +74,6 @@ export async function $LT_ReadConfig(projectPath: string): Promise<LangTagConfig
             }
         };
     } catch (error) {
-        messageErrorReadingConfig(error);
         throw error;
     }
 }

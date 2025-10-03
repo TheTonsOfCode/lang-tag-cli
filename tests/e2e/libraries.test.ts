@@ -3,16 +3,16 @@ import {execSync} from 'child_process';
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'fs';
 import {join} from 'path';
 import {
+    clearPreparedMainProjectBase,
     copyPreparedMainProjectBase,
     prepareMainProjectBase,
     removeTestDirectory,
     TESTS_TEST_DIR as _TESTS_TEST_DIR,
-    clearPreparedMainProjectBase,
 } from "./utils.ts";
 import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
 import JSON5 from 'json5';
-import {findLangTags} from "@/cli/processor.ts";
 import {LangTagTranslationsConfig} from "@/index.ts";
+import {$LT_TagProcessor} from "@/cli/core/processor.ts";
 
 const SUFFIX = 'libraries';
 const MAIN_PROJECT_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
@@ -90,14 +90,23 @@ describe('libraries import e2e tests', () => {
     }
 
     function parseContent(content: string, config: any): ContentMatch[] {
-        return findLangTags(config, content).map(m => {
-            const argT = config.translationArgPosition === 1 ? m.content1 : (m.content2 || '{}');
-            const argC = config.translationArgPosition === 1 ? (m.content2 || '{}') : m.content1;
-            return ({
-                translations: JSON5.parse(argT),
-                config: JSON5.parse(argC),
-            });
-        });
+
+        const processor = new $LT_TagProcessor(config);
+        const tags = processor.extractTags(content);
+
+        return tags.map(t => ({
+            translations: t.parameterTranslations,
+            config: t.parameterConfig,
+        }));
+
+        // return tags.map(m => {
+        //     const argT = config.translationArgPosition === 1 ? m.content1 : (m.content2 || '{}');
+        //     const argC = config.translationArgPosition === 1 ? (m.content2 || '{}') : m.content1;
+        //     return ({
+        //         translations: JSON5.parse(argT),
+        //         config: JSON5.parse(argC),
+        //     });
+        // });
     }
 
     beforeAll(() => {

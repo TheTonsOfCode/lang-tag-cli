@@ -7,6 +7,7 @@ import {globby} from "globby";
 import {LangTagConfig} from "@/cli/config.ts";
 import {$LT_Logger} from "@/cli/core/logger.ts";
 import {$LT_Tag, $LT_TagProcessor} from "@/cli/core/processor.ts";
+import {$LT_FilterEmptyNamespaceTags, $LT_FilterInvalidTags} from "@/cli/core/collect/fillters.ts";
 
 export interface $LT_TagCandidateFile {
 
@@ -39,31 +40,13 @@ export async function $LT_CollectCandidateFilesWithTags(props: Props): Promise<$
 
         let tags = processor.extractTags(fileContent);
 
-        if (!tags?.length) {
+        if (!tags.length) {
             continue;
         }
 
-        tags = tags.filter((tag) => {
-            if (tag.validity === 'invalid-param-1')
-                logger.debug('Skipping tag "{fullMatch}". Invalid JSON: "{invalid}"', {
-                    fullMatch: tag.fullMatch.trim(),
-                    invalid: tag.parameter1Text
-                });
-            if (tag.validity === 'invalid-param-2')
-                logger.debug('Skipping tag "{fullMatch}". Invalid JSON: "{invalid}"', {
-                    fullMatch: tag.fullMatch.trim(),
-                    invalid: tag.parameter2Text
-                });
-            if (tag.validity === 'translations-not-found')
-                logger.debug('Skipping tag "{fullMatch}". Translations not found at parameter position: {pos}', {
-                    fullMatch: tag.fullMatch.trim(),
-                    pos: config.translationArgPosition
-                });
+        tags = $LT_FilterInvalidTags(tags, config, logger);
 
-            return tag.validity === "ok";
-        });
-
-        if (!tags?.length) {
+        if (!tags.length) {
             continue;
         }
 
@@ -71,21 +54,8 @@ export async function $LT_CollectCandidateFilesWithTags(props: Props): Promise<$
             tag.parameterConfig = config.collect!.onCollectConfigFix!(tag.parameterConfig, config);
         }
 
-        tags = tags.filter((tag) => {
-            if (!tag.parameterConfig) {
-                logger.warn('Skipping tag "{fullMatch}". Tag configuration not defined. (Check lang-tag config at collect.onCollectConfigFix)', {
-                    fullMatch: tag.fullMatch.trim()
-                });
-                return false;
-            }
-            if (!tag.parameterConfig.namespace) {
-                logger.warn('Skipping tag "{fullMatch}". Tag configuration namespace not defined. (Check lang-tag config at collect.onCollectConfigFix)', {
-                    fullMatch: tag.fullMatch.trim()
-                });
-                return false;
-            }
-            return true;
-        })
+        // Note: onCollectConfigFix should always fix empty namespace tags to be directed to default namespace
+        tags = $LT_FilterEmptyNamespaceTags(tags, logger);
 
         // TODO: conflict resolution system
 

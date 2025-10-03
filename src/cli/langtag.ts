@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import {program} from 'commander';
-import {regenerateTags} from '@/cli/commands/regenerate-tags';
-import {watchTranslations} from '@/cli/commands/watch';
-import {$LT_CMD_InitConfig} from '@/cli/commandsNEW/cmd-init.ts';
-import {importTranslations} from "@/cli/commands/import";
-import {$LT_CMD_Collect} from "@/cli/commandsNEW/cmd-collect.ts";
+import {$LT_CMD_RegenerateTags} from '@/cli/commands/cmd-regenerate-tags.ts';
+import {watchTranslations} from '@/cli/commands-old/watch';
+import {$LT_CMD_InitConfig} from '@/cli/commands/cmd-init.ts';
+import {$LT_ImportTranslations} from "@/cli/commands/cmd-import.ts";
+import {$LT_CMD_Collect} from "@/cli/commands/cmd-collect.ts";
 
 export function createCli() {
     program
@@ -23,13 +23,13 @@ export function createCli() {
         .command('import')
         .alias('i')
         .description('Import translations from libraries in node_modules')
-        .action(importTranslations);
+        .action($LT_ImportTranslations);
 
     program
         .command('regenerate-tags')
         .alias('rt')
         .description('Regenerate configuration for language tags')
-        .action(regenerateTags);
+        .action($LT_CMD_RegenerateTags);
 
     program
         .command('watch')

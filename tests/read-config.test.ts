@@ -4,15 +4,11 @@ import { CONFIG_FILE_NAME } from '@/cli/constants.ts';
 import { resolve } from 'pathe';
 import * as fs from 'fs';
 import { pathToFileURL } from 'url';
-import { messageErrorReadingConfig } from '@/cli/message.ts';
 
 // Mock dependencies
 vi.mock('fs');
 vi.mock('pathe');
 vi.mock('url');
-vi.mock('@/cli/message', () => ({
-    messageErrorReadingConfig: vi.fn(),
-}));
 
 describe('readConfig', () => {
     const projectPath = '/fake/project';
@@ -25,9 +21,6 @@ describe('readConfig', () => {
         // Setup mocks for path resolution and URL conversion
         vi.mocked(resolve).mockImplementation((...args) => args.join('/').replace(/\/\/+/g, '/'));
         vi.mocked(pathToFileURL).mockImplementation((path) => ({ href: configUrl }) as any);
-
-        // Mock message function to prevent actual logging during tests
-        vi.mocked(messageErrorReadingConfig);
     });
 
     afterEach(() => {

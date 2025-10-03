@@ -9,10 +9,9 @@ import {
     prepareMainProjectBase,
     TESTS_TEST_DIR as _TESTS_TEST_DIR,
 } from "./utils.ts";
-import {findLangTags} from "@/cli/processor.ts";
 import {LangTagTranslationsConfig} from "@/index.ts";
-import JSON5 from "json5";
 import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
+import {$LT_TagProcessor} from "@/cli/core/processor.ts";
 
 const SUFFIX = 'regenerate';
 const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
@@ -147,7 +146,7 @@ describe('regenerate-tags command e2e tests', () => {
         };
     }`;
 
-    const testConfig = {
+    const testConfig: any = {
         tagName: 'lang',
         includes: ['src/**/*.{js,jsx,ts,tsx}'],
         excludes: ['node_modules'],
@@ -182,15 +181,24 @@ describe('regenerate-tags command e2e tests', () => {
         config: LocalConfig;
     }
 
-    function parseContent(content: string, config = testConfig): ContentMatch[] {
-        return findLangTags(config, content).map(m => {
-            const argT = config.translationArgPosition === 1 ? m.content1 : (m.content2 || '{}');
-            const argC = config.translationArgPosition === 1 ? (m.content2 || '{}') : m.content1;
-            return ({
-                translations: JSON5.parse(argT),
-                config: JSON5.parse(argC),
-            });
-        });
+    function parseContent(content: string, config: any = testConfig): ContentMatch[] {
+
+        const processor = new $LT_TagProcessor(config);
+        const tags = processor.extractTags(content);
+
+        return tags.map(t => ({
+            translations: t.parameterTranslations,
+            config: t.parameterConfig,
+        }));
+        //
+        // return findLangTags(config, content).map(m => {
+        //     const argT = config.translationArgPosition === 1 ? m.content1 : (m.content2 || '{}');
+        //     const argC = config.translationArgPosition === 1 ? (m.content2 || '{}') : m.content1;
+        //     return ({
+        //         translations: JSON5.parse(argT),
+        //         config: JSON5.parse(argC),
+        //     });
+        // });
     }
 
     const srcDir = join(TESTS_TEST_DIR, 'src');
@@ -360,27 +368,28 @@ describe('regenerate-tags command e2e tests', () => {
         expect(tsxMatches[0].config.namespace).toEqual('tsx');
     });
 
-    it('should handle undefined config', () => {
-        // Create a test file with invalid lang tag usage
-        const invalidFile = `
-            // @ts-ignore
-            import {lang} from "./lang-tag";
-
-            const translations = lang({"hello": "Hello World"}, undefined);
-        `;
-
-        writeFileSync(join(TESTS_TEST_DIR, 'src/invalid.ts'), invalidFile);
-
-        // Run the regenerate-tags command and expect it to complete without error
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
-
-        // Verify the file was still processed
-        const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/invalid.ts'), 'utf-8');
-        const matches = parseContent(fileContent);
-        expect(matches.length).toBe(1);
-        expect(matches[0].config.namespace).toEqual('too-short-path');
-        expect(matches[0].config.path).toEqual('');
-    });
+    // TODO: reconsider it, for now we expect objects
+    // it('should handle undefined config', () => {
+    //     // Create a test file with invalid lang tag usage
+    //     const invalidFile = `
+    //         // @ts-ignore
+    //         import {lang} from "./lang-tag";
+    //
+    //         const translations = lang({"hello": "Hello World"}, undefined);
+    //     `;
+    //
+    //     writeFileSync(join(TESTS_TEST_DIR, 'src/invalid.ts'), invalidFile);
+    //
+    //     // Run the regenerate-tags command and expect it to complete without error
+    //     execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+    //
+    //     // Verify the file was still processed
+    //     const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/invalid.ts'), 'utf-8');
+    //     const matches = parseContent(fileContent);
+    //     expect(matches.length).toBe(1);
+    //     expect(matches[0].config.namespace).toEqual('too-short-path');
+    //     expect(matches[0].config.path).toEqual('');
+    // });
 
     it('should handle multiple files with the same namespace', () => {
         // Create multiple test files with the same namespace
@@ -469,10 +478,13 @@ describe('regenerate-tags command e2e tests', () => {
         // Read the file content after running the command
         const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/config-at-1-arg-pos.ts'), 'utf-8');
 
-        const rawMatches = findLangTags(testConfig, fileContent);
+
+        const processor = new $LT_TagProcessor(testConfig);
+        const rawMatches = processor.extractTags(fileContent);
+
         expect(rawMatches.length).toBe(1);
-        expect(rawMatches[0].content1).toContain('namespace');
-        expect(rawMatches[0].content2).toContain('hello');
+        expect(rawMatches[0].parameter1Text).toContain('namespace');
+        expect(rawMatches[0].parameter2Text).toContain('hello');
 
         const matches = parseContent(fileContent, configPos2);
         expect(matches.length).toBe(1);

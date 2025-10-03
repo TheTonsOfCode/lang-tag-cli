@@ -6,6 +6,7 @@ import {$LT_CreateDefaultLogger, $LT_Logger} from "@/cli/core/logger.ts";
 const DEFAULT_INIT_CONFIG = `
 /** @type {import('lang-tag/cli/config').LangTagConfig} */
 const config = {
+    tagName: 'lang',
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
     outputDir: 'public/locales/en',
@@ -32,7 +33,7 @@ module.exports = config;
  * Initialize project with default configuration
  */
 export async function $LT_CMD_InitConfig() {
-    const logger: $LT_Logger = $LT_CreateDefaultLogger(false);
+    const logger: $LT_Logger = $LT_CreateDefaultLogger();
 
     if (existsSync(CONFIG_FILE_NAME)) {
         logger.success('Configuration file already exists. Please remove the existing configuration file before creating a new default one');

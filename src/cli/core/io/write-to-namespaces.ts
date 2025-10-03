@@ -2,7 +2,7 @@ import {LangTagConfig} from "@/cli/config.ts";
 import {$LT_EnsureDirectoryExists, $LT_ReadJSON, $LT_WriteJSON} from "@/cli/core/io/file.ts";
 import {resolve} from "pathe";
 import process from "node:process";
-import {deepMergeTranslations} from "@/cli/commands/utils/merge.ts";
+import {deepMergeTranslations} from "@/cli/core/merge.ts";
 import {$LT_Logger} from "@/cli/core/logger.ts";
 
 export async function $LT_WriteToNamespaces({config, namespaces, logger}: {

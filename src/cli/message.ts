@@ -1,4 +1,4 @@
-import {miniChalk} from "@/cli/commands/utils/mini-chalk.ts";
+import {miniChalk} from "@/cli/commands-old/utils/mini-chalk.ts";
 import {LangTagConfig} from "@/cli/config.ts";
 import {LangTagMatch} from "@/cli/processor.ts";
 
@@ -35,53 +35,6 @@ export function messageLangTagTranslationConfigRegenerated(filePath: string) {
     info(`Lang tag configurations written for file "${filePath}"`);
 }
 
-export function messageWatchMode() {
-    info('Starting watch mode for translations...');
-    info('Watching for changes...');
-    info('Press Ctrl+C to stop watching');
-}
-
-export function messageNoChangesMade() {
-    info('No changes were made based on the current configuration and files.');
-}
-
-export function messageNodeModulesNotFound() {
-    warning('"node_modules" directory not found.');
-}
-
-export function messageImportedFile(fileName: string) {
-    success(`Imported node_modules file: "${fileName}"`);
-}
-
-
-export function messageErrorInFile(e: string, file: string, match: LangTagMatch) {
-    error(e + `
-  Tag: ${match.fullMatch}
-  File: ${file}
-  Index: ${match.index}`);
-}
-
-export function messageErrorInFileWatcher(e: unknown) {
-    error(`Error in file watcher: ${String(e)}`);
-}
-
-export function messageErrorReadingConfig(error: unknown) {
-    warning(`Error reading configuration file: ${String(error)}`);
-}
-
 export function messageSkippingInvalidJson(invalid: string, match: LangTagMatch) {
     warning(`Skipping invalid JSON "${invalid}" at match "${match.fullMatch}"`);
-}
-
-export function messageErrorReadingDirectory(dir: string, e: unknown) {
-    error(`Error reading directory "${dir}": ${String(e)}`);
-}
-
-
-export function messageImportLibraries() {
-    info('Importing translations from libraries...');
-}
-
-export function messageLibrariesImportedSuccessfully() {
-    success('Successfully imported translations from libraries.');
 }
