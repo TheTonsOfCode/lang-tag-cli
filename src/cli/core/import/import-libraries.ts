@@ -1,6 +1,6 @@
 import * as process from "node:process";
 import {dirname, resolve} from 'pathe';
-import {LangTagExportData} from "@/cli";
+import {LangTagExportData} from "@/cli/core/type";
 import {$LT_EnsureDirectoryExists, $LT_ReadJSON} from "@/cli/core/io/file.ts";
 import {LangTagConfig} from "@/cli/config.ts";
 import {writeFile} from "fs/promises";
