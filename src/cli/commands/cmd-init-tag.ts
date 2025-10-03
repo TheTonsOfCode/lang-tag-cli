@@ -129,7 +129,15 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
         packageVersion: packageJson?.version || '1.0.0',
         tmpPlaceholder1: '{{key}}',
         tmpPlaceholder2: '{{username}}',
-        tmpRegex: '{{(.*?)}}'
+        tmpRegex: '{{(.*?)}}',
+        // TODO: dokończyć i zamienić:
+        // TODO: dokończyć i zamienić:
+        // TODO: dokończyć i zamienić:
+        // TODO: dokończyć i zamienić:
+        // TODO: dokończyć i zamienić:
+        tmp: {
+            placeholder1: '{{key}}',
+        }
     };
     
     // Render template
