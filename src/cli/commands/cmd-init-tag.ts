@@ -126,7 +126,10 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
         isTypeScript,
         fileExtension,
         packageName: packageJson?.name || 'my-project',
-        packageVersion: packageJson?.version || '1.0.0'
+        packageVersion: packageJson?.version || '1.0.0',
+        tmpPlaceholder1: '{{key}}',
+        tmpPlaceholder2: '{{username}}',
+        tmpRegex: '{{(.*?)}}'
     };
     
     // Render template

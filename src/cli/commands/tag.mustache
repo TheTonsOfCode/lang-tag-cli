@@ -23,7 +23,7 @@ export function {{tagName}}<T extends LangTagTranslations>(
         return createCallableTranslations(baseTranslations, config, {
             transform: ({ value, params }) => {
                 {{#isReact}}
-                return reactProcessPlaceholders(value, params) as unknown as string;
+                return reactProcessPlaceholders(value, params);
                 {{/isReact}}
                 {{^isReact}}
                 return processPlaceholders(value, params);
@@ -45,7 +45,7 @@ export function {{tagName}}<T extends LangTagTranslations>(
             () =>
                 createCallableTranslations(baseTranslations, config, {
                     transform: ({ value, params }) =>
-                        reactProcessPlaceholders(value, params) as unknown as string,
+                        reactProcessPlaceholders(value, params),
                 }),
             [],
         );
@@ -85,19 +85,20 @@ export function {{tagName}}<T extends LangTagTranslations>(
 {{#isReact}}
 /**
  * Replaces placeholders in translations with React nodes.
- * Placeholders use the format {{key}}, for example:
- * "Hello {{{ "{{username}}" }}}!"
+ * Placeholders use the format {{tmpPlaceholder1}}, for example:
+ * const translations = {{tagName}}({ hello: "Hello {{tmpPlaceholder2}}!" });
+ * translations.client().hello({ username: <span className="font-bold">John</span> });
  */
 export function reactProcessPlaceholders(
     translation: string,
     params?: { [key: string]: ReactNode },
-): ReactNode[] {
-    if (typeof translation !== 'string') return [''];
+): string {
+    if (typeof translation !== 'string') return '';
 
     const parts: ReactNode[] = [];
     let lastIndex = 0;
 
-    translation.replace(/{{{ "{{(.*?)}}" }}}/g, (match, placeholder, offset) => {
+    translation.replace(/{{tmpRegex}}/g, (match, placeholder, offset) => {
         if (lastIndex < offset) {
             parts.push(translation.slice(lastIndex, offset));
         }
@@ -117,28 +118,29 @@ export function reactProcessPlaceholders(
         parts.push(translation.slice(lastIndex));
     }
 
-    return parts;
+    return parts as unknown as string;
 }
 {{/isReact}}
 
 {{^isReact}}
 /**
  * Replaces placeholders in translations with string values.
- * Placeholders use the format {{key}}, for example:
- * "Hello {{username}}!"
+ * Placeholders use the format {{tmpPlaceholder1}}, for example:
+ * const translations = {{tagName}}({ hello: "Hello {{tmpPlaceholder2}}!" });
+ * translations.client().hello({ username: "John" });
  */
 export function processPlaceholders(
     translation: string,
     params?: { [key: string]: string | number },
 ): string {
-    if (typeof translation !== 'string') return '';
-
-    return translation.replace(/\{\{(.*?)\}\}/g, (match, placeholder) => {
-        const key = placeholder.trim();
-        if (params && key in params) {
-            return String(params[key]);
-        }
+    if (typeof translation !== 'string') {
+        // As a safeguard, return an empty string if the input is not a string.
         return '';
+    }
+
+    return translation.replace(/{{tmpRegex}}/g, (_: any, placeholder: string) => {
+        const trimmedPlaceholder = placeholder.trim();
+        return params?.[trimmedPlaceholder] !== undefined ? String(params[trimmedPlaceholder]) : '';
     });
 }
 {{/isReact}}
