@@ -95,13 +95,13 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
     const fileExtension = isTypeScript ? 'ts' : 'js';
     
     // Determine output path
-    const outputPath = options.output || `src/lang-tag.${fileExtension}`;
+    const outputPath = options.output || `${tagName}.${fileExtension}`;
     
     // Display selected options
     logger.info('Initializing lang-tag with the following options:');
     logger.info('  Tag name: {tagName}', { tagName });
     logger.info('  Library mode: {isLibrary}', { isLibrary: isLibrary ? 'Yes' : 'No' });
-    logger.info('  React optimizations: {isReact}', { isReact: isReact ? 'Yes' : 'No' });
+    logger.info('  React: {isReact}', { isReact: isReact ? 'Yes' : 'No' });
     logger.info('  TypeScript: {isTypeScript}', { isTypeScript: isTypeScript ? 'Yes' : 'No' });
     logger.info('  Output path: {outputPath}', { outputPath });
     
@@ -126,22 +126,12 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
         isTypeScript,
         fileExtension,
         packageName: packageJson?.name || 'my-project',
-        packageVersion: packageJson?.version || '1.0.0',
-        // Add more template variables as needed
-        useMemo: isReact ? 'useMemo' : '',
-        inputType: isLibrary ? 'InputType' : '',
-        reactImport: isReact ? "import { ReactNode, useMemo } from 'react';" : '',
-        langTagImport: isTypeScript ? 
-            "import { CallableTranslations, createCallableTranslations, LangTagTranslations, LangTagTranslationsConfig } from 'lang-tag';" :
-            "import { createCallableTranslations } from 'lang-tag';"
+        packageVersion: packageJson?.version || '1.0.0'
     };
     
     // Render template
     const renderedContent = renderTemplate(template, templateData);
-    
-    logger.info('Template rendered successfully');
-    logger.debug('Rendered content preview: {preview}', { preview: renderedContent.substring(0, 200) + '...' });
-    
+
     // Check if output file already exists
     if (existsSync(outputPath)) {
         logger.warn('File already exists: {outputPath}', { outputPath });
@@ -155,7 +145,7 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
         logger.success('Lang-tag file created successfully: {outputPath}', { outputPath });
         
         // Display usage instructions
-        logger.info('\nNext steps:');
+        logger.info('Next steps:');
         logger.info('1. Import the {tagName} function in your files:', { tagName });
         logger.info('   import { {tagName} } from \'./{importPath}\';', { 
             tagName, 

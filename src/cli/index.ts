@@ -47,8 +47,8 @@ export function createCli() {
         .command('init-tag')
         .description('Initialize a new lang-tag function file')
         .option('-n, --name <name>', 'Name of the tag function (default: from config)')
-        .option('-l, --library', 'Generate library-style tag')
-        .option('-r, --react', 'Include React-specific optimizations')
+        .option('-l, --library', 'Generate library-style tag (default: from config)')
+        .option('-r, --react', 'Include React-specific optimizations (default: auto-detect)')
         .option('-t, --typescript', 'Force TypeScript output (default: auto-detect)')
         .option('-o, --output <path>', 'Output file path (default: auto-generated)')
         .action(async (options) => {
