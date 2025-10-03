@@ -35,9 +35,11 @@
     "globby": "^14.1.0",
     "json5": "^2.2.3",
     "micromatch": "^4.0.8",
+    "mustache": "^4.2.0",
     "pathe": "^2.0.3"
   },
   "devDependencies": {
+    "@types/mustache": "^4.2.6",
     "@types/micromatch": "^4.0.9",
     "@types/node": "^22.13.13",
     "anymatch": "^3.1.3",

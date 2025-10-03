@@ -1,18 +1,35 @@
-import {
-    CallableTranslations,
-    createCallableTranslations,
-    LangTagTranslations,
-    LangTagTranslationsConfig
-} from 'lang-tag';
-import { ReactNode, useMemo } from 'react';
+{{langTagImport}}
+{{reactImport}}
 
-export function lang<T extends LangTagTranslations>(
+export function {{tagName}}<T extends LangTagTranslations>(
     baseTranslations: T,
     config?: LangTagTranslationsConfig,
 ) {
-    // SoonTM implement some library
+    {{#isLibrary}}
+    // Library mode - optimized for reusability
+    const createTranslations = (inputType?: InputType) => {
+        return createCallableTranslations(baseTranslations, config, {
+            transform: ({ value, params }) => {
+                {{#isReact}}
+                return reactProcessPlaceholders(value, params) as unknown as string;
+                {{/isReact}}
+                {{^isReact}}
+                return processPlaceholders(value, params);
+                {{/isReact}}
+            },
+        });
+    };
+
+    return {
+        create: createTranslations,
+        Type: {} as CallableTranslations<T>,
+    };
+    {{/isLibrary}}
+    {{^isLibrary}}
+    // Application mode - optimized for client/server usage
     const client = () => {
-        return useMemo(
+        {{#isReact}}
+        return {{useMemo}}(
             () =>
                 createCallableTranslations(baseTranslations, config, {
                     transform: ({ value, params }) =>
@@ -20,10 +37,13 @@ export function lang<T extends LangTagTranslations>(
                 }),
             [],
         );
-        // return createCallableTranslations(baseTranslations, config, {
-        // 	transform: ({ value, params }) =>
-        // 		processPlaceholders(value, params),
-        // });
+        {{/isReact}}
+        {{^isReact}}
+        return createCallableTranslations(baseTranslations, config, {
+            transform: ({ value, params }) =>
+                processPlaceholders(value, params),
+        });
+        {{/isReact}}
     };
 
     // server side
@@ -31,8 +51,14 @@ export function lang<T extends LangTagTranslations>(
         // TODO: retrieve language from cookies there
 
         return createCallableTranslations(baseTranslations, config, {
-            transform: ({ value, params }) =>
-                reactProcessPlaceholders(value, params) as unknown as string,
+            transform: ({ value, params }) => {
+                {{#isReact}}
+                return reactProcessPlaceholders(value, params) as unknown as string;
+                {{/isReact}}
+                {{^isReact}}
+                return processPlaceholders(value, params);
+                {{/isReact}}
+            },
         });
     };
 
@@ -41,12 +67,14 @@ export function lang<T extends LangTagTranslations>(
         server,
         Type: {} as CallableTranslations<T>,
     };
+    {{/isLibrary}}
 }
 
+{{#isReact}}
 /**
  * Replaces placeholders in translations with React nodes.
- * Placeholders use the format [[key]], for example:
- * "Hello [[username]]!"
+ * Placeholders use the format {{key}}, for example:
+ * "Hello {{username}}!"
  */
 export function reactProcessPlaceholders(
     translation: string,
@@ -57,7 +85,7 @@ export function reactProcessPlaceholders(
     const parts: ReactNode[] = [];
     let lastIndex = 0;
 
-    translation.replace(/{{ "{{(.*?)}}" }}/g, (match, placeholder, offset) => {
+    translation.replace(/\{\{(.*?)\}\}/g, (match, placeholder, offset) => {
         if (lastIndex < offset) {
             parts.push(translation.slice(lastIndex, offset));
         }
@@ -79,3 +107,26 @@ export function reactProcessPlaceholders(
 
     return parts;
 }
+{{/isReact}}
+
+{{^isReact}}
+/**
+ * Replaces placeholders in translations with string values.
+ * Placeholders use the format {{key}}, for example:
+ * "Hello {{username}}!"
+ */
+export function processPlaceholders(
+    translation: string,
+    params?: { [key: string]: string | number },
+): string {
+    if (typeof translation !== 'string') return '';
+
+    return translation.replace(/\{\{(.*?)\}\}/g, (match, placeholder) => {
+        const key = placeholder.trim();
+        if (params && key in params) {
+            return String(params[key]);
+        }
+        return '';
+    });
+}
+{{/isReact}}

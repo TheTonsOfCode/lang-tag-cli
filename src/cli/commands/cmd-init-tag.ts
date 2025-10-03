@@ -1,22 +1,164 @@
 
-
-// Brac plik z mustache
-
 import {$LT_GetCommandEssentials} from "@/cli/commands/setup.ts";
+import { readFileSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { readFile, writeFile, mkdir } from 'fs/promises';
+import mustache from 'mustache';
 
-export async function $LT_CMD_InitTagFile() {
+// Define command line options interface
+interface InitTagOptions {
+    name?: string;
+    library?: boolean;
+    react?: boolean;
+    typescript?: boolean;
+    output?: string;
+}
+
+// Read package.json to get project information
+async function readPackageJson(): Promise<any> {
+    const packageJsonPath = join(process.cwd(), 'package.json');
+    
+    if (!existsSync(packageJsonPath)) {
+        return null;
+    }
+    
+    try {
+        const content = await readFile(packageJsonPath, 'utf-8');
+        return JSON.parse(content);
+    } catch (error) {
+        return null;
+    }
+}
+
+// Detect if project uses TypeScript
+function detectTypeScript(packageJson: any): boolean {
+    if (!packageJson) return false;
+    
+    // Check devDependencies for typescript
+    const hasTypeScript = packageJson.devDependencies?.typescript || 
+                         packageJson.dependencies?.typescript;
+    
+    // Check for tsconfig.json
+    const hasTsConfig = existsSync(join(process.cwd(), 'tsconfig.json'));
+    
+    return Boolean(hasTypeScript || hasTsConfig);
+}
+
+// Detect if project uses React
+function detectReact(packageJson: any): boolean {
+    if (!packageJson) return false;
+    
+    return Boolean(
+        packageJson.dependencies?.react || 
+        packageJson.devDependencies?.react ||
+        packageJson.dependencies?.['@types/react'] ||
+        packageJson.devDependencies?.['@types/react']
+    );
+}
+
+// Use mustache for template rendering
+function renderTemplate(template: string, data: Record<string, any>): string {
+    return mustache.render(template, data);
+}
+
+// Write file with directory creation
+async function writeFileWithDirs(filePath: string, content: string): Promise<void> {
+    const dir = dirname(filePath);
+    
+    // Create directory if it doesn't exist
+    try {
+        await mkdir(dir, { recursive: true });
+    } catch (error) {
+        // Directory might already exist, ignore error
+    }
+    
+    // Write the file
+    await writeFile(filePath, content, 'utf-8');
+}
+
+export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
     const {config, logger} = await $LT_GetCommandEssentials();
-
-
-
-    // TODO: jesli typescript w projekcie to .ts, a jak nie ma to .js
-    // TODO: nazwa taga to cos
-    // TODO: brac pod uwage arg
-    // TODO: if library to cos (np. InputType)
-    // TODO: if react to useMemo
-
-    // Options
-    const tagName = config.tagName;
-    const isLibrary = config.isLibrary;
-    const isJS = false;
+    
+    // Read package.json for project information
+    const packageJson = await readPackageJson();
+    
+    // Auto-detect project characteristics
+    const isTypeScript = options.typescript !== undefined ? options.typescript : detectTypeScript(packageJson);
+    const isReact = options.react !== undefined ? options.react : detectReact(packageJson);
+    const isLibrary = options.library !== undefined ? options.library : config.isLibrary;
+    
+    // Determine tag name
+    const tagName = options.name || config.tagName || 'lang';
+    
+    // Determine file extension
+    const fileExtension = isTypeScript ? 'ts' : 'js';
+    
+    // Determine output path
+    const outputPath = options.output || `src/lang-tag.${fileExtension}`;
+    
+    // Display selected options
+    logger.info('Initializing lang-tag with the following options:');
+    logger.info(`  Tag name: ${tagName}`);
+    logger.info(`  Library mode: ${isLibrary ? 'Yes' : 'No'}`);
+    logger.info(`  React optimizations: ${isReact ? 'Yes' : 'No'}`);
+    logger.info(`  TypeScript: ${isTypeScript ? 'Yes' : 'No'}`);
+    logger.info(`  Output path: ${outputPath}`);
+    
+    // Read mustache template
+    const templatePath = join(__dirname, 'tag.mustache');
+    let template: string;
+    
+    try {
+        template = readFileSync(templatePath, 'utf-8');
+    } catch (error) {
+        logger.error(`Failed to read template file: ${templatePath}`);
+        return;
+    }
+    
+    // Prepare template data
+    const templateData = {
+        tagName,
+        isLibrary,
+        isReact,
+        isTypeScript,
+        fileExtension,
+        packageName: packageJson?.name || 'my-project',
+        packageVersion: packageJson?.version || '1.0.0',
+        // Add more template variables as needed
+        useMemo: isReact ? 'useMemo' : '',
+        inputType: isLibrary ? 'InputType' : '',
+        reactImport: isReact ? "import { ReactNode, useMemo } from 'react';" : '',
+        langTagImport: isTypeScript ? 
+            "import { CallableTranslations, createCallableTranslations, LangTagTranslations, LangTagTranslationsConfig } from 'lang-tag';" :
+            "import { createCallableTranslations } from 'lang-tag';"
+    };
+    
+    // Render template
+    const renderedContent = renderTemplate(template, templateData);
+    
+    logger.info('Template rendered successfully');
+    logger.debug('Rendered content preview: {preview}', { preview: renderedContent.substring(0, 200) + '...' });
+    
+    // Check if output file already exists
+    if (existsSync(outputPath)) {
+        logger.warn(`File already exists: ${outputPath}`);
+        logger.info('Use --output to specify a different path or remove the existing file');
+        return;
+    }
+    
+    // Write the rendered content to the output file
+    try {
+        await writeFileWithDirs(outputPath, renderedContent);
+        logger.success(`Lang-tag file created successfully: ${outputPath}`);
+        
+        // Display usage instructions
+        logger.info('\nNext steps:');
+        logger.info(`1. Import the ${tagName} function in your files:`);
+        logger.info(`   import { ${tagName} } from './${outputPath.replace(/^src\//, '')}';`);
+        logger.info('2. Create your translation objects and use the tag function');
+        logger.info('3. Run "lang-tag collect" to extract translations');
+        
+    } catch (error: any) {
+        logger.error(`Failed to write file: ${error?.message}`);
+    }
 }
