@@ -2,7 +2,7 @@ import {LangTagConfig} from "@/cli/config.ts";
 import {$LT_TagCandidateFile} from "@/cli/core/collect/collect-tags.ts";
 import {$LT_ReadJSON, $LT_WriteJSON} from "@/cli/core/io/file.ts";
 import {LangTagExportData, LangTagExportFiles} from "@/cli";
-import {EXPORTS_FILE_NAME} from "@/cli/constants.ts";
+import {EXPORTS_FILE_NAME} from "@/cli/core/constants.ts";
 import path from "path";
 import {$LT_Logger} from "@/cli/core/logger.ts";
 

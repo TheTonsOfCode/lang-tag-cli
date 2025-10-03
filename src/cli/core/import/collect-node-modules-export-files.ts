@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "pathe";
-import {EXPORTS_FILE_NAME} from "@/cli/constants.ts";
+import {EXPORTS_FILE_NAME} from "@/cli/core/constants.ts";
 import process from "node:process";
 import {$LT_Logger} from "@/cli/core/logger.ts";
 

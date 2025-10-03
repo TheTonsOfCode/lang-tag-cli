@@ -10,7 +10,7 @@ import {
     TESTS_TEST_DIR as _TESTS_TEST_DIR,
 } from "./utils.ts";
 import {LangTagTranslationsConfig} from "@/index.ts";
-import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
+import {CONFIG_FILE_NAME} from "@/cli/core/constants.ts";
 import {$LT_TagProcessor} from "@/cli/core/processor.ts";
 
 const SUFFIX = 'regenerate';

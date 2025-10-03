@@ -1,5 +1,5 @@
 import path, {resolve} from "pathe";
-import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
+import {CONFIG_FILE_NAME} from "@/cli/core/constants.ts";
 import {existsSync} from "fs";
 import {pathToFileURL} from "url";
 import {LangTagConfig, LangTagOnConfigGenerationParams, LangTagOnImportParams} from "@/cli/config.ts";

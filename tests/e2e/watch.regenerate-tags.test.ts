@@ -9,7 +9,7 @@ import {
     prepareMainProjectBase,
     TESTS_TEST_DIR as _TESTS_TEST_DIR
 } from "./utils.ts";
-import {CONFIG_FILE_NAME} from '@/cli/constants.ts';
+import {CONFIG_FILE_NAME} from '@/cli/core/constants.ts';
 import process from "node:process";
 
 const SUFFIX = 'watch-regenerate-tags';

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { $LT_ReadConfig, defaultConfig } from '@/cli/core/io/read-config.ts';
-import { CONFIG_FILE_NAME } from '@/cli/constants.ts';
+import { CONFIG_FILE_NAME } from '@/cli/core/constants.ts';
 import { resolve } from 'pathe';
 import * as fs from 'fs';
 import { pathToFileURL } from 'url';

@@ -9,7 +9,7 @@ import {
     prepareMainProjectBase,
     TESTS_TEST_DIR as _TESTS_TEST_DIR
 } from "./utils.ts";
-import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/cli/constants.ts';
+import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/cli/core/constants.ts';
 import {LangTagConfig} from "@/cli/config.ts";
 import JSON5 from "json5";
 import {$LT_TagProcessor} from "@/cli/core/processor.ts";

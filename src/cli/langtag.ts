@@ -2,7 +2,7 @@
 
 import {program} from 'commander';
 import {$LT_CMD_RegenerateTags} from '@/cli/commands/cmd-regenerate-tags.ts';
-import {watchTranslations} from '@/cli/commands-old/watch';
+import {$LT_WatchTranslations} from '@/cli/commands/cmd-watch.ts';
 import {$LT_CMD_InitConfig} from '@/cli/commands/cmd-init.ts';
 import {$LT_ImportTranslations} from "@/cli/commands/cmd-import.ts";
 import {$LT_CMD_Collect} from "@/cli/commands/cmd-collect.ts";
@@ -35,7 +35,7 @@ export function createCli() {
         .command('watch')
         .alias('w')
         .description('Watch for changes in source files and automatically collect translations')
-        .action(watchTranslations);
+        .action($LT_WatchTranslations);
 
     program
         .command('init')
