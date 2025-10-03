@@ -24,6 +24,7 @@ const config = {
     collect: {
         defaultNamespace: 'common',
     },
+    debug: false,
 };
 
 module.exports = config;

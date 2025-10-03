@@ -1,16 +1,10 @@
 
-- regenerate tags i watch
-
-- usunac minichalk
-- usunac messages
 
 - komenda od init-taga
 
 - rozwiazywanie konfliktow z pokazywaniem w jakich plikach i dlaczego
 
 - zrobic podstawowy regenerate config ktory omija generowanie tam gdzie powinno byc common
-
-- dodac flage debug w configu
 
 jak sie daje prefix:
     'file://' + file + ":11:4"

@@ -104,6 +104,8 @@ export interface LangTagConfig {
      * If it returns `undefined`, the tag's configuration is not automatically generated or updated.
      */
     onConfigGeneration: (params: LangTagOnConfigGenerationParams) => LangTagTranslationsConfig | undefined;
+
+    debug?: boolean;
 }
 
 /**
