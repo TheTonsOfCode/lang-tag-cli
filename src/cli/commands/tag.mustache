@@ -118,6 +118,11 @@ export function reactProcessPlaceholders(
         parts.push(translation.slice(lastIndex));
     }
 
+    // If there is no react nodes, return as one string
+    if (parts.every(part => typeof part === 'string')) {
+        return parts.join('');
+    }
+
     return parts as unknown as string;
 }
 {{/isReact}}
