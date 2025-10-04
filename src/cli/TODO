@@ -1,7 +1,5 @@
 
 
-- komenda od init-taga
-    // TODO: if library to cos (np. InputType)
 
 - rozwiazywanie konfliktow z pokazywaniem w jakich plikach i dlaczego
 
@@ -15,6 +13,3 @@ jak sie daje prefix:
 
 
  - onConfigurationGeneration, undefined powinno usuwac konfiguracje, a powinna byc inna zmienna 'save: true'
-
- - processPlaceholders do templatki
-    i wywalic defaultTranslationTransformer
