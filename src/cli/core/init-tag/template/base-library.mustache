@@ -25,10 +25,7 @@ export function {{tagName}}<T extends LangTagTranslations>(
     baseTranslations: T,
     config?: LangTagTranslationsConfig,
 ) {
-    {{#isReact}}
-    const Context = createContext<CallableTranslations<T> | null>(null);
-
-    const createTranslationHelper = (normalized: CallableTranslations<T> | null) =>
+    const createTranslationHelper = (normalized{{#isTypeScript}}: CallableTranslations<T> | null{{/isTypeScript}}) =>
         createCallableTranslations(baseTranslations, config, {
             transform: ({unprefixedPath, value, params}) => {
                 const fn = normalized && lookupTranslation(normalized, unprefixedPath);
@@ -36,12 +33,15 @@ export function {{tagName}}<T extends LangTagTranslations>(
             }
         });
 
+    {{#isReact}}
+    const Context = createContext{{#isTypeScript}}<CallableTranslations<T> | null>{{/isTypeScript}}(null);
+
     const useTranslations = () => {
         const contextTranslations = useContext(Context);
         return useMemo(() => createTranslationHelper(contextTranslations), [contextTranslations]);
     };
 
-    const initTranslations = (translations?: PartialFlexibleTranslations<T>) => {
+    const initTranslations = (translations{{#isTypeScript}}?: PartialFlexibleTranslations<T>{{/isTypeScript}}) => {
         const normalized = useMemo(
             () => translations ? normalizeTranslations(translations) : null,
             [translations]
@@ -50,7 +50,7 @@ export function {{tagName}}<T extends LangTagTranslations>(
         return useMemo(() => createTranslationHelper(normalized), [normalized]);
     };
 
-    function Provider({translations, children}: { translations?: PartialFlexibleTranslations<T>; children: ReactNode }): ReactNode {
+    function Provider({translations, children}{{#isTypeScript}}: { translations?: PartialFlexibleTranslations<T>; children: ReactNode }{{/isTypeScript}}){{#isTypeScript}}: ReactNode{{/isTypeScript}} {
         const normalized = useMemo(
             () => translations ? normalizeTranslations(translations) : null,
             [translations]
@@ -67,6 +67,11 @@ export function {{tagName}}<T extends LangTagTranslations>(
             },
         });
     };
+
+    const initTranslations = (translations{{#isTypeScript}}?: PartialFlexibleTranslations<T>{{/isTypeScript}}) => {
+        const normalized = translations ? normalizeTranslations(translations) : null;
+        return createTranslationHelper(normalized);
+    };
     {{/isReact}}
 
     return {
@@ -76,7 +81,8 @@ export function {{tagName}}<T extends LangTagTranslations>(
         Provider,
         {{/isReact}}
         {{^isReact}}
-        create: createTranslations,
+        createTranslations,
+        initTranslations,
         {{/isReact}}
         {{#isTypeScript}}
         InputType: {} as PartialFlexibleTranslations<T>,
