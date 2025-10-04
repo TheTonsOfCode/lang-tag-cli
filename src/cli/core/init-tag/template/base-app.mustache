@@ -13,9 +13,9 @@ import { createCallableTranslations } from 'lang-tag';
 import { ReactNode, useMemo } from 'react';
 {{/isReact}}
 
-export function {{tagName}}<T extends LangTagTranslations>(
-    baseTranslations: T,
-    config?: LangTagTranslationsConfig,
+export function {{tagName}}{{#isTypeScript}}<T extends LangTagTranslations>{{/isTypeScript}}(
+    baseTranslations{{#isTypeScript}}: T{{/isTypeScript}},
+    config{{#isTypeScript}}?: LangTagTranslationsConfig{{/isTypeScript}},
 ) {
     const client = () => {
         {{#isReact}}
@@ -47,6 +47,8 @@ export function {{tagName}}<T extends LangTagTranslations>(
     return {
         client,
         server,
+        {{#isTypeScript}}
         Type: {} as CallableTranslations<T>,
+        {{/isTypeScript}}
     };
 }

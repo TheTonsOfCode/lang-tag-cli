@@ -16,12 +16,12 @@
  * </div>);
  */
 export function processPlaceholders(
-    translation: string,
-    params?: { [key: string]: ReactNode },
-): string {
+    translation{{#isTypeScript}}: string{{/isTypeScript}},
+    params{{#isTypeScript}}?: { [key: string]: ReactNode }{{/isTypeScript}},
+){{#isTypeScript}}: string{{/isTypeScript}} {
     if (typeof translation !== 'string') return '';
 
-    const parts: ReactNode[] = [];
+    const parts{{#isTypeScript}}: ReactNode[]{{/isTypeScript}} = [];
     let lastIndex = 0;
 
     translation.replace(/{{tmpVariables.processRegex}}/g, (match, placeholder, offset) => {
@@ -49,7 +49,7 @@ export function processPlaceholders(
         return parts.join('');
     }
 
-    return parts as unknown as string;
+    return parts{{#isTypeScript}} as unknown as string{{/isTypeScript}};
 }
 {{/isReact}}
 
@@ -66,14 +66,14 @@ export function processPlaceholders(
  * t.hello({ username: "Paul" })
  */
 export function processPlaceholders(
-    translation: string,
-    params?: { [key: string]: string | number },
-): string {
+    translation{{#isTypeScript}}: string{{/isTypeScript}},
+    params{{#isTypeScript}}?: { [key: string]: string | number }{{/isTypeScript}},
+){{#isTypeScript}}: string{{/isTypeScript}} {
     if (typeof translation !== 'string') {
         return '';
     }
 
-    return translation.replace(/{{tmpVariables.processRegex}}/g, (_: any, placeholder: string) => {
+    return translation.replace(/{{tmpVariables.processRegex}}/g, (_{{#isTypeScript}}: any{{/isTypeScript}}, placeholder{{#isTypeScript}}: string{{/isTypeScript}}) => {
         const trimmedPlaceholder = placeholder.trim();
         return params?.[trimmedPlaceholder] !== undefined ? String(params[trimmedPlaceholder]) : '';
     });
