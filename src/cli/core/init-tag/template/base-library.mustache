@@ -74,11 +74,13 @@ export function {{tagName}}<T extends LangTagTranslations>(
         useTranslations,
         initTranslations,
         Provider,
-        InputType: {} as PartialFlexibleTranslations<T>,
         {{/isReact}}
         {{^isReact}}
         create: createTranslations,
         {{/isReact}}
+        {{#isTypeScript}}
+        InputType: {} as PartialFlexibleTranslations<T>,
         Type: {} as CallableTranslations<T>,
+        {{/isTypeScript}}
     };
 }

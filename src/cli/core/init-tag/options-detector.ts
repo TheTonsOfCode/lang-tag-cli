@@ -64,7 +64,9 @@ export async function detectInitTagOptions(
     const isLibrary = options.library !== undefined ? options.library : config.isLibrary;
     
     const tagName = options.name || config.tagName || 'lang';
-    const fileExtension = isTypeScript ? 'ts' : 'js';
+    const fileExtension = isLibrary && isReact 
+        ? (isTypeScript ? 'tsx' : 'jsx')
+        : (isTypeScript ? 'ts' : 'js');
     
     return {
         tagName,
