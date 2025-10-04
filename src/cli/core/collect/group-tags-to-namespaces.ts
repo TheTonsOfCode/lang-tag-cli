@@ -57,26 +57,22 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
 }
 
 /**
- * Ensures a nested object structure exists for the given dot-notation path.
- * Creates missing intermediate objects and returns the target object for merging.
+ * Creates nested object structure for dot-notation path and returns target object.
+ * Example: "buttons.primary" creates { buttons: { primary: {} } } and returns primary object.
  */
 function ensureNestedObject(path: string | undefined, root: Record<string, any>): Record<string, any> {
     if (!path) return root;
     
-    const keys = path.split('.');
     let current = root;
     
-    for (const key of keys) {
-        const existing = current[key];
-
-        if (existing && typeof existing !== 'object') {
-            throw new Error(`Key "${key}" is not an object (found value: "${existing}")`);
+    for (const key of path.split('.')) {
+        // Validate existing value is an object
+        if (current[key] && typeof current[key] !== 'object') {
+            throw new Error(`Key "${key}" is not an object (found value: "${current[key]}")`);
         }
         
-        if (!existing) {
-            current[key] = {};
-        }
-        
+        // Create object if missing
+        current[key] = current[key] || {};
         current = current[key];
     }
     
