@@ -4,15 +4,15 @@ import {readFileSync} from "fs";
 
 import {globby} from "globby";
 
-import {LangTagConfig} from "@/cli/config.ts";
+import {LangTagConfig, ProcessedTag} from "@/cli/config.ts";
 import {$LT_Logger} from "@/cli/core/logger.ts";
-import {$LT_Tag, $LT_TagProcessor} from "@/cli/core/processor.ts";
+import {$LT_TagProcessor} from "@/cli/core/processor.ts";
 import {$LT_FilterEmptyNamespaceTags, $LT_FilterInvalidTags} from "@/cli/core/collect/fillters.ts";
 
 export interface $LT_TagCandidateFile {
 
     relativeFilePath: string;
-    tags: $LT_Tag[]
+    tags: ProcessedTag[]
 }
 
 interface Props {

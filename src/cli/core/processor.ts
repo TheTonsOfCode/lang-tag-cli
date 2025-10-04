@@ -1,30 +1,8 @@
-import {LangTagConfig} from "@/cli/config.ts";
+import {ProcessedTag, LangTagConfig} from "@/cli/config.ts";
 import JSON5 from "json5";
 
-type Validity = 'ok' | 'invalid-param-1' | 'invalid-param-2' | 'translations-not-found';
-
-export interface $LT_Tag {
-    fullMatch: string;
-
-    parameter1Text: string;
-    parameter2Text?: string;
-    parameterTranslations: any;
-    parameterConfig?: any;
-
-    variableName?: string;
-
-    /** Character index in the whole text where the match starts */
-    index: number;
-    /** Line number (1-based) where the match was found */
-    line: number;
-    /** Column number (1-based) where the match starts in the line */
-    column: number;
-
-    validity: Validity;
-}
-
 export interface $LT_TagReplaceData {
-    tag: $LT_Tag;
+    tag: ProcessedTag;
 
     translations?: string | any;
     config?: string | any;
@@ -34,12 +12,12 @@ export class $LT_TagProcessor {
 
     constructor(private config: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'>) {}
 
-    public extractTags(fileContent: string): $LT_Tag[] {
+    public extractTags(fileContent: string): ProcessedTag[] {
         const tagName = this.config.tagName;
         const optionalVariableAssignment = `(?:\\s*(\\w+)\\s*=\\s*)?`;
 
         // Find all potential lang tag matches
-        const matches: $LT_Tag[] = [];
+        const matches: ProcessedTag[] = [];
         let currentIndex = 0;
 
         // Create a regex to find the start of a lang tag
@@ -154,7 +132,7 @@ export class $LT_TagProcessor {
 
             const {line, column} = getLineAndColumn(fileContent, matchStartIndex)
 
-            let validity: Validity = 'ok';
+            let validity: any = 'ok';
 
             let parameter1 = undefined;
             let parameter2 = undefined;
@@ -200,7 +178,7 @@ export class $LT_TagProcessor {
 
     public replaceTags(fileContent: string, replacements: $LT_TagReplaceData[]): string {
 
-        const replaceMap: Map<$LT_Tag, string> = new Map();
+        const replaceMap: Map<ProcessedTag, string> = new Map();
 
         replacements.forEach(R => {
             if (!R.translations && !R.config) {

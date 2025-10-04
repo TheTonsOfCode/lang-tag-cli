@@ -154,3 +154,25 @@ export interface LangTagOnConfigGenerationParams {
     /** The configuration object extracted from the lang tag's options argument (e.g., `{ namespace: 'common', path: 'my.path' }`). */
     config: LangTagTranslationsConfig;
 }
+
+type Validity = 'ok' | 'invalid-param-1' | 'invalid-param-2' | 'translations-not-found';
+
+export interface ProcessedTag {
+    fullMatch: string;
+
+    parameter1Text: string;
+    parameter2Text?: string;
+    parameterTranslations: any;
+    parameterConfig?: any;
+
+    variableName?: string;
+
+    /** Character index in the whole text where the match starts */
+    index: number;
+    /** Line number (1-based) where the match was found */
+    line: number;
+    /** Column number (1-based) where the match starts in the line */
+    column: number;
+
+    validity: Validity;
+}
