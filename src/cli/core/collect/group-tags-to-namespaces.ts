@@ -61,17 +61,15 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
  * Example: "buttons.primary" creates { buttons: { primary: {} } } and returns primary object.
  */
 function ensureNestedObject(path: string | undefined, root: Record<string, any>): Record<string, any> {
-    if (!path) return root;
+    if (!path?.trim) return root;
     
     let current = root;
     
     for (const key of path.split('.')) {
-        // Validate existing value is an object
         if (current[key] && typeof current[key] !== 'object') {
             throw new Error(`Key "${key}" is not an object (found value: "${current[key]}")`);
         }
         
-        // Create object if missing
         current[key] = current[key] || {};
         current = current[key];
     }
