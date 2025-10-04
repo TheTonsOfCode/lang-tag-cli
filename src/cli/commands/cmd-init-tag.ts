@@ -1,10 +1,9 @@
 
 import {$LT_GetCommandEssentials} from "@/cli/commands/setup.ts";
-import { readFileSync, existsSync } from 'fs';
+import { existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { readFile, writeFile, mkdir } from 'fs/promises';
-import { fileURLToPath } from 'url';
-import mustache from 'mustache';
+import { renderInitTagTemplates, InitTagRenderOptions } from '@/cli/core/init-tag/renderer.ts';
 
 // Define command line options interface
 interface InitTagOptions {
@@ -57,10 +56,6 @@ function detectReact(packageJson: any): boolean {
     );
 }
 
-// Use mustache for template rendering
-function renderTemplate(template: string, data: Record<string, any>): string {
-    return mustache.render(template, data, {}, { escape: (text) => text });
-}
 
 // Write file with directory creation
 async function writeFileWithDirs(filePath: string, content: string): Promise<void> {
@@ -105,21 +100,8 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
     logger.info('  TypeScript: {isTypeScript}', { isTypeScript: isTypeScript ? 'Yes' : 'No' });
     logger.info('  Output path: {outputPath}', { outputPath });
     
-    // Read mustache template
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    const templatePath = join(__dirname, 'commands', 'tag.mustache');
-    let template: string;
-    
-    try {
-        template = readFileSync(templatePath, 'utf-8');
-    } catch (error) {
-        logger.error('Failed to read template file: {templatePath}', { templatePath });
-        return;
-    }
-    
-    // Prepare template data
-    const templateData = {
+    // Prepare render options
+    const renderOptions: InitTagRenderOptions = {
         tagName,
         isLibrary,
         isReact,
@@ -127,21 +109,16 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
         fileExtension,
         packageName: packageJson?.name || 'my-project',
         packageVersion: packageJson?.version || '1.0.0',
-        tmpPlaceholder1: '{{key}}',
-        tmpPlaceholder2: '{{username}}',
-        tmpRegex: '{{(.*?)}}',
-        // TODO: dokończyć i zamienić:
-        // TODO: dokończyć i zamienić:
-        // TODO: dokończyć i zamienić:
-        // TODO: dokończyć i zamienić:
-        // TODO: dokończyć i zamienić:
-        tmp: {
-            placeholder1: '{{key}}',
-        }
     };
     
-    // Render template
-    const renderedContent = renderTemplate(template, templateData);
+    // Render templates using the new renderer
+    let renderedContent: string;
+    try {
+        renderedContent = renderInitTagTemplates(renderOptions);
+    } catch (error: any) {
+        logger.error('Failed to render templates: {error}', { error: error?.message });
+        return;
+    }
 
     // Check if output file already exists
     if (existsSync(outputPath)) {
