@@ -3,14 +3,14 @@ import {
     CallableTranslations,
     createCallableTranslations,
     LangTagTranslations,
-    LangTagTranslationsConfig{{#isReact}},
+    LangTagTranslationsConfig,
     PartialFlexibleTranslations,
     normalizeTranslations,
-    lookupTranslation{{/isReact}}
+    lookupTranslation
 } from 'lang-tag';
 {{/isTypeScript}}
 {{^isTypeScript}}
-import { createCallableTranslations{{#isReact}}, normalizeTranslations, lookupTranslation{{/isReact}} } from 'lang-tag';
+import { createCallableTranslations, normalizeTranslations, lookupTranslation } from 'lang-tag';
 {{/isTypeScript}}
 {{#isReact}}
 import {
