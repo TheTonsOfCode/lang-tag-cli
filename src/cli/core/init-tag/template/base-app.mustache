@@ -17,31 +17,25 @@ export function {{tagName}}{{#isTypeScript}}<T extends LangTagTranslations>{{/is
     baseTranslations{{#isTypeScript}}: T{{/isTypeScript}},
     config{{#isTypeScript}}?: LangTagTranslationsConfig{{/isTypeScript}},
 ) {
-    const client = () => {
-        {{#isReact}}
-        return useMemo(
-            () =>
-                createCallableTranslations(baseTranslations, config, {
-                    transform: ({ value, params }) =>
-                        processPlaceholders(value, params),
-                }),
-            [],
-        );
-        {{/isReact}}
-        {{^isReact}}
-        return createCallableTranslations(baseTranslations, config, {
-            transform: ({ value, params }) =>
-                processPlaceholders(value, params),
-        });
-        {{/isReact}}
-    };
-
-    const server = () => {
+    const createTranslations = () => {
         return createCallableTranslations(baseTranslations, config, {
             transform: ({ value, params }) => {
                 return processPlaceholders(value, params);
             },
         });
+    };
+
+    const client = () => {
+        {{#isReact}}
+        return useMemo(() => createTranslations(), []);
+        {{/isReact}}
+        {{^isReact}}
+        return createTranslations();
+        {{/isReact}}
+    };
+
+    const server = () => {
+        return createTranslations();
     };
 
     return {
