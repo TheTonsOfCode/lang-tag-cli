@@ -10,13 +10,9 @@ import {$LT_CollectCandidateFilesWithTags} from "@/cli/core/collect/collect-tags
 import {$LT_GroupTagsToNamespaces} from "@/cli/core/collect/group-tags-to-namespaces.ts";
 import {$LT_CreateChokidarWatcher} from "@/cli/core/watch/chokidar-watcher.ts";
 
-
 export async function $LT_WatchTranslations() {
     const {config, logger} = await $LT_GetCommandEssentials();
 
-
-    // TODO: przerobic ze to bardziej per plik collectuje
-    // TODO: to jest chyba dobrze bo watch przy pierwszym uruchomieniu powinien zgarnac translacje
     await $LT_CMD_Collect();
 
     const watcher = $LT_CreateChokidarWatcher(config);

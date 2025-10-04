@@ -884,7 +884,7 @@ describe('replaceLangMatches', () => {
             /* Multi-line comment
                with multiple lines */
             message: 'world',
-            // TODO: Fix this later
+            // Note: Fix this later
             temp: 'value',
             /* Another multi-line
                comment */
@@ -907,7 +907,7 @@ describe('replaceLangMatches', () => {
         expect(tag1.parameter1Text).toContain('// Single line comment');
         expect(tag1.parameter1Text).toContain('/* Multi-line comment');
         expect(tag1.parameter1Text).toContain('with multiple lines */');
-        expect(tag1.parameter1Text).toContain('// TODO: Fix this later');
+        expect(tag1.parameter1Text).toContain('// Note: Fix this later');
         expect(tag1.parameter1Text).toContain('/* Another multi-line');
         expect(tag1.parameter1Text).toContain('comment */');
         expect(tag1.variableName).toBe('translations')

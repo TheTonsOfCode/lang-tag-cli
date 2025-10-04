@@ -17,8 +17,6 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
             const config = tag.parameterConfig;
             const namespace = config.namespace;
 
-            // TODO: resolve default namespace and path as ''
-
             const namespaceTranslations: Record<string, any> = namespaces[namespace] || {};
             if (!(namespace in namespaces)) {
                 namespaces[namespace] = namespaceTranslations;

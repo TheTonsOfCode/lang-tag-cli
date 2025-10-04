@@ -231,13 +231,7 @@ export class $LT_TagProcessor {
                 }
             }
 
-            // TODO:
-            // TODO:
-            // TODO:
             // TODO:   HERE:  Cała logika formatowania wcięć itd w przyszłości
-            // TODO:
-            // TODO:
-            // TODO:
 
             const arg1 = this.config.translationArgPosition === 1  ? newTranslationsString : newConfigString;
             const arg2 = this.config.translationArgPosition === 1  ? newConfigString : newTranslationsString;
