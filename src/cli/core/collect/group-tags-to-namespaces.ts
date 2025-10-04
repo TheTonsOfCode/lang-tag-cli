@@ -9,6 +9,12 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
     let totalTags = 0;
     const namespaces: Record<string, Record<string, any>> = {};
 
+
+
+    // TODO: conflict resolution system
+    // wykrywac czy gdzies w namespace np. "common" langtag z pliku A nie próbuje zmergować na tą samą ścieżkę langtaga z pliku B
+    // wtedy wypisywac oba pliki
+
     for (const file of files) {
         totalTags += file.tags.length;
 

@@ -57,8 +57,6 @@ export async function $LT_CollectCandidateFilesWithTags(props: Props): Promise<$
         // Note: onCollectConfigFix should always fix empty namespace tags to be directed to default namespace
         tags = $LT_FilterEmptyNamespaceTags(tags, logger);
 
-        // TODO: conflict resolution system
-
         const relativeFilePath = path.relative(cwd, filePath)
 
         candidates.push({relativeFilePath, tags});
