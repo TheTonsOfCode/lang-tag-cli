@@ -1,6 +1,8 @@
 {{#isReact}}
 /**
- * Replaces placeholders in translations with React nodes.
+ * React processPlaceholders
+ * ===
+ * Replaces placeholders in translations with React nodes or string values.
  * Placeholders use the format {{tmpVariables.key}}, for example:
  * --- Translation Definition ---
  * const translations = {{tagName}}({ hello: "Hello {{tmpVariables.username}}!" });
@@ -8,12 +10,12 @@
  * const t = translations.client();
  * // String parameter:
  * return <div>{ t.hello({ username: "Paul" }) }</div>
- * // ReactNode parameter:
+ * // ReactNode parameter (React only):
  * return (<div>
  *      <span>{ t.hello({ username: <span className="font-bold">Paul</span> }) }</span>
  * </div>);
  */
-export function reactProcessPlaceholders(
+export function processPlaceholders(
     translation: string,
     params?: { [key: string]: ReactNode },
 ): string {
@@ -53,6 +55,8 @@ export function reactProcessPlaceholders(
 
 {{^isReact}}
 /**
+ * Vanilla processPlaceholders
+ * ===
  * Replaces placeholders in translations with string values.
  * Placeholders use the format {{tmpVariables.key}}, for example:
  * --- Translation Definition ---
@@ -66,7 +70,6 @@ export function processPlaceholders(
     params?: { [key: string]: string | number },
 ): string {
     if (typeof translation !== 'string') {
-        // As a safeguard, return an empty string if the input is not a string.
         return '';
     }
 

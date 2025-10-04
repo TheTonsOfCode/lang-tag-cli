@@ -23,7 +23,7 @@ export function {{tagName}}<T extends LangTagTranslations>(
             () =>
                 createCallableTranslations(baseTranslations, config, {
                     transform: ({ value, params }) =>
-                        reactProcessPlaceholders(value, params),
+                        processPlaceholders(value, params),
                 }),
             [],
         );
@@ -39,12 +39,7 @@ export function {{tagName}}<T extends LangTagTranslations>(
     const server = () => {
         return createCallableTranslations(baseTranslations, config, {
             transform: ({ value, params }) => {
-                {{#isReact}}
-                return reactProcessPlaceholders(value, params);
-                {{/isReact}}
-                {{^isReact}}
                 return processPlaceholders(value, params);
-                {{/isReact}}
             },
         });
     };
