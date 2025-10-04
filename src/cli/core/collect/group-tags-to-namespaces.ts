@@ -32,7 +32,7 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
             const namespaceTranslations = getTranslations(config.namespace);
 
             try {
-                const translations = digToSection(config.path, namespaceTranslations);
+                const translations = ensureNestedObject(config.path, namespaceTranslations);
                 deepMergeTranslations(translations, tag.parameterTranslations);
             } catch (e: any) {
                 logger.error([
@@ -56,17 +56,29 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
     return namespaces;
 }
 
-function digToSection(key: string | undefined, translations: Record<string, any>): Record<string, any> {
-    if (!key) return translations;
-    const sp = key.split('.');
-    let currentValue = translations[sp[0]];
-    if (currentValue && typeof currentValue != 'object') {
-        throw new Error(`Key "${sp[0]}" is not an object (found value: "${currentValue}")`);
+/**
+ * Ensures a nested object structure exists for the given dot-notation path.
+ * Creates missing intermediate objects and returns the target object for merging.
+ */
+function ensureNestedObject(path: string | undefined, root: Record<string, any>): Record<string, any> {
+    if (!path) return root;
+    
+    const keys = path.split('.');
+    let current = root;
+    
+    for (const key of keys) {
+        const existing = current[key];
+
+        if (existing && typeof existing !== 'object') {
+            throw new Error(`Key "${key}" is not an object (found value: "${existing}")`);
+        }
+        
+        if (!existing) {
+            current[key] = {};
+        }
+        
+        current = current[key];
     }
-    if (!currentValue) {
-        currentValue = {};
-        translations[sp[0]] = currentValue;
-    }
-    sp.shift();
-    return digToSection(sp.join('.'), currentValue);
+    
+    return current;
 }
