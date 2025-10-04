@@ -1,58 +1,21 @@
-import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from "@/cli/constants.ts";
-import {messageErrorReadingDirectory, messageImportedFile, messageNodeModulesNotFound} from '@/cli/message';
-import fs from 'fs';
 import * as process from "node:process";
-import path, {dirname, resolve} from 'pathe';
-import {LangTagExportData} from "@/cli";
-import {ensureDirectoryExists, readJSON} from "@/cli/commands/utils/file.ts";
+import {dirname, resolve} from 'pathe';
+import {LangTagExportData} from "@/cli/core/type";
+import {$LT_EnsureDirectoryExists, $LT_ReadJSON} from "@/cli/core/io/file.ts";
 import {LangTagConfig} from "@/cli/config.ts";
 import {writeFile} from "fs/promises";
-import { LangTagTranslationsConfig } from "@/index.ts";
+import {LangTagTranslationsConfig} from "@/index.ts";
 import JSON5 from "json5";
+import {$LT_CollectNodeModulesExportFilePaths} from "@/cli/core/import/collect-node-modules-export-files.ts";
+import {$LT_Logger} from "@/cli/core/logger.ts";
 
-function findExportJson(dir: string, depth: number = 0, maxDepth: number = 3): string[] {
-    if (depth > maxDepth) return [];
-    let results: string[] = [];
-
-    try {
-        const files = fs.readdirSync(dir);
-        for (const file of files) {
-            const fullPath = path.join(dir, file);
-            const stat = fs.statSync(fullPath);
-
-            if (stat.isDirectory()) {
-                results = results.concat(findExportJson(fullPath, depth + 1, maxDepth));
-            } else if (file === EXPORTS_FILE_NAME) {
-                results.push(fullPath);
-            }
-        }
-    } catch (error) {
-        messageErrorReadingDirectory(dir, error);
-    }
-
-    return results;
-}
-
-function getExportFiles(): string[] {
-    const nodeModulesPath: string = path.join(process.cwd(), 'node_modules');
-
-    if (!fs.existsSync(nodeModulesPath)) {
-        messageNodeModulesNotFound();
-        return [];
-    }
-
-    return findExportJson(nodeModulesPath);
-}
-
-export async function importLibraries(config: LangTagConfig): Promise<void> {
-    const files = getExportFiles();
-
-    await ensureDirectoryExists(config.import.dir);
+export async function $LT_ImportLibraries(config: LangTagConfig, logger: $LT_Logger): Promise<void> {
+    const files = $LT_CollectNodeModulesExportFilePaths(logger);
 
     const generationFiles: Record<string /*fileName*/, Record<string /*export name*/, string>> = {}
 
     for (const filePath of files) {
-        const exportData: LangTagExportData = await readJSON(filePath);
+        const exportData: LangTagExportData = await $LT_ReadJSON(filePath);
 
         // TODO: if different language, translate to base language
         //  exportData.language
@@ -100,22 +63,23 @@ export async function importLibraries(config: LangTagConfig): Promise<void> {
         }
     }
 
-    for (let file of Object.keys(generationFiles)) {
+    for (let fileName of Object.keys(generationFiles)) {
         const filePath = resolve(
             process.cwd(),
             config.import.dir,
-            file
+            fileName
         );
 
-        const exports = Object.entries(generationFiles[file]).map(([name, tag]) => {
+        const exports = Object.entries(generationFiles[fileName]).map(([name, tag]) => {
             return `export const ${name} = ${tag};`;
         }).join('\n\n');
 
         const content = `${config.import.tagImportPath}\n\n${exports}`;
 
-        await ensureDirectoryExists(dirname(filePath));
+        await $LT_EnsureDirectoryExists(dirname(filePath));
         await writeFile(filePath, content, 'utf-8');
-        messageImportedFile(file);
+
+        logger.success('Imported node_modules file: "{fileName}"', {fileName})
     }
 
     if (config.import.onImportFinish) config.import.onImportFinish();

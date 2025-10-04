@@ -1,0 +1,69 @@
+{{#isTypeScript}}
+import {
+    CallableTranslations,
+    LangTagTranslations,
+    LangTagTranslationsConfig,
+    createCallableTranslations
+} from 'lang-tag';
+{{/isTypeScript}}
+{{^isTypeScript}}
+import { createCallableTranslations } from 'lang-tag';
+{{/isTypeScript}}
+{{#isReact}}
+import { ReactNode, useMemo } from 'react';
+{{/isReact}}
+
+export function {{tagName}}{{#isTypeScript}}<T extends LangTagTranslations>{{/isTypeScript}}(
+    baseTranslations{{#isTypeScript}}: T{{/isTypeScript}},
+    config{{#isTypeScript}}?: LangTagTranslationsConfig{{/isTypeScript}},
+) {
+    // Example integration with react-i18next:
+    // const namespace = config?.namespace || '';
+    // 
+    // // Client
+    // const useT = () => {
+    //     const { t } = useTranslation(namespace);
+    // 
+    //     return createCallableTranslations(translations, config, {
+    //         transform: ({ path, params }) => t(path, params),
+    //     });
+    // };
+    // 
+    // // SSR
+    // const initT = async (language?: string) => {
+    //     const { t } = await initTranslations({ language, namespaces: [namespace] });
+    // 
+    //     return createCallableTranslations(translations, config, {
+    //         transform: ({ path, params }) => t(path, params),
+    //     });
+    // };
+
+    const createTranslations = () => {
+        return createCallableTranslations(baseTranslations, config, {
+            transform: ({ value, params }) => {
+                return processPlaceholders(value, params);
+            },
+        });
+    };
+
+    const client = () => {
+        {{#isReact}}
+        return useMemo(() => createTranslations(), []);
+        {{/isReact}}
+        {{^isReact}}
+        return createTranslations();
+        {{/isReact}}
+    };
+
+    const server = () => {
+        return createTranslations();
+    };
+
+    return {
+        client,
+        server,
+        {{#isTypeScript}}
+        Type: {} as CallableTranslations<T>,
+        {{/isTypeScript}}
+    };
+}

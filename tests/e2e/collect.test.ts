@@ -9,10 +9,10 @@ import {
     prepareMainProjectBase,
     TESTS_TEST_DIR as _TESTS_TEST_DIR
 } from "./utils.ts";
-import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/cli/constants.ts';
-import {findLangTags} from "@/cli/processor.ts";
+import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/cli/core/constants.ts';
 import {LangTagConfig} from "@/cli/config.ts";
 import JSON5 from "json5";
+import {$LT_TagProcessor} from "@/cli/core/processor.ts";
 
 function expectJSON5Equal(a: string | undefined, b: string) {
     expect(JSON5.stringify(JSON5.parse(a || ''))).toEqual(JSON5.stringify(JSON5.parse(b)));
@@ -201,16 +201,16 @@ describe('collect command e2e tests', () => {
         expect(Array.isArray(matches)).toBeTruthy();
         expect(matches.length).toBe(3);
 
-        expect(matches[0].translations).toBe("{\"hello\": \"Hello World\"}");
-        expect(matches[0].config).toBe("{\n    namespace: 'common',\n}");
+        expect(JSON5.parse(matches[0].translations)).toEqual({ hello: "Hello World" });
+        expect(JSON5.parse(matches[0].config)).toEqual({ namespace: 'common' });
         expect(matches[0].variableName).toBe("translations1");
 
-        expect(matches[1].translations).toBe("{\"bye\": \"Goodbye\"}");
-        expect(matches[1].config).toBe("{\n    namespace: 'common',\n}");
+        expect(JSON5.parse(matches[1].translations)).toEqual({ bye: "Goodbye" });
+        expect(JSON5.parse(matches[1].config)).toEqual({ namespace: 'common' });
         expect(matches[1].variableName).toBe("translations2");
 
-        expect(matches[2].translations).toBe("{\"error\": \"Error occurred\"}");
-        expect(matches[2].config).toBe("{\n    namespace: 'errors',\n}");
+        expect(JSON5.parse(matches[2].translations)).toEqual({ error: "Error occurred" });
+        expect(JSON5.parse(matches[2].config)).toEqual({ namespace: 'errors' });
         expect(matches[2].variableName).toBe("translations3");
     });
 
@@ -325,13 +325,16 @@ describe('collect command e2e tests', () => {
 
         const importedContent = readFileSync(importedTagFile, 'utf-8');
 
-        const commonConfig: Pick<LangTagConfig, 'tagName'> = {
+        const commonConfig: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'> = {
             tagName: 'lang',
+            translationArgPosition: 1
         }
-        const matches = findLangTags(commonConfig, importedContent);
-        expect(matches).toHaveLength(1);
-        expectJSON5Equal(matches[0].content1, '{"button":{"label":"Click me"}}')
-        expectJSON5Equal(matches[0].content2, '{"namespace":"common"}')
+
+        const processor = new $LT_TagProcessor(commonConfig);
+        const tags = processor.extractTags(importedContent);
+        expect(tags).toHaveLength(1);
+        expectJSON5Equal(tags[0].parameter1Text, '{"button":{"label":"Click me"}}')
+        expectJSON5Equal(tags[0].parameter2Text, '{"namespace":"common"}')
     });
 
     it('should handle multiple files with translations', () => {

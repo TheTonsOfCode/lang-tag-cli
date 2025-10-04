@@ -1,0 +1,81 @@
+{{#isReact}}
+/**
+ * React processPlaceholders
+ * ===
+ * Replaces placeholders in translations with React nodes or string values.
+ * Placeholders use the format {{tmpVariables.key}}, for example:
+ * --- Translation Definition ---
+ * const translations = {{tagName}}({ hello: "Hello {{tmpVariables.username}}!" });
+ * --- Translation ---
+ * const t = translations.client();
+ * // String parameter:
+ * return <div>{ t.hello({ username: "Paul" }) }</div>
+ * // ReactNode parameter (React only):
+ * return (<div>
+ *      <span>{ t.hello({ username: <span className="font-bold">Paul</span> }) }</span>
+ * </div>);
+ */
+export function processPlaceholders(
+    translation{{#isTypeScript}}: string{{/isTypeScript}},
+    params{{#isTypeScript}}?: { [key: string]: ReactNode }{{/isTypeScript}},
+){{#isTypeScript}}: string{{/isTypeScript}} {
+    if (typeof translation !== 'string') return '';
+
+    const parts{{#isTypeScript}}: ReactNode[]{{/isTypeScript}} = [];
+    let lastIndex = 0;
+
+    translation.replace(/{{tmpVariables.processRegex}}/g, (match, placeholder, offset) => {
+        if (lastIndex < offset) {
+            parts.push(translation.slice(lastIndex, offset));
+        }
+
+        const key = placeholder.trim();
+        if (params && key in params) {
+            parts.push(params[key]);
+        } else {
+            parts.push('');
+        }
+
+        lastIndex = offset + match.length;
+        return match;
+    });
+
+    if (lastIndex < translation.length) {
+        parts.push(translation.slice(lastIndex));
+    }
+
+    // If there is no react nodes, return as one string
+    if (parts.every(part => typeof part === 'string')) {
+        return parts.join('');
+    }
+
+    return parts{{#isTypeScript}} as unknown as string{{/isTypeScript}};
+}
+{{/isReact}}
+
+{{^isReact}}
+/**
+ * Vanilla processPlaceholders
+ * ===
+ * Replaces placeholders in translations with string values.
+ * Placeholders use the format {{tmpVariables.key}}, for example:
+ * --- Translation Definition ---
+ * const translations = {{tagName}}({ hello: "Hello {{tmpVariables.username}}!" });
+ * --- Translation ---
+ * const t = translations.client();
+ * t.hello({ username: "Paul" })
+ */
+export function processPlaceholders(
+    translation{{#isTypeScript}}: string{{/isTypeScript}},
+    params{{#isTypeScript}}?: { [key: string]: string | number }{{/isTypeScript}},
+){{#isTypeScript}}: string{{/isTypeScript}} {
+    if (typeof translation !== 'string') {
+        return '';
+    }
+
+    return translation.replace(/{{tmpVariables.processRegex}}/g, (_{{#isTypeScript}}: any{{/isTypeScript}}, placeholder{{#isTypeScript}}: string{{/isTypeScript}}) => {
+        const trimmedPlaceholder = placeholder.trim();
+        return params?.[trimmedPlaceholder] !== undefined ? String(params[trimmedPlaceholder]) : '';
+    });
+}
+{{/isReact}}

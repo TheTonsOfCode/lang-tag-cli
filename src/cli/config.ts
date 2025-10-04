@@ -1,9 +1,4 @@
 import {LangTagTranslationsConfig} from "@/index.ts";
-import path, {resolve} from 'pathe';
-import {existsSync} from 'fs';
-import {pathToFileURL} from 'url';
-import {CONFIG_FILE_NAME} from './constants';
-import {messageErrorReadingConfig} from "@/cli/message";
 
 export interface LangTagConfig {
     /**
@@ -30,6 +25,24 @@ export interface LangTagConfig {
      */
     outputDir: string;
 
+    collect?: {
+        /**
+         * @default 'common'
+         */
+        defaultNamespace?: string;
+
+        /**
+         * A function called when the collected translation configuration needs to be fixed or validated.
+         * Allows modification of the configuration before it's saved to the output files.
+         */
+        onCollectConfigFix?: (config: LangTagTranslationsConfig, langTagConfig: LangTagConfig) => LangTagTranslationsConfig;
+
+        /**
+         * A function called when there are conflicts between translation tags (e.g., same key in different namespaces).
+         * Allows custom resolution logic for handling duplicate or conflicting translations.
+         */
+        onConflictResolution?: (tag: any, tagB: any) => LangTagTranslationsConfig;
+    }
 
     import: {
         /**
@@ -91,6 +104,8 @@ export interface LangTagConfig {
      * If it returns `undefined`, the tag's configuration is not automatically generated or updated.
      */
     onConfigGeneration: (params: LangTagOnConfigGenerationParams) => LangTagTranslationsConfig | undefined;
+
+    debug?: boolean;
 }
 
 /**

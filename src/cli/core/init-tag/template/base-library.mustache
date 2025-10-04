@@ -1,0 +1,83 @@
+{{#isTypeScript}}
+import {
+    CallableTranslations,
+    LangTagTranslations,
+    LangTagTranslationsConfig,
+    PartialFlexibleTranslations,
+    createCallableTranslations,
+    normalizeTranslations,
+    lookupTranslation
+} from 'lang-tag';
+{{/isTypeScript}}
+{{^isTypeScript}}
+import { createCallableTranslations, normalizeTranslations, lookupTranslation } from 'lang-tag';
+{{/isTypeScript}}
+{{#isReact}}
+import {
+    createContext,
+    useContext,
+    useMemo,
+    ReactNode
+} from 'react';
+{{/isReact}}
+
+export function {{tagName}}<T extends LangTagTranslations>(
+    baseTranslations: T,
+    config?: LangTagTranslationsConfig,
+) {
+    const createTranslationHelper = (normalized{{#isTypeScript}}: CallableTranslations<T> | null{{/isTypeScript}}) =>
+        createCallableTranslations(baseTranslations, config, {
+            transform: ({unprefixedPath, value, params}) => {
+                const fn = normalized && lookupTranslation(normalized, unprefixedPath);
+                return processPlaceholders(fn ? fn(params) : value, params);
+            }
+        });
+
+    {{#isReact}}
+    const Context = createContext{{#isTypeScript}}<CallableTranslations<T> | null>{{/isTypeScript}}(null);
+
+    const useTranslations = () => {
+        const contextTranslations = useContext(Context);
+        return useMemo(() => createTranslationHelper(contextTranslations), [contextTranslations]);
+    };
+
+    const initTranslations = (translations{{#isTypeScript}}?: PartialFlexibleTranslations<T>{{/isTypeScript}}) => {
+        const normalized = useMemo(
+            () => translations ? normalizeTranslations(translations) : null,
+            [translations]
+        );
+
+        return useMemo(() => createTranslationHelper(normalized), [normalized]);
+    };
+
+    function Provider({translations, children}{{#isTypeScript}}: { translations?: PartialFlexibleTranslations<T>; children: ReactNode }{{/isTypeScript}}){{#isTypeScript}}: ReactNode{{/isTypeScript}} {
+        const normalized = useMemo(
+            () => translations ? normalizeTranslations(translations) : null,
+            [translations]
+        );
+
+        return <Context.Provider value={normalized}>{children}</Context.Provider>;
+    }
+    {{/isReact}}
+    {{^isReact}}
+    const initTranslations = (translations{{#isTypeScript}}?: PartialFlexibleTranslations<T>{{/isTypeScript}}) => {
+        const normalized = translations ? normalizeTranslations(translations) : null;
+        return createTranslationHelper(normalized);
+    };
+    {{/isReact}}
+
+    return {
+        {{#isReact}}
+        useTranslations,
+        initTranslations,
+        Provider,
+        {{/isReact}}
+        {{^isReact}}
+        initTranslations,
+        {{/isReact}}
+        {{#isTypeScript}}
+        InputType: {} as PartialFlexibleTranslations<T>,
+        Type: {} as CallableTranslations<T>,
+        {{/isTypeScript}}
+    };
+}

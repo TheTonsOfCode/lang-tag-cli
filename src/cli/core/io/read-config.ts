@@ -1,15 +1,25 @@
 import path, {resolve} from "pathe";
-import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
+import {CONFIG_FILE_NAME} from "@/cli/core/constants.ts";
 import {existsSync} from "fs";
 import {pathToFileURL} from "url";
-import {messageErrorReadingConfig} from "@/cli/message.ts";
-import {LangTagOnConfigGenerationParams, LangTagConfig, LangTagOnImportParams} from "@/cli/config.ts";
+import {LangTagConfig, LangTagOnConfigGenerationParams, LangTagOnImportParams} from "@/cli/config.ts";
 
 export const defaultConfig: LangTagConfig = {
     tagName: 'lang',
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build'],
     outputDir: 'locales/en',
+    collect: {
+        defaultNamespace: 'common',
+        onCollectConfigFix: (config, langTagConfig) => {
+            if (langTagConfig.isLibrary) return config;
+
+            if (!config) return { path: '', namespace: langTagConfig.collect!.defaultNamespace!};
+            if (!config.path) config.path = '';
+            if (!config.namespace) config.namespace = langTagConfig.collect!.defaultNamespace!;
+            return config;
+        }
+    },
     import: {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
@@ -27,7 +37,7 @@ export const defaultConfig: LangTagConfig = {
     onConfigGeneration: (params: LangTagOnConfigGenerationParams) => undefined,
 };
 
-export async function readConfig(projectPath: string): Promise<LangTagConfig> {
+export async function $LT_ReadConfig(projectPath: string): Promise<LangTagConfig> {
     const configPath = resolve(projectPath, CONFIG_FILE_NAME);
 
     if (!existsSync(configPath)) {
@@ -43,16 +53,27 @@ export async function readConfig(projectPath: string): Promise<LangTagConfig> {
 
         const userConfig: Partial<LangTagConfig> = configModule.default || {};
 
+        const tn = (userConfig.tagName || '')
+            .toLowerCase()
+            .replace(/[-_\s]/g, '');
+
+        if (tn.includes('langtag')) {
+            throw new Error('Custom tagName cannot include "langtag"! (It is not recommended for use with libraries)\n');
+        }
+
         return {
             ...defaultConfig,
             ...userConfig,
             import: {
                 ...defaultConfig.import,
                 ...userConfig.import,
+            },
+            collect: {
+                ...defaultConfig.collect,
+                ...userConfig.collect,
             }
         };
     } catch (error) {
-        messageErrorReadingConfig(error);
         throw error;
     }
 }

@@ -1,11 +1,12 @@
 import {writeFile} from 'fs/promises';
-import {messageExistingConfiguration, messageInitializedConfiguration} from '@/cli/message';
-import {CONFIG_FILE_NAME} from "@/cli/constants.ts";
+import {CONFIG_FILE_NAME} from "@/cli/core/constants.ts";
 import {existsSync} from "fs";
+import {$LT_CreateDefaultLogger, $LT_Logger} from "@/cli/core/logger.ts";
 
 const DEFAULT_INIT_CONFIG = `
 /** @type {import('lang-tag/cli/config').LangTagConfig} */
 const config = {
+    tagName: 'lang',
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
     outputDir: 'public/locales/en',
@@ -19,7 +20,11 @@ const config = {
         //}
 
         return undefined
-    }
+    },
+    collect: {
+        defaultNamespace: 'common',
+    },
+    debug: false,
 };
 
 module.exports = config;
@@ -28,16 +33,18 @@ module.exports = config;
 /**
  * Initialize project with default configuration
  */
-export async function initConfig() {
+export async function $LT_CMD_InitConfig() {
+    const logger: $LT_Logger = $LT_CreateDefaultLogger();
+
     if (existsSync(CONFIG_FILE_NAME)) {
-        messageExistingConfiguration();
+        logger.success('Configuration file already exists. Please remove the existing configuration file before creating a new default one');
         return;
     }
 
     try {
         await writeFile(CONFIG_FILE_NAME, DEFAULT_INIT_CONFIG, 'utf-8');
-        messageInitializedConfiguration();
-    } catch (error) {
-        console.error('Error creating configuration file:', error);
+        logger.success('Configuration file created successfully');
+    } catch (error: any) {
+        logger.error(error?.message);
     }
 }
