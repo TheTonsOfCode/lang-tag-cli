@@ -9,6 +9,13 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
     let totalTags = 0;
     const namespaces: Record<string, Record<string, any>> = {};
 
+    function getTranslations(namespace: string): Record<string, any> {
+        const namespaceTranslations: Record<string, any> = namespaces[namespace] || {};
+        if (!(namespace in namespaces)) {
+            namespaces[namespace] = namespaceTranslations;
+        }
+        return namespaceTranslations;
+    }
 
 
     // TODO: conflict resolution system
@@ -21,12 +28,8 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
         for (let tag of file.tags) {
 
             const config = tag.parameterConfig;
-            const namespace = config.namespace;
 
-            const namespaceTranslations: Record<string, any> = namespaces[namespace] || {};
-            if (!(namespace in namespaces)) {
-                namespaces[namespace] = namespaceTranslations;
-            }
+            const namespaceTranslations = getTranslations(config.namespace);
 
             try {
                 const translations = digToSection(config.path, namespaceTranslations);
