@@ -17,31 +17,9 @@ export function {{tagName}}<T extends LangTagTranslations>(
     baseTranslations: T,
     config?: LangTagTranslationsConfig,
 ) {
-    {{#isLibrary}}
-    // Library mode - optimized for reusability
-    const createTranslations = () => {
-        return createCallableTranslations(baseTranslations, config, {
-            transform: ({ value, params }) => {
-                {{#isReact}}
-                return reactProcessPlaceholders(value, params);
-                {{/isReact}}
-                {{^isReact}}
-                return processPlaceholders(value, params);
-                {{/isReact}}
-            },
-        });
-    };
-
-    return {
-        create: createTranslations,
-        Type: {} as CallableTranslations<T>,
-    };
-    {{/isLibrary}}
-    {{^isLibrary}}
-    // Application mode - optimized for client/server usage
     const client = () => {
         {{#isReact}}
-        return {{#isReact}}useMemo{{/isReact}}(
+        return useMemo(
             () =>
                 createCallableTranslations(baseTranslations, config, {
                     transform: ({ value, params }) =>
@@ -58,14 +36,11 @@ export function {{tagName}}<T extends LangTagTranslations>(
         {{/isReact}}
     };
 
-    // server side
     const server = () => {
-        // TODO: retrieve language from cookies there
-
         return createCallableTranslations(baseTranslations, config, {
             transform: ({ value, params }) => {
                 {{#isReact}}
-                return reactProcessPlaceholders(value, params) as unknown as string;
+                return reactProcessPlaceholders(value, params);
                 {{/isReact}}
                 {{^isReact}}
                 return processPlaceholders(value, params);
@@ -79,5 +54,4 @@ export function {{tagName}}<T extends LangTagTranslations>(
         server,
         Type: {} as CallableTranslations<T>,
     };
-    {{/isLibrary}}
 }

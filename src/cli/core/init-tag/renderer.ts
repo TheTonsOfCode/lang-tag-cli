@@ -49,7 +49,8 @@ function prepareTemplateData(options: InitTagRenderOptions): TemplateData {
 }
 
 export function renderInitTagTemplates(options: InitTagRenderOptions): string {
-    const baseTemplate = loadTemplate('base');
+    const baseTemplateName = options.isLibrary ? 'base-library' : 'base-app';
+    const baseTemplate = loadTemplate(baseTemplateName);
     const placeholderTemplate = loadTemplate('placeholder');
     const templateData = prepareTemplateData(options);
     

@@ -1,0 +1,37 @@
+{{#isTypeScript}}
+import {
+    CallableTranslations,
+    createCallableTranslations,
+    LangTagTranslations,
+    LangTagTranslationsConfig
+} from 'lang-tag';
+{{/isTypeScript}}
+{{^isTypeScript}}
+import { createCallableTranslations } from 'lang-tag';
+{{/isTypeScript}}
+{{#isReact}}
+import { ReactNode } from 'react';
+{{/isReact}}
+
+export function {{tagName}}<T extends LangTagTranslations>(
+    baseTranslations: T,
+    config?: LangTagTranslationsConfig,
+) {
+    const createTranslations = () => {
+        return createCallableTranslations(baseTranslations, config, {
+            transform: ({ value, params }) => {
+                {{#isReact}}
+                return reactProcessPlaceholders(value, params);
+                {{/isReact}}
+                {{^isReact}}
+                return processPlaceholders(value, params);
+                {{/isReact}}
+            },
+        });
+    };
+
+    return {
+        create: createTranslations,
+        Type: {} as CallableTranslations<T>,
+    };
+}
