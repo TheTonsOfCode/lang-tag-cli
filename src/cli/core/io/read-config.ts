@@ -1,41 +1,8 @@
-import path, {resolve} from "pathe";
+import {resolve} from "pathe";
 import {CONFIG_FILE_NAME} from "@/cli/core/constants.ts";
 import {existsSync} from "fs";
 import {pathToFileURL} from "url";
-import {LangTagConfig, LangTagOnConfigGenerationParams, LangTagOnImportParams} from "@/cli/config.ts";
-
-export const defaultConfig: LangTagConfig = {
-    tagName: 'lang',
-    includes: ['src/**/*.{js,ts,jsx,tsx}'],
-    excludes: ['node_modules', 'dist', 'build'],
-    outputDir: 'locales/en',
-    collect: {
-        defaultNamespace: 'common',
-        onCollectConfigFix: (config, langTagConfig) => {
-            if (langTagConfig.isLibrary) return config;
-
-            if (!config) return { path: '', namespace: langTagConfig.collect!.defaultNamespace!};
-            if (!config.path) config.path = '';
-            if (!config.namespace) config.namespace = langTagConfig.collect!.defaultNamespace!;
-            return config;
-        }
-    },
-    import: {
-        dir: 'src/lang-libraries',
-        tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
-        onImport: ({importedRelativePath, fileGenerationData}: LangTagOnImportParams, actions)=> {
-            const exportIndex = (fileGenerationData.index || 0) + 1;
-            fileGenerationData.index = exportIndex;
-
-            actions.setFile(path.basename(importedRelativePath));
-            actions.setExportName(`translations${exportIndex}`);
-        }
-    },
-    isLibrary: false,
-    language: 'en',
-    translationArgPosition: 1,
-    onConfigGeneration: (params: LangTagOnConfigGenerationParams) => undefined,
-};
+import {LANG_TAG_DEFAULT_CONFIG, LangTagConfig} from "@/cli/config.ts";
 
 export async function $LT_ReadConfig(projectPath: string): Promise<LangTagConfig> {
     const configPath = resolve(projectPath, CONFIG_FILE_NAME);
@@ -62,14 +29,14 @@ export async function $LT_ReadConfig(projectPath: string): Promise<LangTagConfig
         }
 
         return {
-            ...defaultConfig,
+            ...LANG_TAG_DEFAULT_CONFIG,
             ...userConfig,
             import: {
-                ...defaultConfig.import,
+                ...LANG_TAG_DEFAULT_CONFIG.import,
                 ...userConfig.import,
             },
             collect: {
-                ...defaultConfig.collect,
+                ...LANG_TAG_DEFAULT_CONFIG.collect,
                 ...userConfig.collect,
             }
         };

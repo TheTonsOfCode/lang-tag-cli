@@ -1,4 +1,5 @@
 import {LangTagTranslationsConfig} from "@/index.ts";
+import path from "pathe";
 
 export interface LangTagConfig {
     /**
@@ -197,3 +198,36 @@ export interface $LT_Conflict {
     tagB: $LT_TagConflictInfo;
     conflictType: 'path_overwrite' | 'type_mismatch';
 }
+
+export const LANG_TAG_DEFAULT_CONFIG: LangTagConfig = {
+    tagName: 'lang',
+    includes: ['src/**/*.{js,ts,jsx,tsx}'],
+    excludes: ['node_modules', 'dist', 'build'],
+    outputDir: 'locales/en',
+    collect: {
+        defaultNamespace: 'common',
+        onCollectConfigFix: (config, langTagConfig) => {
+            if (langTagConfig.isLibrary) return config;
+
+            if (!config) return { path: '', namespace: langTagConfig.collect!.defaultNamespace!};
+            if (!config.path) config.path = '';
+            if (!config.namespace) config.namespace = langTagConfig.collect!.defaultNamespace!;
+            return config;
+        }
+    },
+    import: {
+        dir: 'src/lang-libraries',
+        tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
+        onImport: ({importedRelativePath, fileGenerationData}: LangTagOnImportParams, actions)=> {
+            const exportIndex = (fileGenerationData.index || 0) + 1;
+            fileGenerationData.index = exportIndex;
+
+            actions.setFile(path.basename(importedRelativePath));
+            actions.setExportName(`translations${exportIndex}`);
+        }
+    },
+    isLibrary: false,
+    language: 'en',
+    translationArgPosition: 1,
+    onConfigGeneration: (params: LangTagOnConfigGenerationParams) => undefined,
+};

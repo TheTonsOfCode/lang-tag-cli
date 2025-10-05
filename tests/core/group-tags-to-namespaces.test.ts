@@ -520,7 +520,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
 
         await expect(
             $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: configWithHandler })
-        ).rejects.toThrow('Processing stopped due to conflict resolution: buttons.primary.text');
+        ).rejects.toThrow('Processing stopped due to conflict resolution: common|buttons.primary.text');
     });
 
     it('should stop processing when onCollectFinish returns false', async () => {
