@@ -1,0 +1,401 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { $LT_GroupTagsToNamespaces } from '@/cli/core/collect/group-tags-to-namespaces.ts';
+import { $LT_TagCandidateFile } from '@/cli/core/collect/collect-tags.ts';
+import { ProcessedTag } from '@/cli/config.ts';
+import { $LT_Logger } from '@/cli/core/logger.ts';
+
+// Mock logger
+const mockLogger: $LT_Logger = {
+    info: vi.fn(),
+    success: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    errorLinePreview: vi.fn(),
+};
+
+describe('$LT_GroupTagsToNamespaces', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    const createMockTag = (overrides: Partial<ProcessedTag> = {}): ProcessedTag => ({
+        fullMatch: 'lang({ text: "Hello" }, { path: "test.path", namespace: "common" })',
+        parameter1Text: '{ text: "Hello" }',
+        parameter2Text: '{ path: "test.path", namespace: "common" }',
+        parameterTranslations: { text: 'Hello' },
+        parameterConfig: {
+            namespace: 'common',
+            path: 'test.path'
+        },
+        variableName: undefined,
+        index: 0,
+        line: 1,
+        column: 1,
+        validity: 'ok',
+        ...overrides
+    });
+
+    const createMockFile = (relativeFilePath: string, tags: ProcessedTag[]): $LT_TagCandidateFile => ({
+        relativeFilePath,
+        tags
+    });
+
+    it('should group tags by namespace without conflicts', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Click me' }
+                }),
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.secondary' },
+                    parameterTranslations: { text: 'Cancel' }
+                })
+            ]),
+            createMockFile('src/Header.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'admin', path: 'navigation.title' },
+                    parameterTranslations: { text: 'Admin Panel' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        expect(result).toEqual({
+            common: {
+                buttons: {
+                    primary: { text: 'Click me' },
+                    secondary: { text: 'Cancel' }
+                }
+            },
+            admin: {
+                navigation: {
+                    title: { text: 'Admin Panel' }
+                }
+            }
+        });
+
+        expect(mockLogger.warn).not.toHaveBeenCalled();
+    });
+
+    it('should detect path overwrite conflicts within same namespace', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Click me' }
+                })
+            ]),
+            createMockFile('src/Header.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Kliknij mnie' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        // Should keep first value due to conflict (second is skipped)
+        expect(result.common.buttons.primary.text).toBe('Click me');
+
+        // Should report conflict
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+            expect.stringContaining('Found 1 conflicts across files:')
+        );
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+            expect.stringContaining('path_overwrite: "buttons.primary.text"')
+        );
+    });
+
+    it('should handle nested object creation without conflicts', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Click me' }
+                })
+            ]),
+            createMockFile('src/Header.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary.submit' },
+                    parameterTranslations: { text: 'Submit' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        // Should create nested structure successfully
+        expect(result.common.buttons.primary).toEqual({ 
+            text: 'Click me',
+            submit: { text: 'Submit' }
+        });
+
+        // Should not report any conflicts
+        expect(mockLogger.warn).not.toHaveBeenCalled();
+    });
+
+    it('should not detect conflicts between different namespaces', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Click me' }
+                })
+            ]),
+            createMockFile('src/Admin.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'admin', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Admin Click' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        expect(result).toEqual({
+            common: {
+                buttons: {
+                    primary: { text: 'Click me' }
+                }
+            },
+            admin: {
+                buttons: {
+                    primary: { text: 'Admin Click' }
+                }
+            }
+        });
+
+        // Should not report any conflicts
+        expect(mockLogger.warn).not.toHaveBeenCalled();
+    });
+
+    it('should handle nested object structures', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { 
+                        text: 'Click me',
+                        style: 'primary'
+                    }
+                }),
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.secondary' },
+                    parameterTranslations: { 
+                        text: 'Cancel',
+                        style: 'secondary'
+                    }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        expect(result).toEqual({
+            common: {
+                buttons: {
+                    primary: { 
+                        text: 'Click me',
+                        style: 'primary'
+                    },
+                    secondary: { 
+                        text: 'Cancel',
+                        style: 'secondary'
+                    }
+                }
+            }
+        });
+    });
+
+    it('should handle different value types', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'settings.count' },
+                    parameterTranslations: { value: 42 }
+                }),
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'settings.enabled' },
+                    parameterTranslations: { value: true }
+                }),
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'settings.title' },
+                    parameterTranslations: { value: 'My App' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        expect(result).toEqual({
+            common: {
+                settings: {
+                    count: { value: 42 },
+                    enabled: { value: true },
+                    title: { value: 'My App' }
+                }
+            }
+        });
+    });
+
+    it('should detect type conflicts between different value types', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'settings.count' },
+                    parameterTranslations: { value: 42 }
+                })
+            ]),
+            createMockFile('src/Header.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'settings.count' },
+                    parameterTranslations: { value: 'forty-two' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        // Should keep first value due to conflict
+        expect(result.common.settings.count).toEqual({ value: 42 });
+
+        // Should report conflict
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+            expect.stringContaining('Found 1 conflicts across files:')
+        );
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+            expect.stringContaining('type_mismatch: "settings.count.value"')
+        );
+    });
+
+    it('should handle empty files array', async () => {
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files: [] });
+
+        expect(result).toEqual({});
+        expect(mockLogger.warn).not.toHaveBeenCalled();
+    });
+
+    it('should handle tags with undefined path', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: undefined },
+                    parameterTranslations: { text: 'Root level' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        expect(result).toEqual({
+            common: {
+                text: 'Root level'
+            }
+        });
+    });
+
+    it('should handle tags with empty string path', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: '' },
+                    parameterTranslations: { text: 'Root level' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        expect(result).toEqual({
+            common: {
+                text: 'Root level'
+            }
+        });
+    });
+
+    it('should handle tags with whitespace-only path', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: '   ' },
+                    parameterTranslations: { text: 'Root level' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        expect(result).toEqual({
+            common: {
+                text: 'Root level'
+            }
+        });
+    });
+
+    it('should detect conflicts with empty path', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: '' },
+                    parameterTranslations: { text: 'First root' }
+                })
+            ]),
+            createMockFile('src/Header.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: '' },
+                    parameterTranslations: { text: 'Second root' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        // Should keep first value due to conflict
+        expect(result.common.text).toBe('First root');
+
+        // Should report conflict
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+            expect.stringContaining('Found 1 conflicts across files:')
+        );
+        expect(mockLogger.warn).toHaveBeenCalledWith(
+            expect.stringContaining('path_overwrite: "text"')
+        );
+    });
+
+    it('should handle mixed empty and defined paths in same namespace', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: '' },
+                    parameterTranslations: { 
+                        rootText: 'Root level',
+                        rootCount: 42
+                    }
+                }),
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Click me' }
+                })
+            ])
+        ];
+
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+
+        expect(result).toEqual({
+            common: {
+                rootText: 'Root level',
+                rootCount: 42,
+                buttons: {
+                    primary: { text: 'Click me' }
+                }
+            }
+        });
+
+        // Should not report any conflicts
+        expect(mockLogger.warn).not.toHaveBeenCalled();
+    });
+});
