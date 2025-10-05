@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { $LT_GroupTagsToNamespaces } from '@/cli/core/collect/group-tags-to-namespaces.ts';
 import { $LT_TagCandidateFile } from '@/cli/core/collect/collect-tags.ts';
-import { ProcessedTag } from '@/cli/config.ts';
+import { ProcessedTag, $LT_TagConflictInfo, $LT_Conflict, LangTagConfig } from '@/cli/config.ts';
 import { $LT_Logger } from '@/cli/core/logger.ts';
 
 // Mock logger
@@ -12,6 +12,26 @@ const mockLogger: $LT_Logger = {
     error: vi.fn(),
     debug: vi.fn(),
     errorLinePreview: vi.fn(),
+};
+
+// Mock config
+const mockConfig: LangTagConfig = {
+    tagName: 'lang',
+    translationArgPosition: 1,
+    includes: ['**/*.ts', '**/*.tsx'],
+    excludes: ['node_modules/**'],
+    outputDir: 'dist',
+    language: 'en',
+    isLibrary: false,
+    onConfigGeneration: () => undefined,
+    collect: {
+        onCollectConfigFix: (config) => config,
+    },
+    import: {
+        dir: 'src/lang-libraries',
+        tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
+        onImport: () => {},
+    }
 };
 
 describe('$LT_GroupTagsToNamespaces', () => {
@@ -61,7 +81,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -96,7 +116,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         // Should keep first value due to conflict (second is skipped)
         expect(result.common.buttons.primary.text).toBe('Click me');
@@ -126,7 +146,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         // Should create nested structure successfully
         expect(result.common.buttons.primary).toEqual({ 
@@ -154,7 +174,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -193,7 +213,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -229,7 +249,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -258,7 +278,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         // Should keep first value due to conflict
         expect(result.common.settings.count).toEqual({ value: 42 });
@@ -273,7 +293,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
     });
 
     it('should handle empty files array', async () => {
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files: [] });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files: [], config: mockConfig });
 
         expect(result).toEqual({});
         expect(mockLogger.warn).not.toHaveBeenCalled();
@@ -289,7 +309,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -308,7 +328,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -327,7 +347,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -352,7 +372,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         // Should keep first value due to conflict
         expect(result.common.text).toBe('First root');
@@ -383,7 +403,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files });
+        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -397,5 +417,139 @@ describe('$LT_GroupTagsToNamespaces', () => {
 
         // Should not report any conflicts
         expect(mockLogger.warn).not.toHaveBeenCalled();
+    });
+
+    it('should call onConflictResolution for each conflict', async () => {
+        const onConflictResolution = vi.fn().mockReturnValue(true);
+        const configWithHandler = {
+            ...mockConfig,
+            collect: {
+                ...mockConfig.collect,
+                onConflictResolution
+            }
+        };
+
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Click me' }
+                })
+            ]),
+            createMockFile('src/Header.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Kliknij mnie' }
+                })
+            ])
+        ];
+
+        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: configWithHandler });
+
+        expect(onConflictResolution).toHaveBeenCalledTimes(1);
+        expect(onConflictResolution).toHaveBeenCalledWith(
+            expect.objectContaining({
+                path: 'buttons.primary.text',
+                conflictType: 'path_overwrite'
+            })
+        );
+    });
+
+    it('should call onCollectFinish with all conflicts', async () => {
+        const onCollectFinish = vi.fn().mockReturnValue(true);
+        const configWithHandler = {
+            ...mockConfig,
+            collect: {
+                ...mockConfig.collect,
+                onCollectFinish
+            }
+        };
+
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Click me' }
+                })
+            ]),
+            createMockFile('src/Header.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Kliknij mnie' }
+                })
+            ])
+        ];
+
+        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: configWithHandler });
+
+        expect(onCollectFinish).toHaveBeenCalledTimes(1);
+        expect(onCollectFinish).toHaveBeenCalledWith(
+            expect.arrayContaining([
+                expect.objectContaining({
+                    path: 'buttons.primary.text',
+                    conflictType: 'path_overwrite'
+                })
+            ])
+        );
+    });
+
+    it('should stop processing when onConflictResolution returns false', async () => {
+        const onConflictResolution = vi.fn().mockReturnValue(false);
+        const configWithHandler = {
+            ...mockConfig,
+            collect: {
+                ...mockConfig.collect,
+                onConflictResolution
+            }
+        };
+
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Click me' }
+                })
+            ]),
+            createMockFile('src/Header.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Kliknij mnie' }
+                })
+            ])
+        ];
+
+        await expect(
+            $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: configWithHandler })
+        ).rejects.toThrow('Processing stopped due to conflict resolution: buttons.primary.text');
+    });
+
+    it('should stop processing when onCollectFinish returns false', async () => {
+        const onCollectFinish = vi.fn().mockReturnValue(false);
+        const configWithHandler = {
+            ...mockConfig,
+            collect: {
+                ...mockConfig.collect,
+                onCollectFinish
+            }
+        };
+
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Button.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Click me' }
+                })
+            ]),
+            createMockFile('src/Header.tsx', [
+                createMockTag({
+                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
+                    parameterTranslations: { text: 'Kliknij mnie' }
+                })
+            ])
+        ];
+
+        await expect(
+            $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: configWithHandler })
+        ).rejects.toThrow('Processing stopped due to collect finish handler');
     });
 });

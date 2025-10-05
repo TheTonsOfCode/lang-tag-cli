@@ -17,7 +17,7 @@ export async function $LT_CMD_Collect() {
         return;
     }
 
-    const namespaces = await $LT_GroupTagsToNamespaces({logger, files})
+    const namespaces = await $LT_GroupTagsToNamespaces({logger, files, config})
 
     const totalTags = files.reduce((sum, file) => sum + file.tags.length, 0);
     logger.debug('Found {totalTags} translation tags', { totalTags });

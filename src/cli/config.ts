@@ -38,10 +38,18 @@ export interface LangTagConfig {
         onCollectConfigFix?: (config: LangTagTranslationsConfig, langTagConfig: LangTagConfig) => LangTagTranslationsConfig;
 
         /**
-         * A function called when there are conflicts between translation tags (e.g., same key in different namespaces).
-         * Allows custom resolution logic for handling duplicate or conflicting translations.
+         * A function called when a single conflict is detected between translation tags.
+         * Allows custom resolution logic for handling individual conflicts.
+         * Return true to continue processing, false to stop execution.
          */
-        onConflictResolution?: (tag: any, tagB: any) => LangTagTranslationsConfig;
+        onConflictResolution?: (conflict: $LT_Conflict) => boolean;
+
+        /**
+         * A function called after all conflicts have been collected and processed.
+         * Allows custom logic to decide whether to continue or stop based on all conflicts.
+         * Return true to continue processing, false to stop execution.
+         */
+        onCollectFinish?: (conflicts: $LT_Conflict[]) => boolean;
     }
 
     import: {
@@ -175,4 +183,17 @@ export interface ProcessedTag {
     column: number;
 
     validity: Validity;
+}
+
+export interface $LT_TagConflictInfo {
+    tag: ProcessedTag;
+    relativeFilePath: string;
+    value: any;
+}
+
+export interface $LT_Conflict {
+    path: string;
+    tagA: $LT_TagConflictInfo;
+    tagB: $LT_TagConflictInfo;
+    conflictType: 'path_overwrite' | 'type_mismatch';
 }

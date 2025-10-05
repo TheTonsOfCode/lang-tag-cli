@@ -48,7 +48,7 @@ async function handleFile(config: LangTagConfig, logger: $LT_Logger, cwdRelative
 
     const files = await $LT_CollectCandidateFilesWithTags({filesToScan: [cwdRelativeFilePath], config, logger});
 
-    const namespaces = await $LT_GroupTagsToNamespaces({logger, files})
+    const namespaces = await $LT_GroupTagsToNamespaces({logger, files, config})
 
     const changedNamespaces = await $LT_WriteToNamespaces({config, namespaces, logger});
 

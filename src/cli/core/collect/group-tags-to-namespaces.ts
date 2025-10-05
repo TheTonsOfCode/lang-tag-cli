@@ -1,23 +1,18 @@
 import {$LT_TagCandidateFile} from "@/cli/core/collect/collect-tags.ts";
 import {$LT_Logger} from "@/cli/core/logger.ts";
-import {ProcessedTag} from "@/cli/config.ts";
+import {$LT_TagConflictInfo, $LT_Conflict, LangTagConfig} from "@/cli/config.ts";
 
-type TagConflictInfo = {
-    tag: ProcessedTag;
-    relativeFilePath: string;
-    value: any;
-};
+interface ValueTracker {
+    get(path: string): $LT_TagConflictInfo | undefined;
+    trackValue(path: string, value: any): void;
+}
 
-type Conflict = {
-    path: string;
-    tagA: TagConflictInfo;
-    tagB: TagConflictInfo;
-    conflictType: 'path_overwrite' | 'type_mismatch';
-};
+type AddConflictFunction = (path: string, tagA: $LT_TagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => void;
 
-export async function $LT_GroupTagsToNamespaces({logger, files}: {
+export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
     logger: $LT_Logger,
-    files: $LT_TagCandidateFile[]
+    files: $LT_TagCandidateFile[],
+    config: LangTagConfig
 }) {
     let totalTags = 0;
     const namespaces: Record<string, Record<string, any>> = {};
@@ -31,47 +26,70 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
     }
 
     // Track conflicts across all files
-    const allConflicts: Conflict[] = [];
+    const allConflicts: $LT_Conflict[] = [];
 
     // Track existing values and their sources for conflict detection per namespace
-    const existingValuesByNamespace: Map<string, Map<string, TagConflictInfo>> = new Map();
+    const existingValuesByNamespace: Map<string, Map<string, $LT_TagConflictInfo>> = new Map();
 
     for (const file of files) {
         totalTags += file.tags.length;
 
         for (const tag of file.tags) {
-            const config = tag.parameterConfig;
-            const namespaceTranslations = getTranslations(config.namespace);
+            const tagConfig = tag.parameterConfig;
+            const namespaceTranslations = getTranslations(tagConfig.namespace);
 
             // Get or create existing values map for this namespace
-            let existingValues = existingValuesByNamespace.get(config.namespace);
+            let existingValues = existingValuesByNamespace.get(tagConfig.namespace);
             if (!existingValues) {
                 existingValues = new Map();
-                existingValuesByNamespace.set(config.namespace, existingValues);
+                existingValuesByNamespace.set(tagConfig.namespace, existingValues);
             }
 
-            const { target, conflicts: pathConflicts } = ensureNestedObject(
-                config.path, 
+            // Create value tracker for this tag
+            const valueTracker: ValueTracker = {
+                get: (path: string) => existingValues.get(path),
+                trackValue: (path: string, value: any) => {
+                    existingValues.set(path, { tag, relativeFilePath: file.relativeFilePath, value });
+                }
+            };
+
+            const addConflict: AddConflictFunction = (path: string, tagA: $LT_TagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => {
+                const conflict: $LT_Conflict = {
+                    path,
+                    tagA,
+                    tagB: {
+                        tag,
+                        relativeFilePath: file.relativeFilePath,
+                        value: tagBValue
+                    },
+                    conflictType
+                };
+
+                // Call onConflictResolution for each conflict
+                if (config.collect?.onConflictResolution) {
+                    const shouldContinue = config.collect.onConflictResolution(conflict);
+                    if (!shouldContinue) {
+                        throw new Error(`LangTagConflictResolution:Processing stopped due to conflict resolution: ${conflict.tagA.tag.parameterConfig.namespace}|${conflict.path}`);
+                    }
+                }
+                
+                allConflicts.push(conflict);
+            };
+
+            const target = ensureNestedObject(
+                tagConfig.path, 
                 namespaceTranslations,
-                tag,
-                file.relativeFilePath,
-                existingValues
+                valueTracker,
+                addConflict
             );
             
-            // Add path conflicts to global list
-            allConflicts.push(...pathConflicts);
-            
-            const conflicts = mergeWithConflictDetection(
+            mergeWithConflictDetection(
                 target, 
                 tag.parameterTranslations, 
-                config.path || '',
-                tag,
-                file.relativeFilePath,
-                existingValues
+                tagConfig.path || '',
+                valueTracker,
+                addConflict
             );
-            
-            // Add merge conflicts to global list
-            allConflicts.push(...conflicts);
         }
     }
 
@@ -87,10 +105,19 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
                 `    ValueB: ${JSON.stringify(conflict.tagB.value)}`
             ].join('\n'));
         }
+
+        // Call onCollectFinish with all conflicts
+        if (config.collect?.onCollectFinish) {
+            const shouldContinue = config.collect.onCollectFinish(allConflicts);
+            if (!shouldContinue) {
+                throw new Error(`LangTagConflictResolution:Processing stopped due to collect finish handler`);
+            }
+        }
     }
 
     return namespaces;
 }
+
 
 /**
  * Creates nested object structure for dot-notation path and returns target object.
@@ -99,40 +126,32 @@ export async function $LT_GroupTagsToNamespaces({logger, files}: {
 function ensureNestedObject(
     path: string | undefined, 
     root: Record<string, any>,
-    currentTag: ProcessedTag,
-    relativeFilePath: string,
-    existingValues: Map<string, TagConflictInfo>
-): { target: Record<string, any>; conflicts: Conflict[] } {
-    if (!path || !path.trim()) return { target: root, conflicts: [] };
+    valueTracker: ValueTracker,
+    addConflict: AddConflictFunction
+): Record<string, any> {
+    if (!path || !path.trim()) return root;
     
     let current = root;
-    const conflicts: Conflict[] = [];
     let currentPath = '';
     
     for (const key of path.split('.')) {
-        const previousPath = currentPath;
         currentPath = currentPath ? `${currentPath}.${key}` : key;
         
         if (current[key] && typeof current[key] !== 'object') {
             // Found a conflict - trying to create object structure over existing value
-            const existingInfo = existingValues.get(currentPath);
+            const existingInfo = valueTracker.get(currentPath);
             if (existingInfo) {
-                conflicts.push({
-                    path: currentPath,
-                    tagA: existingInfo,
-                    tagB: { tag: currentTag, relativeFilePath: relativeFilePath, value: null }, // null because we're trying to create object structure
-                    conflictType: 'type_mismatch'
-                });
+                addConflict(currentPath, existingInfo, null, 'type_mismatch'); // null because we're trying to create object structure
             }
             // Skip creating the nested structure if there's a conflict
-            return { target: current, conflicts };
+            return current;
         }
         
         current[key] = current[key] || {};
         current = current[key];
     }
     
-    return { target: current, conflicts };
+    return current;
 }
 
 /**
@@ -143,15 +162,12 @@ function mergeWithConflictDetection(
     target: any,
     source: any,
     basePath: string = '',
-    currentTag: ProcessedTag,
-    relativeFilePath: string,
-    existingValues: Map<string, TagConflictInfo>
-): Conflict[] {
+    valueTracker: ValueTracker,
+    addConflict: AddConflictFunction
+): void {
     if (typeof target !== 'object' || typeof source !== 'object') {
-        return [];
+        return;
     }
-
-    const conflicts: Conflict[] = [];
 
     for (const key in source) {
         if (!source.hasOwnProperty(key)) {
@@ -173,17 +189,12 @@ function mergeWithConflictDetection(
             const sourceType = typeof sourceValue;
 
             // Get existing value info from our tracking map
-            const existingInfo = existingValues.get(currentPath);
+            const existingInfo = valueTracker.get(currentPath);
 
             // Detect type mismatch conflicts (any type change)
             if (targetType !== sourceType) {
                 if (existingInfo) {
-                    conflicts.push({
-                        path: currentPath,
-                        tagA: existingInfo,
-                        tagB: { tag: currentTag, relativeFilePath: relativeFilePath, value: sourceValue },
-                        conflictType: 'type_mismatch'
-                    });
+                    addConflict(currentPath, existingInfo, sourceValue, 'type_mismatch');
                 }
                 continue; // Skip this merge
             }
@@ -191,12 +202,7 @@ function mergeWithConflictDetection(
             // Detect path overwrite conflicts (same type but different values)
             if (targetValue !== sourceValue) {
                 if (existingInfo) {
-                    conflicts.push({
-                        path: currentPath,
-                        tagA: existingInfo,
-                        tagB: { tag: currentTag, relativeFilePath: relativeFilePath, value: sourceValue },
-                        conflictType: 'path_overwrite'
-                    });
+                    addConflict(currentPath, existingInfo, sourceValue, 'path_overwrite');
                 }
                 continue; // Skip this merge
             }
@@ -209,21 +215,18 @@ function mergeWithConflictDetection(
                 target[key] = targetValue;
             }
 
-            const subConflicts = mergeWithConflictDetection(
+            mergeWithConflictDetection(
                 targetValue, 
                 sourceValue, 
                 currentPath, 
-                currentTag,
-                relativeFilePath,
-                existingValues
+                valueTracker,
+                addConflict
             );
-            conflicts.push(...subConflicts);
         } else {
             // Set primitive value (string, number, boolean, null, undefined, function, array) and track it
             target[key] = sourceValue;
-            existingValues.set(currentPath, { tag: currentTag, relativeFilePath, value: sourceValue });
+            valueTracker.trackValue(currentPath, sourceValue);
         }
     }
 
-    return conflicts;
 }
