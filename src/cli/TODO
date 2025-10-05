@@ -3,8 +3,6 @@
 
 - rozwiazywanie konfliktow z pokazywaniem w jakich plikach i dlaczego
 
-- zrobic podstawowy regenerate config ktory omija generowanie tam gdzie powinno byc common
-
 jak sie daje prefix:
     'file://' + file + ":11:4"
     i do tego linie to tworzy się link w konsoli ktory przenosi do pliku
@@ -13,3 +11,21 @@ jak sie daje prefix:
 
 
  - onConfigurationGeneration, undefined powinno usuwac konfiguracje, a powinna byc inna zmienna 'save: true'
+
+
+
+- zrobic podstawowy regenerate config ktory omija generowanie tam gdzie powinno byc common
+    import from "langtag/cli/base-regenerates"
+    SkipDirNameAlgorithm(
+        namespace: {
+            ignoreAlways: ['core', 'components', 'pages', 'app']
+            ignoreStructured: {
+                'app': {
+                    'components': [
+                        'orders', 'products'
+                    ],
+                    'pages'
+                }
+            }
+        }
+    )
