@@ -95,7 +95,7 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
 
     // Report all conflicts found
     if (allConflicts.length > 0) {
-        logger.warn(`Found ${allConflicts.length} conflicts across files:`);
+        logger.warn(`Found ${allConflicts.length} conflicts.`);
 
         // Call onCollectFinish with all conflicts
         if (config.collect?.onCollectFinish) {

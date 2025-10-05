@@ -118,9 +118,10 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean): $LT_Logger {
         conflict: async (conflict) => {
             const { path, tagA, tagB, conflictType } = conflict;
             
-            log(ANSI_COLORS.yellow, `Conflict detected: {conflictType} at "{path}"`, { 
+            log(ANSI_COLORS.yellow, `Conflict detected: {conflictType} at "{path}" in namespace "{namespace}"`, { 
                 conflictType, 
-                path 
+                path,
+                namespace: tagA.tag.parameterConfig.namespace
             });
             
             await logTagConflictInfo(tagA);
