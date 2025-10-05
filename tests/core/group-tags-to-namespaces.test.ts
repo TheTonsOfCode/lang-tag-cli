@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { $LT_GroupTagsToNamespaces } from '@/cli/core/collect/group-tags-to-namespaces.ts';
 import { $LT_TagCandidateFile } from '@/cli/core/collect/collect-tags.ts';
-import { ProcessedTag, $LT_TagConflictInfo, $LT_Conflict, LangTagConfig } from '@/cli/config.ts';
+import {ProcessedTag, LangTagConfig, LANG_TAG_DEFAULT_CONFIG} from '@/cli/config.ts';
 import { $LT_Logger } from '@/cli/core/logger.ts';
 
 // Mock logger
@@ -25,6 +25,7 @@ const mockConfig: LangTagConfig = {
     isLibrary: false,
     onConfigGeneration: () => undefined,
     collect: {
+        ...LANG_TAG_DEFAULT_CONFIG.collect,
         onCollectConfigFix: (config) => config,
     },
     import: {
@@ -451,7 +452,8 @@ describe('$LT_GroupTagsToNamespaces', () => {
             expect.objectContaining({
                 path: 'buttons.primary.text',
                 conflictType: 'path_overwrite'
-            })
+            }),
+            mockLogger
         );
     });
 
@@ -489,7 +491,8 @@ describe('$LT_GroupTagsToNamespaces', () => {
                     path: 'buttons.primary.text',
                     conflictType: 'path_overwrite'
                 })
-            ])
+            ]),
+            mockLogger
         );
     });
 

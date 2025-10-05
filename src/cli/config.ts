@@ -1,5 +1,6 @@
 import {LangTagTranslationsConfig} from "@/index.ts";
 import path from "pathe";
+import {$LT_Logger} from "@/cli/core/logger.ts";
 
 export interface LangTagConfig {
     /**
@@ -43,14 +44,14 @@ export interface LangTagConfig {
          * Allows custom resolution logic for handling individual conflicts.
          * Return true to continue processing, false to stop execution.
          */
-        onConflictResolution?: (conflict: $LT_Conflict) => boolean;
+        onConflictResolution?: (conflict: $LT_Conflict, logger: $LT_Logger) => boolean;
 
         /**
          * A function called after all conflicts have been collected and processed.
          * Allows custom logic to decide whether to continue or stop based on all conflicts.
          * Return true to continue processing, false to stop execution.
          */
-        onCollectFinish?: (conflicts: $LT_Conflict[]) => boolean;
+        onCollectFinish?: (conflicts: $LT_Conflict[], logger: $LT_Logger) => boolean;
     }
 
     import: {
@@ -213,6 +214,16 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagConfig = {
             if (!config.path) config.path = '';
             if (!config.namespace) config.namespace = langTagConfig.collect!.defaultNamespace!;
             return config;
+        },
+        onConflictResolution: (conflict, logger) => {
+            logger.warn([
+                `  - ${conflict.conflictType}: "${conflict.path}"`,
+                `    TagA: ${conflict.tagA.relativeFilePath} (${conflict.tagA.tag.fullMatch})`,
+                `    TagB: ${conflict.tagB.relativeFilePath} (${conflict.tagB.tag.fullMatch})`,
+                `    ValueA: ${JSON.stringify(conflict.tagA.value)}`,
+                `    ValueB: ${JSON.stringify(conflict.tagB.value)}`
+            ].join('\n'));
+            return true; // Continue processing by default
         }
     },
     import: {

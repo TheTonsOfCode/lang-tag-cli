@@ -29,3 +29,12 @@ jak sie daje prefix:
             }
         }
     )
+
+- mozliwe ze definicje loggera wrzucic do configu prostu, aby sie kompilowala. Sprawdzic w dist czy czegos nie brakuje..., albo dodac do vite poprostu zeg logger sie koompilowal z typami i zmienic wtedy nazwe na LangTagLogger
+
+    - w readConfig jesli nie ma:
+        onConflictResolution
+        lub tego onCollectFinish
+
+        (bo ktos np. napisal na chama= onConflictResolution:undefined )
+        to rzucac error i informacja ze trzeba to dodać do config

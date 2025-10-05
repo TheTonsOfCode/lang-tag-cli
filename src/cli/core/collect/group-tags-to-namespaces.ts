@@ -67,7 +67,7 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
 
                 // Call onConflictResolution for each conflict
                 if (config.collect?.onConflictResolution) {
-                    const shouldContinue = config.collect.onConflictResolution(conflict);
+                    const shouldContinue = config.collect.onConflictResolution(conflict, logger);
                     if (!shouldContinue) {
                         throw new Error(`LangTagConflictResolution:Processing stopped due to conflict resolution: ${conflict.tagA.tag.parameterConfig.namespace}|${conflict.path}`);
                     }
@@ -96,19 +96,10 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
     // Report all conflicts found
     if (allConflicts.length > 0) {
         logger.warn(`Found ${allConflicts.length} conflicts across files:`);
-        for (const conflict of allConflicts) {
-            logger.warn([
-                `  - ${conflict.conflictType}: "${conflict.path}"`,
-                `    TagA: ${conflict.tagA.relativeFilePath} (${conflict.tagA.tag.fullMatch})`,
-                `    TagB: ${conflict.tagB.relativeFilePath} (${conflict.tagB.tag.fullMatch})`,
-                `    ValueA: ${JSON.stringify(conflict.tagA.value)}`,
-                `    ValueB: ${JSON.stringify(conflict.tagB.value)}`
-            ].join('\n'));
-        }
 
         // Call onCollectFinish with all conflicts
         if (config.collect?.onCollectFinish) {
-            const shouldContinue = config.collect.onCollectFinish(allConflicts);
+            const shouldContinue = config.collect.onCollectFinish(allConflicts, logger);
             if (!shouldContinue) {
                 throw new Error(`LangTagConflictResolution:Processing stopped due to collect finish handler`);
             }
