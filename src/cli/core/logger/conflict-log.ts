@@ -9,17 +9,18 @@ const ANSI_COLORS: Record<string, string> = {
 };
 
 /**
- * Finds the line number in the tag's fullMatch that contains the conflicting path
- * by traversing the parsed translation object structure
+ * Finds the line numbers in the tag's fullMatch that should be highlighted for a conflict
+ * Returns an array of line numbers that contain either:
+ * 1. The conflicting key definition
+ * 2. The path option (when path_overwrite conflict with explicit path option)
  */
-function findConflictLineInTag(tag: any, conflictPath: string): number | null {
+function findConflictLinesInTag(tag: any, conflictPath: string): number[] {
+    const conflictLines: number[] = [];
     const pathSegments = conflictPath.split('.');
     const translations = tag.parameterTranslations;
-    
-    // Parse the fullMatch to find line offsets
     const fullMatchLines = tag.fullMatch.split('\n');
     
-    // Try to find the path in the translations structure
+    // Find the conflicting key line
     let current = translations;
     let searchKey = pathSegments[pathSegments.length - 1]; // Get the last segment (the actual key)
     
@@ -28,26 +29,40 @@ function findConflictLineInTag(tag: any, conflictPath: string): number | null {
         if (current && typeof current === 'object' && pathSegments[i] in current) {
             current = current[pathSegments[i]];
         } else {
-            return null; // Path not found in this tag
+            break; // Path not found in this tag's translations
         }
     }
     
-    // Check if the final key exists at this level
-    if (!current || typeof current !== 'object' || !(searchKey in current)) {
-        return null;
-    }
-    
-    // Now search for the key in the fullMatch text
-    // We need to find which line contains this key definition
-    const keyPattern = new RegExp(`^\\s*['"\`]?${searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"\`]?\\s*:`, 'm');
-    
-    for (let i = 0; i < fullMatchLines.length; i++) {
-        if (keyPattern.test(fullMatchLines[i])) {
-            return tag.line + i; // Return absolute line number
+    // Check if the final key exists at this level and find its line
+    if (current && typeof current === 'object' && searchKey in current) {
+        const keyPattern = new RegExp(`^\\s*['"\`]?${searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"\`]?\\s*:`, 'm');
+        
+        for (let i = 0; i < fullMatchLines.length; i++) {
+            if (keyPattern.test(fullMatchLines[i])) {
+                conflictLines.push(tag.line + i);
+                break;
+            }
         }
     }
     
-    return null;
+    // Also check if there's an explicit path option being used
+    // This handles cases where conflict occurs due to path_overwrite
+    if (tag.path && pathSegments.length > 1) {
+        const pathPrefix = pathSegments.slice(0, -1).join('.');
+        if (tag.path === pathPrefix) {
+            // Find the line with path: 'some.structured'
+            const pathPattern = new RegExp(`\\bpath\\s*:\\s*['"\`]${pathPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"\`]`, 'm');
+            
+            for (let i = 0; i < fullMatchLines.length; i++) {
+                if (pathPattern.test(fullMatchLines[i])) {
+                    conflictLines.push(tag.line + i);
+                    break;
+                }
+            }
+        }
+    }
+    
+    return conflictLines;
 }
 
 async function logTagConflictInfo(tagInfo: any, conflictPath: string): Promise<void> {
@@ -62,15 +77,15 @@ async function logTagConflictInfo(tagInfo: any, conflictPath: string): Promise<v
         const startLine = Math.max(0, tag.line - 1); // Convert to 0-based index
         const endLine = Math.min(fileLines.length - 1, tag.line + tag.fullMatch.split('\n').length - 2);
 
-        // Find the exact line with the conflict
-        const conflictLineNumber = findConflictLineInTag(tag, conflictPath);
+        // Find all lines that should be highlighted for this conflict
+        const conflictLineNumbers = findConflictLinesInTag(tag, conflictPath);
 
         for (let i = startLine; i <= endLine; i++) {
             const lineNumber = i + 1; // Convert back to 1-based
             const line = fileLines[i];
             
-            // Check if this is the line with the conflict
-            const isConflictLine = conflictLineNumber !== null && lineNumber === conflictLineNumber;
+            // Check if this is one of the conflict lines
+            const isConflictLine = conflictLineNumbers.includes(lineNumber);
             
             if (isConflictLine) {
                 console.log(`${ANSI_COLORS.cyan}${lineNumber}${ANSI_COLORS.reset} | ${ANSI_COLORS.bgRedWhiteText}${line}${ANSI_COLORS.reset}`);

@@ -1,5 +1,5 @@
 import { $LT_ReadFileContent } from './io/file.ts';
-import { $LT_Conflict } from '../config.ts';
+import { LangTagCLIConflict } from '../config.ts';
 
 const ANSI_COLORS: Record<string, string> = {
     reset: '\x1b[0m',
@@ -83,7 +83,7 @@ async function logTagConflictInfo(tagInfo: any, conflictPath: string): Promise<v
     }
 }
 
-export async function $LT_LogConflict(conflict: $LT_Conflict): Promise<void> {
+export async function $LT_LogConflict(conflict: LangTagCLIConflict): Promise<void> {
     const { path, tagA, tagB } = conflict;
     
     await logTagConflictInfo(tagA, path);
