@@ -124,7 +124,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
 
         // Should report conflict
         expect(mockLogger.warn).toHaveBeenCalledWith(
-            expect.stringContaining('Found 1 conflicts across files:')
+            expect.stringContaining('Found 1 conflicts.')
         );
         expect(mockLogger.conflict).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -289,7 +289,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
 
         // Should report conflict
         expect(mockLogger.warn).toHaveBeenCalledWith(
-            expect.stringContaining('Found 1 conflicts across files:')
+            expect.stringContaining('Found 1 conflicts.')
         );
         expect(mockLogger.conflict).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -386,7 +386,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
 
         // Should report conflict
         expect(mockLogger.warn).toHaveBeenCalledWith(
-            expect.stringContaining('Found 1 conflicts across files:')
+            expect.stringContaining('Found 1 conflicts.')
         );
         expect(mockLogger.conflict).toHaveBeenCalledWith(
             expect.objectContaining({
