@@ -30,11 +30,13 @@ jak sie daje prefix:
         }
     )
 
+- dodac ze w linii langtaga processor cofa sie i szuka // jesli znalazl to znaczy ze jest to zakomentowany lang-tag  i go pomija
+
 - mozliwe ze definicje loggera wrzucic do configu prostu, aby sie kompilowala. Sprawdzic w dist czy czegos nie brakuje..., albo dodac do vite poprostu zeg logger sie koompilowal z typami i zmienic wtedy nazwe na LangTagLogger
 
-    - w readConfig jesli nie ma:
-        onConflictResolution
-        lub tego onCollectFinish
+- w readConfig jesli nie ma:
+    onConflictResolution
+    lub tego onCollectFinish
 
-        (bo ktos np. napisal na chama= onConflictResolution:undefined )
-        to rzucac error i informacja ze trzeba to dodać do config
+    (bo ktos np. napisal na chama= onConflictResolution:undefined )
+    to rzucac error i informacja ze trzeba to dodać do config
