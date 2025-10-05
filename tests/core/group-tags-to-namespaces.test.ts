@@ -11,7 +11,7 @@ const mockLogger: $LT_Logger = {
     warn: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
-    logTagConflictInfo: vi.fn().mockResolvedValue(undefined),
+    conflict: vi.fn().mockResolvedValue(undefined),
 };
 
 // Mock config
@@ -126,8 +126,11 @@ describe('$LT_GroupTagsToNamespaces', () => {
         expect(mockLogger.warn).toHaveBeenCalledWith(
             expect.stringContaining('Found 1 conflicts across files:')
         );
-        expect(mockLogger.warn).toHaveBeenCalledWith(
-            expect.stringContaining('Conflict detected: path_overwrite at "buttons.primary.text"')
+        expect(mockLogger.conflict).toHaveBeenCalledWith(
+            expect.objectContaining({
+                path: 'buttons.primary.text',
+                conflictType: 'path_overwrite'
+            })
         );
     });
 
@@ -288,8 +291,11 @@ describe('$LT_GroupTagsToNamespaces', () => {
         expect(mockLogger.warn).toHaveBeenCalledWith(
             expect.stringContaining('Found 1 conflicts across files:')
         );
-        expect(mockLogger.warn).toHaveBeenCalledWith(
-            expect.stringContaining('Conflict detected: type_mismatch at "settings.count.value"')
+        expect(mockLogger.conflict).toHaveBeenCalledWith(
+            expect.objectContaining({
+                path: 'settings.count.value',
+                conflictType: 'type_mismatch'
+            })
         );
     });
 
@@ -382,8 +388,11 @@ describe('$LT_GroupTagsToNamespaces', () => {
         expect(mockLogger.warn).toHaveBeenCalledWith(
             expect.stringContaining('Found 1 conflicts across files:')
         );
-        expect(mockLogger.warn).toHaveBeenCalledWith(
-            expect.stringContaining('Conflict detected: path_overwrite at "text"')
+        expect(mockLogger.conflict).toHaveBeenCalledWith(
+            expect.objectContaining({
+                path: 'text',
+                conflictType: 'path_overwrite'
+            })
         );
     });
 

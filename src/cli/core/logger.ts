@@ -1,4 +1,5 @@
 import { $LT_ReadFileContent } from './io/file.ts';
+import { $LT_Conflict } from '../config.ts';
 
 export interface $LT_Logger {
     info(message: string, params?: Record<string, any>): void;
@@ -7,7 +8,7 @@ export interface $LT_Logger {
     error(message: string, params?: Record<string, any>): void;
     debug(message: string, params?: Record<string, any>): void;
 
-    logTagConflictInfo(tagInfo: any): Promise<void>;
+    conflict(conflict: $LT_Conflict): Promise<void>;
 }
 
 const ANSI_COLORS: Record<string, string> = {
@@ -78,6 +79,32 @@ function log(baseColor: string, message: string, params?: Record<string, any>) {
     console.log(`${prefix}${baseColor}${coloredMessage}${ANSI_COLORS.reset}`);
 }
 
+async function logTagConflictInfo(tagInfo: any): Promise<void> {
+    const { tag, relativeFilePath, value } = tagInfo;
+
+    console.log(`${ANSI_COLORS.white}at: ${ANSI_COLORS.cyan}${relativeFilePath}${ANSI_COLORS.reset}`);
+
+    try {
+        const fileContent = await $LT_ReadFileContent(relativeFilePath);
+
+        const fileLines = fileContent.split('\n');
+        const startLine = Math.max(0, tag.line - 1); // Convert to 0-based index
+        const endLine = Math.min(fileLines.length - 1, tag.line + tag.fullMatch.split('\n').length - 2);
+
+        for (let i = startLine; i <= endLine; i++) {
+            const lineNumber = i + 1; // Convert back to 1-based
+            const line = fileLines[i];
+            console.log(`${ANSI_COLORS.cyan}${lineNumber}${ANSI_COLORS.reset} | ${ANSI_COLORS.white}${line}${ANSI_COLORS.reset}`);
+        }
+    } catch (error) {
+        throw error;
+    }
+
+    // log(ANSI_COLORS.yellow, `  Value: {value}`, {
+    //     value: JSON.stringify(value)
+    // });
+}
+
 export function $LT_CreateDefaultLogger(debugMode?: boolean): $LT_Logger {
     return {
         info: (msg, params) => log(ANSI_COLORS.blue, msg, params),
@@ -88,30 +115,16 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean): $LT_Logger {
             if (!debugMode) return;
             log(ANSI_COLORS.gray, msg, params);
         },
-        logTagConflictInfo: async (tagInfo) => {
-            const { tag, relativeFilePath, value } = tagInfo;
-
-            console.log(`${ANSI_COLORS.white}at: ${ANSI_COLORS.cyan}${relativeFilePath}${ANSI_COLORS.reset}`);
-
-            try {
-                const fileContent = await $LT_ReadFileContent(relativeFilePath);
-                
-                const fileLines = fileContent.split('\n');
-                const startLine = Math.max(0, tag.line - 1); // Convert to 0-based index
-                const endLine = Math.min(fileLines.length - 1, tag.line + tag.fullMatch.split('\n').length - 2);
-                
-                for (let i = startLine; i <= endLine; i++) {
-                    const lineNumber = i + 1; // Convert back to 1-based
-                    const line = fileLines[i];
-                    console.log(`${ANSI_COLORS.cyan}${lineNumber}${ANSI_COLORS.reset} | ${ANSI_COLORS.white}${line}${ANSI_COLORS.reset}`);
-                }
-            } catch (error) {
-                throw error;
-            }
-
-            // log(ANSI_COLORS.yellow, `  Value: {value}`, {
-            //     value: JSON.stringify(value)
-            // });
+        conflict: async (conflict) => {
+            const { path, tagA, tagB, conflictType } = conflict;
+            
+            log(ANSI_COLORS.yellow, `Conflict detected: {conflictType} at "{path}"`, { 
+                conflictType, 
+                path 
+            });
+            
+            await logTagConflictInfo(tagA);
+            await logTagConflictInfo(tagB);
         },
     };
 }

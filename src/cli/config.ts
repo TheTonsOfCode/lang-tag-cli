@@ -216,9 +216,7 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagConfig = {
             return config;
         },
         onConflictResolution: async (conflict, logger) => {
-            logger.warn(`Conflict detected: ${conflict.conflictType} at "${conflict.path}"`);
-            await logger.logTagConflictInfo(conflict.tagA);
-            await logger.logTagConflictInfo(conflict.tagB);
+            await logger.conflict(conflict);
             return true; // Continue processing by default
         }
     },
