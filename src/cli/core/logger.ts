@@ -1,3 +1,5 @@
+import { $LT_ReadFileContent } from './io/file.ts';
+
 export interface $LT_Logger {
     info(message: string, params?: Record<string, any>): void;
     success(message: string, params?: Record<string, any>): void;
@@ -5,7 +7,7 @@ export interface $LT_Logger {
     error(message: string, params?: Record<string, any>): void;
     debug(message: string, params?: Record<string, any>): void;
 
-    logTagConflictInfo(tagInfo: any): void;
+    logTagConflictInfo(tagInfo: any): Promise<void>;
 }
 
 const ANSI_COLORS: Record<string, string> = {
@@ -86,32 +88,30 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean): $LT_Logger {
             if (!debugMode) return;
             log(ANSI_COLORS.gray, msg, params);
         },
-        logTagConflictInfo: (tagInfo) => {
+        logTagConflictInfo: async (tagInfo) => {
             const { tag, relativeFilePath, value } = tagInfo;
-            
-            // Log file path
-            log(ANSI_COLORS.cyan, `File: {file}`, { file: relativeFilePath });
-            
-            // Log line and column info
-            log(ANSI_COLORS.gray, `Line {line}, Column {column}:`, { 
-                line: tag.line, 
-                column: tag.column 
-            });
-            
-            // Log the full match with line numbers and tabs using console.log
-            const lines = tag.fullMatch.split('\n');
-            lines.forEach((line: string, index: number) => {
-                const lineNumber = tag.line + index;
-                console.log(`${ANSI_COLORS.white}${lineNumber}\t| ${line}${ANSI_COLORS.reset}`);
-            });
-            
-            // Log the value
-            log(ANSI_COLORS.yellow, `  Value: {value}`, { 
-                value: JSON.stringify(value) 
-            });
-            
-            // Empty line for separation
-            console.log('');
+
+            console.log(`${ANSI_COLORS.white}at: ${ANSI_COLORS.cyan}${relativeFilePath}${ANSI_COLORS.reset}`);
+
+            try {
+                const fileContent = await $LT_ReadFileContent(relativeFilePath);
+                
+                const fileLines = fileContent.split('\n');
+                const startLine = Math.max(0, tag.line - 1); // Convert to 0-based index
+                const endLine = Math.min(fileLines.length - 1, tag.line + tag.fullMatch.split('\n').length - 2);
+                
+                for (let i = startLine; i <= endLine; i++) {
+                    const lineNumber = i + 1; // Convert back to 1-based
+                    const line = fileLines[i];
+                    console.log(`${ANSI_COLORS.cyan}${lineNumber}${ANSI_COLORS.reset} | ${ANSI_COLORS.white}${line}${ANSI_COLORS.reset}`);
+                }
+            } catch (error) {
+                throw error;
+            }
+
+            // log(ANSI_COLORS.yellow, `  Value: {value}`, {
+            //     value: JSON.stringify(value)
+            // });
         },
     };
 }

@@ -44,7 +44,7 @@ export interface LangTagConfig {
          * Allows custom resolution logic for handling individual conflicts.
          * Return true to continue processing, false to stop execution.
          */
-        onConflictResolution?: (conflict: $LT_Conflict, logger: $LT_Logger) => boolean;
+        onConflictResolution?: (conflict: $LT_Conflict, logger: $LT_Logger) => Promise<boolean>;
 
         /**
          * A function called after all conflicts have been collected and processed.
@@ -215,10 +215,10 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagConfig = {
             if (!config.namespace) config.namespace = langTagConfig.collect!.defaultNamespace!;
             return config;
         },
-        onConflictResolution: (conflict, logger) => {
+        onConflictResolution: async (conflict, logger) => {
             logger.warn(`Conflict detected: ${conflict.conflictType} at "${conflict.path}"`);
-            logger.logTagConflictInfo(conflict.tagA);
-            logger.logTagConflictInfo(conflict.tagB);
+            await logger.logTagConflictInfo(conflict.tagA);
+            await logger.logTagConflictInfo(conflict.tagB);
             return true; // Continue processing by default
         }
     },

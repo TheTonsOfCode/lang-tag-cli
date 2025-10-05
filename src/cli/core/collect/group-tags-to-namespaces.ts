@@ -7,7 +7,7 @@ type ValueTracker = {
     trackValue(path: string, value: any): void;
 }
 
-type AddConflictFunction = (path: string, tagA: $LT_TagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => void;
+type AddConflictFunction = (path: string, tagA: $LT_TagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => Promise<void>;
 
 export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
     logger: $LT_Logger,
@@ -53,7 +53,7 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
                 }
             };
 
-            const addConflict: AddConflictFunction = (path: string, tagA: $LT_TagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => {
+            const addConflict: AddConflictFunction = async (path: string, tagA: $LT_TagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => {
                 const conflict: $LT_Conflict = {
                     path,
                     tagA,
@@ -67,7 +67,7 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
 
                 // Call onConflictResolution for each conflict
                 if (config.collect?.onConflictResolution) {
-                    const shouldContinue = config.collect.onConflictResolution(conflict, logger);
+                    const shouldContinue = await config.collect.onConflictResolution(conflict, logger);
                     if (!shouldContinue) {
                         throw new Error(`LangTagConflictResolution:Processing stopped due to conflict resolution: ${conflict.tagA.tag.parameterConfig.namespace}|${conflict.path}`);
                     }
@@ -76,14 +76,14 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
                 allConflicts.push(conflict);
             };
 
-            const target = ensureNestedObject(
+            const target = await ensureNestedObject(
                 tagConfig.path, 
                 namespaceTranslations,
                 valueTracker,
                 addConflict
             );
             
-            mergeWithConflictDetection(
+            await mergeWithConflictDetection(
                 target, 
                 tag.parameterTranslations, 
                 tagConfig.path || '',
@@ -114,12 +114,12 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
  * Creates nested object structure for dot-notation path and returns target object.
  * Example: "buttons.primary" creates { buttons: { primary: {} } } and returns primary object.
  */
-function ensureNestedObject(
-    path: string | undefined, 
+async function ensureNestedObject(
+    path: string | undefined,
     root: Record<string, any>,
     valueTracker: ValueTracker,
     addConflict: AddConflictFunction
-): Record<string, any> {
+): Promise<Record<string, any>> {
     if (!path || !path.trim()) return root;
     
     let current = root;
@@ -132,7 +132,7 @@ function ensureNestedObject(
             // Found a conflict - trying to create object structure over existing value
             const existingInfo = valueTracker.get(currentPath);
             if (existingInfo) {
-                addConflict(currentPath, existingInfo, null, 'type_mismatch'); // null because we're trying to create object structure
+                await addConflict(currentPath, existingInfo, null, 'type_mismatch'); // null because we're trying to create object structure
             }
             // Skip creating the nested structure if there's a conflict
             return current;
@@ -149,13 +149,13 @@ function ensureNestedObject(
  * Merges translations with conflict detection.
  * Returns array of conflicts found during merge.
  */
-function mergeWithConflictDetection(
+async function mergeWithConflictDetection(
     target: any,
     source: any,
     basePath: string = '',
     valueTracker: ValueTracker,
     addConflict: AddConflictFunction
-): void {
+): Promise<void> {
     if (typeof target !== 'object' || typeof source !== 'object') {
         return;
     }
@@ -185,7 +185,7 @@ function mergeWithConflictDetection(
             // Detect type mismatch conflicts (any type change)
             if (targetType !== sourceType) {
                 if (existingInfo) {
-                    addConflict(currentPath, existingInfo, sourceValue, 'type_mismatch');
+                    await addConflict(currentPath, existingInfo, sourceValue, 'type_mismatch');
                 }
                 continue; // Skip this merge
             }
@@ -193,7 +193,7 @@ function mergeWithConflictDetection(
             // Detect path overwrite conflicts (same type but different values)
             if (targetValue !== sourceValue) {
                 if (existingInfo) {
-                    addConflict(currentPath, existingInfo, sourceValue, 'path_overwrite');
+                    await addConflict(currentPath, existingInfo, sourceValue, 'path_overwrite');
                 }
                 continue; // Skip this merge
             }
@@ -206,7 +206,7 @@ function mergeWithConflictDetection(
                 target[key] = targetValue;
             }
 
-            mergeWithConflictDetection(
+            await mergeWithConflictDetection(
                 targetValue, 
                 sourceValue, 
                 currentPath, 

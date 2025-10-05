@@ -11,7 +11,7 @@ const mockLogger: $LT_Logger = {
     warn: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
-    logTagConflictInfo: vi.fn(),
+    logTagConflictInfo: vi.fn().mockResolvedValue(undefined),
 };
 
 // Mock config
