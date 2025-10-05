@@ -10,6 +10,19 @@ jak sie daje prefix:
  (file:///Users/pawel/homedev/lang-tag/.e2e-tests/.template-regenerate/node_modules/lang-tag/cli/index.js:395:30)
 
 
+
+
+at: app/TEST.ts
+25 | lang({
+26 |    foo: 'Another conflict'
+27 | }, {namespace: 'common', path: 'some.structured'})
+
+- Tutaj wyzej kolorowac dokładnie to:
+    path: 'some.structured'
+    i   foo: 'Another conflict'
+
+
+
  - onConfigurationGeneration, undefined powinno usuwac konfiguracje, a powinna byc inna zmienna 'save: true'
 
 

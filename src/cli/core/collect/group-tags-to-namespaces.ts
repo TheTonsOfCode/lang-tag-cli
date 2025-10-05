@@ -1,5 +1,5 @@
 import {$LT_TagCandidateFile} from "@/cli/core/collect/collect-tags.ts";
-import {$LT_Logger} from "@/cli/core/logger.ts";
+import {LangTagLogger} from "@/cli/logger.ts";
 import {$LT_TagConflictInfo, $LT_Conflict, LangTagConfig} from "@/cli/config.ts";
 
 type ValueTracker = {
@@ -10,7 +10,7 @@ type ValueTracker = {
 type AddConflictFunction = (path: string, tagA: $LT_TagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => Promise<void>;
 
 export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
-    logger: $LT_Logger,
+    logger: LangTagLogger,
     files: $LT_TagCandidateFile[],
     config: LangTagConfig
 }) {

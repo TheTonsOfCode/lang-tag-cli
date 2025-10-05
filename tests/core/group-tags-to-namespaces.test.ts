@@ -2,10 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { $LT_GroupTagsToNamespaces } from '@/cli/core/collect/group-tags-to-namespaces.ts';
 import { $LT_TagCandidateFile } from '@/cli/core/collect/collect-tags.ts';
 import {ProcessedTag, LangTagConfig, LANG_TAG_DEFAULT_CONFIG} from '@/cli/config.ts';
-import { $LT_Logger } from '@/cli/core/logger.ts';
+import { LangTagLogger } from '@/cli/logger.ts';
 
 // Mock logger
-const mockLogger: $LT_Logger = {
+const mockLogger: LangTagLogger = {
     info: vi.fn(),
     success: vi.fn(),
     warn: vi.fn(),

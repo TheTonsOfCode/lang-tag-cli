@@ -1,7 +1,7 @@
-import {$LT_Logger} from "@/cli/core/logger.ts";
+import {LangTagLogger} from "@/cli/logger.ts";
 import {LangTagConfig, ProcessedTag} from "@/cli/config.ts";
 
-export function $LT_FilterInvalidTags(tags: ProcessedTag[], config: LangTagConfig, logger: $LT_Logger) {
+export function $LT_FilterInvalidTags(tags: ProcessedTag[], config: LangTagConfig, logger: LangTagLogger) {
     return tags.filter((tag) => {
         if (tag.validity === 'invalid-param-1')
             logger.debug('Skipping tag "{fullMatch}". Invalid JSON: "{invalid}"', {
@@ -23,7 +23,7 @@ export function $LT_FilterInvalidTags(tags: ProcessedTag[], config: LangTagConfi
     })
 }
 
-export function $LT_FilterEmptyNamespaceTags(tags: ProcessedTag[], logger: $LT_Logger) {
+export function $LT_FilterEmptyNamespaceTags(tags: ProcessedTag[], logger: LangTagLogger) {
     return tags.filter((tag) => {
         if (!tag.parameterConfig) {
             logger.warn('Skipping tag "{fullMatch}". Tag configuration not defined. (Check lang-tag config at collect.onCollectConfigFix)', {

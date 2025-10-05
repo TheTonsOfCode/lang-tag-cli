@@ -1,6 +1,6 @@
 import {LangTagTranslationsConfig} from "@/index.ts";
 import path from "pathe";
-import {$LT_Logger} from "@/cli/core/logger.ts";
+import {LangTagLogger} from "@/cli/logger.ts";
 
 export interface LangTagConfig {
     /**
@@ -44,14 +44,14 @@ export interface LangTagConfig {
          * Allows custom resolution logic for handling individual conflicts.
          * Return true to continue processing, false to stop execution.
          */
-        onConflictResolution?: (conflict: $LT_Conflict, logger: $LT_Logger) => Promise<boolean>;
+        onConflictResolution?: (conflict: $LT_Conflict, logger: LangTagLogger) => Promise<boolean>;
 
         /**
          * A function called after all conflicts have been collected and processed.
          * Allows custom logic to decide whether to continue or stop based on all conflicts.
          * Return true to continue processing, false to stop execution.
          */
-        onCollectFinish?: (conflicts: $LT_Conflict[], logger: $LT_Logger) => boolean;
+        onCollectFinish?: (conflicts: $LT_Conflict[], logger: LangTagLogger) => boolean;
     }
 
     import: {

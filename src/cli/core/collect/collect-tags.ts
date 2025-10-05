@@ -5,7 +5,7 @@ import {readFileSync} from "fs";
 import {globby} from "globby";
 
 import {LangTagConfig, ProcessedTag} from "@/cli/config.ts";
-import {$LT_Logger} from "@/cli/core/logger.ts";
+import {LangTagLogger} from "@/cli/logger.ts";
 import {$LT_TagProcessor} from "@/cli/core/processor.ts";
 import {$LT_FilterEmptyNamespaceTags, $LT_FilterInvalidTags} from "@/cli/core/collect/fillters.ts";
 
@@ -18,7 +18,7 @@ export interface $LT_TagCandidateFile {
 interface Props {
 
     config: LangTagConfig;
-    logger: $LT_Logger;
+    logger: LangTagLogger;
     filesToScan?: string[]
 }
 
