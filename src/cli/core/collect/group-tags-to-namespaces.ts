@@ -2,7 +2,7 @@ import {$LT_TagCandidateFile} from "@/cli/core/collect/collect-tags.ts";
 import {$LT_Logger} from "@/cli/core/logger.ts";
 import {$LT_TagConflictInfo, $LT_Conflict, LangTagConfig} from "@/cli/config.ts";
 
-interface ValueTracker {
+type ValueTracker = {
     get(path: string): $LT_TagConflictInfo | undefined;
     trackValue(path: string, value: any): void;
 }
