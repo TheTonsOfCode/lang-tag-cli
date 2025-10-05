@@ -1,6 +1,6 @@
 import { LangTagCLILogger } from '@/cli/logger.ts';
 import { LangTagCLIConflict } from '../../config.ts';
-import { $LT_LogConflict } from './logger-conflict.ts';
+import { $LT_LogConflict } from './conflict-log.ts';
 
 const ANSI_COLORS: Record<string, string> = {
     reset: '\x1b[0m',
