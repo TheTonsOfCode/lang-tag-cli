@@ -1,8 +1,8 @@
 import {getBasePath} from "@/cli/core/watch/path-utils.ts";
 import chokidar from 'chokidar';
-import {LangTagConfig} from "@/cli/config.ts";
+import {LangTagCLIConfig} from "@/cli/config.ts";
 
-export function $LT_CreateChokidarWatcher(config: LangTagConfig) {
+export function $LT_CreateChokidarWatcher(config: LangTagCLIConfig) {
     const cwd = process.cwd();
 
     // Chokidar doesn't seem to handle glob patterns reliably, especially during tests.

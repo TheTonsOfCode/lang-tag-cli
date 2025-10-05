@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { $LT_GroupTagsToNamespaces } from '@/cli/core/collect/group-tags-to-namespaces.ts';
 import { $LT_TagCandidateFile } from '@/cli/core/collect/collect-tags.ts';
-import {ProcessedTag, LangTagConfig, LANG_TAG_DEFAULT_CONFIG} from '@/cli/config.ts';
-import { LangTagLogger } from '@/cli/logger.ts';
+import {LangTagCLIProcessedTag, LangTagCLIConfig, LANG_TAG_DEFAULT_CONFIG} from '@/cli/config.ts';
+import { LangTagCLILogger } from '@/cli/logger.ts';
 
 // Mock logger
-const mockLogger: LangTagLogger = {
+const mockLogger: LangTagCLILogger = {
     info: vi.fn(),
     success: vi.fn(),
     warn: vi.fn(),
@@ -15,7 +15,7 @@ const mockLogger: LangTagLogger = {
 };
 
 // Mock config
-const mockConfig: LangTagConfig = {
+const mockConfig: LangTagCLIConfig = {
     tagName: 'lang',
     translationArgPosition: 1,
     includes: ['**/*.ts', '**/*.tsx'],
@@ -40,7 +40,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
         vi.clearAllMocks();
     });
 
-    const createMockTag = (overrides: Partial<ProcessedTag> = {}): ProcessedTag => ({
+    const createMockTag = (overrides: Partial<LangTagCLIProcessedTag> = {}): LangTagCLIProcessedTag => ({
         fullMatch: 'lang({ text: "Hello" }, { path: "test.path", namespace: "common" })',
         parameter1Text: '{ text: "Hello" }',
         parameter2Text: '{ path: "test.path", namespace: "common" }',
@@ -57,7 +57,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
         ...overrides
     });
 
-    const createMockFile = (relativeFilePath: string, tags: ProcessedTag[]): $LT_TagCandidateFile => ({
+    const createMockFile = (relativeFilePath: string, tags: LangTagCLIProcessedTag[]): $LT_TagCandidateFile => ({
         relativeFilePath,
         tags
     });

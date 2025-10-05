@@ -2,14 +2,14 @@ import * as process from "node:process";
 import {dirname, resolve} from 'pathe';
 import {LangTagExportData} from "@/cli/core/type";
 import {$LT_EnsureDirectoryExists, $LT_ReadJSON} from "@/cli/core/io/file.ts";
-import {LangTagConfig} from "@/cli/config.ts";
+import {LangTagCLIConfig} from "@/cli/config.ts";
 import {writeFile} from "fs/promises";
 import {LangTagTranslationsConfig} from "@/index.ts";
 import JSON5 from "json5";
 import {$LT_CollectNodeModulesExportFilePaths} from "@/cli/core/import/collect-node-modules-export-files.ts";
-import {LangTagLogger} from "@/cli/logger.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
 
-export async function $LT_ImportLibraries(config: LangTagConfig, logger: LangTagLogger): Promise<void> {
+export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: LangTagCLILogger): Promise<void> {
     const files = $LT_CollectNodeModulesExportFilePaths(logger);
 
     const generationFiles: Record<string /*fileName*/, Record<string /*export name*/, string>> = {}

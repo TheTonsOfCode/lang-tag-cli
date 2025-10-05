@@ -1,10 +1,11 @@
 import {writeFile} from 'fs/promises';
 import {CONFIG_FILE_NAME} from "@/cli/core/constants.ts";
 import {existsSync} from "fs";
-import {$LT_CreateDefaultLogger, LangTagLogger} from "@/cli/logger.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
+import {$LT_CreateDefaultLogger} from "@/cli/core/logger/default-logger.ts";
 
 const DEFAULT_INIT_CONFIG = `
-/** @type {import('lang-tag/cli/config').LangTagConfig} */
+/** @type {import('lang-tag/cli/config').LangTagCLIConfig} */
 const config = {
     tagName: 'lang',
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
@@ -34,7 +35,7 @@ module.exports = config;
  * Initialize project with default configuration
  */
 export async function $LT_CMD_InitConfig() {
-    const logger: LangTagLogger = $LT_CreateDefaultLogger();
+    const logger: LangTagCLILogger = $LT_CreateDefaultLogger();
 
     if (existsSync(CONFIG_FILE_NAME)) {
         logger.success('Configuration file already exists. Please remove the existing configuration file before creating a new default one');

@@ -1,8 +1,8 @@
-import {ProcessedTag, LangTagConfig} from "@/cli/config.ts";
+import {LangTagCLIProcessedTag, LangTagCLIConfig} from "@/cli/config.ts";
 import JSON5 from "json5";
 
 export interface $LT_TagReplaceData {
-    tag: ProcessedTag;
+    tag: LangTagCLIProcessedTag;
 
     translations?: string | any;
     config?: string | any;
@@ -10,14 +10,14 @@ export interface $LT_TagReplaceData {
 
 export class $LT_TagProcessor {
 
-    constructor(private config: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'>) {}
+    constructor(private config: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'>) {}
 
-    public extractTags(fileContent: string): ProcessedTag[] {
+    public extractTags(fileContent: string): LangTagCLIProcessedTag[] {
         const tagName = this.config.tagName;
         const optionalVariableAssignment = `(?:\\s*(\\w+)\\s*=\\s*)?`;
 
         // Find all potential lang tag matches
-        const matches: ProcessedTag[] = [];
+        const matches: LangTagCLIProcessedTag[] = [];
         let currentIndex = 0;
 
         // Create a regex to find the start of a lang tag
@@ -178,7 +178,7 @@ export class $LT_TagProcessor {
 
     public replaceTags(fileContent: string, replacements: $LT_TagReplaceData[]): string {
 
-        const replaceMap: Map<ProcessedTag, string> = new Map();
+        const replaceMap: Map<LangTagCLIProcessedTag, string> = new Map();
 
         replacements.forEach(R => {
             if (!R.translations && !R.config) {

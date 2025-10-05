@@ -2,9 +2,9 @@ import fs from "fs";
 import path from "pathe";
 import {EXPORTS_FILE_NAME} from "@/cli/core/constants.ts";
 import process from "node:process";
-import {LangTagLogger} from "@/cli/logger.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
 
-export function $LT_CollectNodeModulesExportFilePaths(logger: LangTagLogger): string[] {
+export function $LT_CollectNodeModulesExportFilePaths(logger: LangTagCLILogger): string[] {
     const nodeModulesPath: string = path.join(process.cwd(), 'node_modules');
 
     if (!fs.existsSync(nodeModulesPath)) {

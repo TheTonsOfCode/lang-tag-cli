@@ -1,15 +1,15 @@
-import {LangTagConfig} from "@/cli/config.ts";
+import {LangTagCLIConfig} from "@/cli/config.ts";
 import {readFileSync} from "fs";
 import {writeFile} from "fs/promises";
 import JSON5 from "json5";
 import {sep} from "path";
 import {$LT_TagProcessor, $LT_TagReplaceData} from "@/cli/core/processor.ts";
 import {$LT_FilterInvalidTags} from "@/cli/core/collect/fillters.ts";
-import {LangTagLogger} from "@/cli/logger.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
 
 export async function checkAndRegenerateFileLangTags(
-    config: LangTagConfig,
-    logger: LangTagLogger,
+    config: LangTagCLIConfig,
+    logger: LangTagCLILogger,
     file: string,
     path: string,
 ) {

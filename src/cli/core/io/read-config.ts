@@ -2,9 +2,9 @@ import {resolve} from "pathe";
 import {CONFIG_FILE_NAME} from "@/cli/core/constants.ts";
 import {existsSync} from "fs";
 import {pathToFileURL} from "url";
-import {LANG_TAG_DEFAULT_CONFIG, LangTagConfig} from "@/cli/config.ts";
+import {LANG_TAG_DEFAULT_CONFIG, LangTagCLIConfig} from "@/cli/config.ts";
 
-export async function $LT_ReadConfig(projectPath: string): Promise<LangTagConfig> {
+export async function $LT_ReadConfig(projectPath: string): Promise<LangTagCLIConfig> {
     const configPath = resolve(projectPath, CONFIG_FILE_NAME);
 
     if (!existsSync(configPath)) {
@@ -18,7 +18,7 @@ export async function $LT_ReadConfig(projectPath: string): Promise<LangTagConfig
             throw new Error(`Config found, but default export is undefined`)
         }
 
-        const userConfig: Partial<LangTagConfig> = configModule.default || {};
+        const userConfig: Partial<LangTagCLIConfig> = configModule.default || {};
 
         const tn = (userConfig.tagName || '')
             .toLowerCase()

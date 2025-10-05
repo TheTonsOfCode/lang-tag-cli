@@ -4,21 +4,21 @@ import {readFileSync} from "fs";
 
 import {globby} from "globby";
 
-import {LangTagConfig, ProcessedTag} from "@/cli/config.ts";
-import {LangTagLogger} from "@/cli/logger.ts";
+import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/cli/config.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
 import {$LT_TagProcessor} from "@/cli/core/processor.ts";
 import {$LT_FilterEmptyNamespaceTags, $LT_FilterInvalidTags} from "@/cli/core/collect/fillters.ts";
 
 export interface $LT_TagCandidateFile {
 
     relativeFilePath: string;
-    tags: ProcessedTag[]
+    tags: LangTagCLIProcessedTag[]
 }
 
 interface Props {
 
-    config: LangTagConfig;
-    logger: LangTagLogger;
+    config: LangTagCLIConfig;
+    logger: LangTagCLILogger;
     filesToScan?: string[]
 }
 

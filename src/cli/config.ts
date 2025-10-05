@@ -1,8 +1,8 @@
 import {LangTagTranslationsConfig} from "@/index.ts";
 import path from "pathe";
-import {LangTagLogger} from "@/cli/logger.ts";
+import {LangTagCLILogger} from "./logger.ts";
 
-export interface LangTagConfig {
+export interface LangTagCLIConfig {
     /**
      * Tag name used to mark translations in code.
      * @default 'lang'
@@ -37,21 +37,21 @@ export interface LangTagConfig {
          * A function called when the collected translation configuration needs to be fixed or validated.
          * Allows modification of the configuration before it's saved to the output files.
          */
-        onCollectConfigFix?: (config: LangTagTranslationsConfig, langTagConfig: LangTagConfig) => LangTagTranslationsConfig;
+        onCollectConfigFix?: (config: LangTagTranslationsConfig, langTagConfig: LangTagCLIConfig) => LangTagTranslationsConfig;
 
         /**
          * A function called when a single conflict is detected between translation tags.
          * Allows custom resolution logic for handling individual conflicts.
          * Return true to continue processing, false to stop execution.
          */
-        onConflictResolution?: (conflict: $LT_Conflict, logger: LangTagLogger) => Promise<boolean>;
+        onConflictResolution?: (conflict: LangTagCLIConflict, logger: LangTagCLILogger) => Promise<boolean>;
 
         /**
          * A function called after all conflicts have been collected and processed.
          * Allows custom logic to decide whether to continue or stop based on all conflicts.
          * Return true to continue processing, false to stop execution.
          */
-        onCollectFinish?: (conflicts: $LT_Conflict[], logger: LangTagLogger) => boolean;
+        onCollectFinish?: (conflicts: LangTagCLIConflict[], logger: LangTagCLILogger) => boolean;
     }
 
     import: {
@@ -71,7 +71,7 @@ export interface LangTagConfig {
          * A function to customize the generated file name and export name for imported library tags.
          * Allows controlling how imported tags are organized and named within the generated files.
          */
-        onImport: (params: LangTagOnImportParams, actions: LangTagOnImportActions) => void;
+        onImport: (params: LangTagCLIOnImportParams, actions: LangTagCLIOnImportActions) => void;
 
         /**
          * A function called after all lang-tags were imported
@@ -113,7 +113,7 @@ export interface LangTagConfig {
      * based on the file path or other context.
      * If it returns `undefined`, the tag's configuration is not automatically generated or updated.
      */
-    onConfigGeneration: (params: LangTagOnConfigGenerationParams) => LangTagTranslationsConfig | undefined;
+    onConfigGeneration: (params: LangTagCLIOnConfigGenerationParams) => LangTagTranslationsConfig | undefined;
 
     debug?: boolean;
 }
@@ -121,7 +121,7 @@ export interface LangTagConfig {
 /**
  * Parameters passed to the `onImport` configuration function.
  */
-export interface LangTagOnImportParams {
+export interface LangTagCLIOnImportParams {
     /** The name of the package from which the tag is being imported. */
     packageName: string;
     /** The relative path to the source file within the imported package. */
@@ -139,7 +139,7 @@ export interface LangTagOnImportParams {
 /**
  * Actions that can be performed within the onImport callback.
  */
-export interface LangTagOnImportActions {
+export interface LangTagCLIOnImportActions {
     /** Sets the desired file for the generated import. */
     setFile: (file: string) => void;
     /** Sets the desired export name for the imported tag. */
@@ -151,7 +151,7 @@ export interface LangTagOnImportActions {
 /**
  * Parameters passed to the `onConfigGeneration` configuration function.
  */
-export interface LangTagOnConfigGenerationParams {
+export interface LangTagCLIOnConfigGenerationParams {
     /** The absolute path to the source file being processed. */
     fullPath: string;
 
@@ -167,7 +167,7 @@ export interface LangTagOnConfigGenerationParams {
 
 type Validity = 'ok' | 'invalid-param-1' | 'invalid-param-2' | 'translations-not-found';
 
-export interface ProcessedTag {
+export interface LangTagCLIProcessedTag {
     fullMatch: string;
 
     parameter1Text: string;
@@ -187,20 +187,20 @@ export interface ProcessedTag {
     validity: Validity;
 }
 
-export interface $LT_TagConflictInfo {
-    tag: ProcessedTag;
+export interface LangTagCLITagConflictInfo {
+    tag: LangTagCLIProcessedTag;
     relativeFilePath: string;
     value: any;
 }
 
-export interface $LT_Conflict {
+export interface LangTagCLIConflict {
     path: string;
-    tagA: $LT_TagConflictInfo;
-    tagB: $LT_TagConflictInfo;
+    tagA: LangTagCLITagConflictInfo;
+    tagB: LangTagCLITagConflictInfo;
     conflictType: 'path_overwrite' | 'type_mismatch';
 }
 
-export const LANG_TAG_DEFAULT_CONFIG: LangTagConfig = {
+export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     tagName: 'lang',
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build'],
@@ -223,7 +223,7 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagConfig = {
     import: {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
-        onImport: ({importedRelativePath, fileGenerationData}: LangTagOnImportParams, actions)=> {
+        onImport: ({importedRelativePath, fileGenerationData}: LangTagCLIOnImportParams, actions)=> {
             const exportIndex = (fileGenerationData.index || 0) + 1;
             fileGenerationData.index = exportIndex;
 
@@ -234,5 +234,5 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagConfig = {
     isLibrary: false,
     language: 'en',
     translationArgPosition: 1,
-    onConfigGeneration: (params: LangTagOnConfigGenerationParams) => undefined,
+    onConfigGeneration: (params: LangTagCLIOnConfigGenerationParams) => undefined,
 };

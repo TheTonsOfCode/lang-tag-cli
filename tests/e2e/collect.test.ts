@@ -10,7 +10,7 @@ import {
     TESTS_TEST_DIR as _TESTS_TEST_DIR
 } from "./utils.ts";
 import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/cli/core/constants.ts';
-import {LangTagConfig} from "@/cli/config.ts";
+import {LangTagCLIConfig} from "@/cli/config.ts";
 import JSON5 from "json5";
 import {$LT_TagProcessor} from "@/cli/core/processor.ts";
 
@@ -325,7 +325,7 @@ describe('collect command e2e tests', () => {
 
         const importedContent = readFileSync(importedTagFile, 'utf-8');
 
-        const commonConfig: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'> = {
+        const commonConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
             tagName: 'lang',
             translationArgPosition: 1
         }

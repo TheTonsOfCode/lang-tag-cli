@@ -1,14 +1,14 @@
-import {LangTagConfig} from "@/cli/config.ts";
+import {LangTagCLIConfig} from "@/cli/config.ts";
 import {$LT_TagCandidateFile} from "@/cli/core/collect/collect-tags.ts";
 import {$LT_ReadJSON, $LT_WriteJSON} from "@/cli/core/io/file.ts";
 import {LangTagExportData, LangTagExportFiles} from "@/cli/core/type";
 import {EXPORTS_FILE_NAME} from "@/cli/core/constants.ts";
 import path from "path";
-import {LangTagLogger} from "@/cli/logger.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
 
 export async function $LT_WriteAsExportFile({config, logger, files}: {
-    config: LangTagConfig,
-    logger: LangTagLogger,
+    config: LangTagCLIConfig,
+    logger: LangTagCLILogger,
     files: $LT_TagCandidateFile[]
 }) {
     const packageJson: any = await $LT_ReadJSON(path.resolve(process.cwd(), 'package.json'));

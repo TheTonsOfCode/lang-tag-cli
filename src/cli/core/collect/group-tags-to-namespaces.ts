@@ -1,18 +1,18 @@
 import {$LT_TagCandidateFile} from "@/cli/core/collect/collect-tags.ts";
-import {LangTagLogger} from "@/cli/logger.ts";
-import {$LT_TagConflictInfo, $LT_Conflict, LangTagConfig} from "@/cli/config.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
+import {LangTagCLITagConflictInfo, LangTagCLIConflict, LangTagCLIConfig} from "@/cli/config.ts";
 
 type ValueTracker = {
-    get(path: string): $LT_TagConflictInfo | undefined;
+    get(path: string): LangTagCLITagConflictInfo | undefined;
     trackValue(path: string, value: any): void;
 }
 
-type AddConflictFunction = (path: string, tagA: $LT_TagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => Promise<void>;
+type AddConflictFunction = (path: string, tagA: LangTagCLITagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => Promise<void>;
 
 export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
-    logger: LangTagLogger,
+    logger: LangTagCLILogger,
     files: $LT_TagCandidateFile[],
-    config: LangTagConfig
+    config: LangTagCLIConfig
 }) {
     let totalTags = 0;
     const namespaces: Record<string, Record<string, any>> = {};
@@ -26,10 +26,10 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
     }
 
     // Track conflicts across all files
-    const allConflicts: $LT_Conflict[] = [];
+    const allConflicts: LangTagCLIConflict[] = [];
 
     // Track existing values and their sources for conflict detection per namespace
-    const existingValuesByNamespace: Map<string, Map<string, $LT_TagConflictInfo>> = new Map();
+    const existingValuesByNamespace: Map<string, Map<string, LangTagCLITagConflictInfo>> = new Map();
 
     for (const file of files) {
         totalTags += file.tags.length;
@@ -53,8 +53,8 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
                 }
             };
 
-            const addConflict: AddConflictFunction = async (path: string, tagA: $LT_TagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => {
-                const conflict: $LT_Conflict = {
+            const addConflict: AddConflictFunction = async (path: string, tagA: LangTagCLITagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => {
+                const conflict: LangTagCLIConflict = {
                     path,
                     tagA,
                     tagB: {

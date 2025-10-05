@@ -1,8 +1,8 @@
-import {LangTagConfig} from "@/cli/config.ts";
+import {LangTagCLIConfig} from "@/cli/config.ts";
 import {describe, expect, it} from 'vitest';
 import {$LT_TagProcessor, $LT_TagReplaceData} from '@/cli/core/processor.ts';
 
-const commonConfig: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'> = {
+const commonConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
     tagName: 'lang',
     translationArgPosition: 1
 }
@@ -1101,7 +1101,7 @@ describe('replaceLangMatches', () => {
 });
 
 describe('Error handling and edge cases', () => {
-    const commonConfig: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'> = {
+    const commonConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
         tagName: 'lang',
         translationArgPosition: 1
     }
@@ -1326,7 +1326,7 @@ describe('Error handling and edge cases', () => {
 });
 
 describe('findLangMatches with different config', () => {
-    const differentConfig: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'> = {
+    const differentConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
         tagName: 't',
         translationArgPosition: 2
     }
@@ -1403,7 +1403,7 @@ describe('findLangMatches with different config', () => {
 });
 
 describe('replaceLangMatches with different config', () => {
-    const differentConfig: Pick<LangTagConfig, 'tagName' | 'translationArgPosition'> = {
+    const differentConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
         tagName: 't',
         translationArgPosition: 2
     }

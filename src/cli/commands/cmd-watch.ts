@@ -1,10 +1,10 @@
 import path from 'path';
 import micromatch from 'micromatch';
-import {LangTagConfig} from '@/cli/config.ts';
+import {LangTagCLIConfig} from '@/cli/config.ts';
 import {checkAndRegenerateFileLangTags} from "@/cli/core/regenerate/regenerate-config.ts";
 import {$LT_WriteToNamespaces} from "@/cli/core/io/write-to-namespaces.ts";
 import {$LT_GetCommandEssentials} from "@/cli/commands/setup.ts";
-import {LangTagLogger} from "@/cli/logger.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
 import {$LT_CMD_Collect} from "@/cli/commands/cmd-collect.ts";
 import {$LT_CollectCandidateFilesWithTags} from "@/cli/core/collect/collect-tags.ts";
 import {$LT_GroupTagsToNamespaces} from "@/cli/core/collect/group-tags-to-namespaces.ts";
@@ -30,7 +30,7 @@ export async function $LT_WatchTranslations() {
         });
 }
 
-async function handleFile(config: LangTagConfig, logger: LangTagLogger, cwdRelativeFilePath: string, event: string) {
+async function handleFile(config: LangTagCLIConfig, logger: LangTagCLILogger, cwdRelativeFilePath: string, event: string) {
     // Check if the path matches any of the original glob patterns
     if (!micromatch.isMatch(cwdRelativeFilePath, config.includes)) {
         return;
