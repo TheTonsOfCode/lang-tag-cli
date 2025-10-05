@@ -5,8 +5,7 @@ export interface $LT_Logger {
     error(message: string, params?: Record<string, any>): void;
     debug(message: string, params?: Record<string, any>): void;
 
-    // TODO:
-    errorLinePreview(tag: any): void;
+    logTagConflictInfo(tagInfo: any): void;
 }
 
 const ANSI_COLORS: Record<string, string> = {
@@ -87,9 +86,32 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean): $LT_Logger {
             if (!debugMode) return;
             log(ANSI_COLORS.gray, msg, params);
         },
-        errorLinePreview: (tag) => {
-            // TODO: Implement error line preview functionality
-            console.log(`${ANSI_COLORS.red}Error in tag: ${JSON.stringify(tag)}${ANSI_COLORS.reset}`);
+        logTagConflictInfo: (tagInfo) => {
+            const { tag, relativeFilePath, value } = tagInfo;
+            
+            // Log file path
+            log(ANSI_COLORS.cyan, `File: {file}`, { file: relativeFilePath });
+            
+            // Log line and column info
+            log(ANSI_COLORS.gray, `Line {line}, Column {column}:`, { 
+                line: tag.line, 
+                column: tag.column 
+            });
+            
+            // Log the full match with line numbers and tabs using console.log
+            const lines = tag.fullMatch.split('\n');
+            lines.forEach((line: string, index: number) => {
+                const lineNumber = tag.line + index;
+                console.log(`${ANSI_COLORS.white}${lineNumber}\t| ${line}${ANSI_COLORS.reset}`);
+            });
+            
+            // Log the value
+            log(ANSI_COLORS.yellow, `  Value: {value}`, { 
+                value: JSON.stringify(value) 
+            });
+            
+            // Empty line for separation
+            console.log('');
         },
     };
 }

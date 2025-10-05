@@ -11,7 +11,7 @@ const mockLogger: $LT_Logger = {
     warn: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
-    errorLinePreview: vi.fn(),
+    logTagConflictInfo: vi.fn(),
 };
 
 // Mock config
@@ -127,7 +127,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             expect.stringContaining('Found 1 conflicts across files:')
         );
         expect(mockLogger.warn).toHaveBeenCalledWith(
-            expect.stringContaining('path_overwrite: "buttons.primary.text"')
+            expect.stringContaining('Conflict detected: path_overwrite at "buttons.primary.text"')
         );
     });
 
@@ -289,7 +289,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             expect.stringContaining('Found 1 conflicts across files:')
         );
         expect(mockLogger.warn).toHaveBeenCalledWith(
-            expect.stringContaining('type_mismatch: "settings.count.value"')
+            expect.stringContaining('Conflict detected: type_mismatch at "settings.count.value"')
         );
     });
 
@@ -383,7 +383,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             expect.stringContaining('Found 1 conflicts across files:')
         );
         expect(mockLogger.warn).toHaveBeenCalledWith(
-            expect.stringContaining('path_overwrite: "text"')
+            expect.stringContaining('Conflict detected: path_overwrite at "text"')
         );
     });
 

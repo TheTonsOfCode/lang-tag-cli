@@ -216,13 +216,9 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagConfig = {
             return config;
         },
         onConflictResolution: (conflict, logger) => {
-            logger.warn([
-                `  - ${conflict.conflictType}: "${conflict.path}"`,
-                `    TagA: ${conflict.tagA.relativeFilePath} (${conflict.tagA.tag.fullMatch})`,
-                `    TagB: ${conflict.tagB.relativeFilePath} (${conflict.tagB.tag.fullMatch})`,
-                `    ValueA: ${JSON.stringify(conflict.tagA.value)}`,
-                `    ValueB: ${JSON.stringify(conflict.tagB.value)}`
-            ].join('\n'));
+            logger.warn(`Conflict detected: ${conflict.conflictType} at "${conflict.path}"`);
+            logger.logTagConflictInfo(conflict.tagA);
+            logger.logTagConflictInfo(conflict.tagB);
             return true; // Continue processing by default
         }
     },
