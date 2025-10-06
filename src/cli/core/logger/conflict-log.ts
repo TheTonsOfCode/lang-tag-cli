@@ -83,12 +83,24 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPa
                 // Parse config AST
                 const configNodes = parseObjectAST(configTagCode);
                 
-                // Mark conflict nodes for config (look for path values that match conflict)
-                const markedConfigNodes = configNodes.map(node => {
+                // Find path key and mark its value as error
+                let pathKeyFound = false;
+                const markedConfigNodes = configNodes.map((node, index) => {
+                    // Check if this is a 'path' key
                     if (node.type === 'key' && node.value === 'path') {
-                        // This is a path key, mark it as error if it matches conflict
-                        return { ...node, type: 'error' as const };
+                        pathKeyFound = true;
+                        return node; // Keep the key as is
                     }
+                    
+                    // If we found a path key and this is the next value node, mark it as error
+                    if (pathKeyFound && node.type === 'value') {
+                        // Check if the path value is a prefix of the conflict path
+                        if (conflictPath.startsWith(node.value + '.')) {
+                            pathKeyFound = false; // Reset for next path key
+                            return { ...node, type: 'error' as const };
+                        }
+                    }
+                    
                     return node;
                 });
                 

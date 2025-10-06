@@ -44,6 +44,18 @@ export function parseObjectAST(code: string): ASTNode[] {
                         path: currentPath
                     });
                     
+                    // Add value node if it's a literal
+                    if (node.value && node.value.type === 'Literal') {
+                        nodes.push({
+                            type: 'value',
+                            start: node.value.start - 1, // -1 for wrapper '('
+                            end: node.value.end - 1,
+                            value: node.value.value,
+                            line: node.value.loc.start.line,
+                            column: node.value.loc.start.column,
+                        });
+                    }
+                    
                     // Continue walking with updated path
                     if (node.value && node.value.type === 'ObjectExpression') {
                         walk(node.value, currentPath);
