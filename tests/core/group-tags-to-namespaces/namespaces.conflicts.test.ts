@@ -26,7 +26,6 @@ const mockConfig: LangTagCLIConfig = {
     onConfigGeneration: () => undefined,
     collect: {
         ...LANG_TAG_DEFAULT_CONFIG.collect,
-        onCollectConfigFix: (config) => config,
         onCollectFinish: event => {}
     },
     import: {

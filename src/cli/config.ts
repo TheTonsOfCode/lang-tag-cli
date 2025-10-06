@@ -37,7 +37,7 @@ export interface LangTagCLIConfig {
          * A function called when the collected translation configuration needs to be fixed or validated.
          * Allows modification of the configuration before it's saved to the output files.
          */
-        onCollectConfigFix?: (config: LangTagTranslationsConfig, langTagConfig: LangTagCLIConfig) => LangTagTranslationsConfig;
+        onCollectConfigFix?: (event: LangTagCLICollectConfigFixEvent) => LangTagTranslationsConfig;
 
         /**
          * A function called when a single conflict is detected between translation tags.
@@ -204,6 +204,11 @@ export interface LangTagCLIConflict {
  * Events
  */
 
+export interface LangTagCLICollectConfigFixEvent {
+    config: LangTagTranslationsConfig,
+    langTagConfig: LangTagCLIConfig
+}
+
 export interface LangTagCLIConflictResolutionEvent {
     conflict: LangTagCLIConflict,
     logger: LangTagCLILogger
@@ -225,7 +230,7 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     outputDir: 'locales/en',
     collect: {
         defaultNamespace: 'common',
-        onCollectConfigFix: (config, langTagConfig) => {
+        onCollectConfigFix: ({config, langTagConfig}) => {
             if (langTagConfig.isLibrary) return config;
 
             if (!config) return { path: '', namespace: langTagConfig.collect!.defaultNamespace!};

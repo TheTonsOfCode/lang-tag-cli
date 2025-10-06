@@ -51,7 +51,7 @@ export async function $LT_CollectCandidateFilesWithTags(props: Props): Promise<$
         }
 
         for (let tag of tags) {
-            tag.parameterConfig = config.collect!.onCollectConfigFix!(tag.parameterConfig, config);
+            tag.parameterConfig = config.collect!.onCollectConfigFix!({config: tag.parameterConfig, langTagConfig: config});
         }
 
         // Note: onCollectConfigFix should always fix empty namespace tags to be directed to default namespace
