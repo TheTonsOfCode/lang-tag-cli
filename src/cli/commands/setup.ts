@@ -1,12 +1,13 @@
 import {$LT_ReadConfig} from "@/cli/core/io/read-config.ts";
 import process from "node:process";
-import {$LT_CreateDefaultLogger, $LT_Logger} from "@/cli/core/logger.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
+import {$LT_CreateDefaultLogger} from "@/cli/core/logger/default-logger.ts";
 
 export async function $LT_GetCommandEssentials() {
 
     const config = await $LT_ReadConfig(process.cwd());
 
-    const logger: $LT_Logger = $LT_CreateDefaultLogger(config.debug);
+    const logger: LangTagCLILogger = $LT_CreateDefaultLogger(config.debug, config.translationArgPosition);
 
     return {
         config,

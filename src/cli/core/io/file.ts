@@ -1,5 +1,5 @@
 import {mkdir, readFile, writeFile} from 'fs/promises';
-import {dirname} from 'path';
+import {dirname, resolve} from 'path';
 
 export async function $LT_EnsureDirectoryExists(filePath: string): Promise<void> {
     await mkdir(filePath, {recursive: true});
@@ -24,4 +24,10 @@ export async function $LT_WriteFileWithDirs(filePath: string, content: string): 
     }
     
     await writeFile(filePath, content, 'utf-8');
+}
+
+export async function $LT_ReadFileContent(relativeFilePath: string): Promise<string> {
+    const cwd = process.cwd();
+    const absolutePath = resolve(cwd, relativeFilePath);
+    return await readFile(absolutePath, 'utf-8');
 }

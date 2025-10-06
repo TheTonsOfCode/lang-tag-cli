@@ -1,14 +1,14 @@
-import {LangTagConfig} from "@/cli/config.ts";
+import {LangTagCLIConfig} from "@/cli/config.ts";
 import {$LT_EnsureDirectoryExists, $LT_ReadJSON, $LT_WriteJSON} from "@/cli/core/io/file.ts";
 import {resolve} from "pathe";
 import process from "node:process";
 import {deepMergeTranslations} from "@/cli/core/merge.ts";
-import {$LT_Logger} from "@/cli/core/logger.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
 
 export async function $LT_WriteToNamespaces({config, namespaces, logger}: {
-    config: LangTagConfig,
+    config: LangTagCLIConfig,
     namespaces: Record<string, Record<string, any>>
-    logger: $LT_Logger
+    logger: LangTagCLILogger
 }): Promise<string[]> {
 
     const changedNamespaces: string[] = [];

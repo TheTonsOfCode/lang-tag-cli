@@ -4,21 +4,21 @@ import {readFileSync} from "fs";
 
 import {globby} from "globby";
 
-import {LangTagConfig} from "@/cli/config.ts";
-import {$LT_Logger} from "@/cli/core/logger.ts";
-import {$LT_Tag, $LT_TagProcessor} from "@/cli/core/processor.ts";
+import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/cli/config.ts";
+import {LangTagCLILogger} from "@/cli/logger.ts";
+import {$LT_TagProcessor} from "@/cli/core/processor.ts";
 import {$LT_FilterEmptyNamespaceTags, $LT_FilterInvalidTags} from "@/cli/core/collect/fillters.ts";
 
 export interface $LT_TagCandidateFile {
 
     relativeFilePath: string;
-    tags: $LT_Tag[]
+    tags: LangTagCLIProcessedTag[]
 }
 
 interface Props {
 
-    config: LangTagConfig;
-    logger: $LT_Logger;
+    config: LangTagCLIConfig;
+    logger: LangTagCLILogger;
     filesToScan?: string[]
 }
 
@@ -51,7 +51,7 @@ export async function $LT_CollectCandidateFilesWithTags(props: Props): Promise<$
         }
 
         for (let tag of tags) {
-            tag.parameterConfig = config.collect!.onCollectConfigFix!(tag.parameterConfig, config);
+            tag.parameterConfig = config.collect!.onCollectConfigFix!({config: tag.parameterConfig, langTagConfig: config});
         }
 
         // Note: onCollectConfigFix should always fix empty namespace tags to be directed to default namespace

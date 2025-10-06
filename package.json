@@ -1,6 +1,6 @@
 {
   "name": "lang-tag",
-  "version": "0.8.0",
+  "version": "0.9.1",
   "type": "module",
   "private": true,
   "repository": {
@@ -30,6 +30,7 @@
     "test": "./pack-test-build.sh && TESTS_BY_COMMAND=true vitest --run"
   },
   "dependencies": {
+    "acorn": "^8.15.0",
     "chokidar": "^4.0.3",
     "commander": "^13.1.0",
     "globby": "^14.1.0",

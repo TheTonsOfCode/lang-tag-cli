@@ -17,24 +17,33 @@ export async function $LT_CMD_Collect() {
         return;
     }
 
-    const namespaces = await $LT_GroupTagsToNamespaces({logger, files})
+    try {
+        const namespaces = await $LT_GroupTagsToNamespaces({logger, files, config})
 
-    const totalTags = files.reduce((sum, file) => sum + file.tags.length, 0);
-    logger.debug('Found {totalTags} translation tags', { totalTags });
+        const totalTags = files.reduce((sum, file) => sum + file.tags.length, 0);
+        logger.debug('Found {totalTags} translation tags', {totalTags});
 
-    const changedNamespaces = await $LT_WriteToNamespaces({config, namespaces, logger});
+        const changedNamespaces = await $LT_WriteToNamespaces({config, namespaces, logger});
 
-    if (!changedNamespaces?.length) {
-        logger.info('No changes were made based on the current configuration and files')
-        return;
+        if (!changedNamespaces?.length) {
+            logger.info('No changes were made based on the current configuration and files')
+            return;
+        }
+
+        const n = changedNamespaces
+            .map(n => `"${n}.json"`)
+            .join(", ");
+
+        logger.success('Updated namespaces {outputDir} ({namespaces})', {
+            outputDir: config.outputDir,
+            namespaces: n,
+        });
+    } catch (e: any) {
+        const prefix = 'LangTagConflictResolution:';
+        if (e.message.startsWith(prefix)) {
+            logger.error(e.message.substring(prefix.length));
+            return;
+        }
+        throw e;
     }
-
-    const n = changedNamespaces
-        .map(n => `"${n}.json"`)
-        .join(", ");
-
-    logger.success('Updated namespaces {outputDir} ({namespaces})', {
-        outputDir: config.outputDir,
-        namespaces: n,
-    });
 }

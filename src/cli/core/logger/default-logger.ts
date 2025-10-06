@@ -1,13 +1,6 @@
-export interface $LT_Logger {
-    info(message: string, params?: Record<string, any>): void;
-    success(message: string, params?: Record<string, any>): void;
-    warn(message: string, params?: Record<string, any>): void;
-    error(message: string, params?: Record<string, any>): void;
-    debug(message: string, params?: Record<string, any>): void;
-
-    // TODO:
-    errorLinePreview(tag: any): void;
-}
+import { LangTagCLILogger } from '@/cli/logger.ts';
+import { LangTagCLIConflict } from '../../config.ts';
+import { $LT_LogConflict } from './conflict-log.ts';
 
 const ANSI_COLORS: Record<string, string> = {
     reset: '\x1b[0m',
@@ -16,9 +9,11 @@ const ANSI_COLORS: Record<string, string> = {
     green: '\x1b[32m',
     yellow: '\x1b[33m',
     red: '\x1b[31m',
-    gray: '\x1b[37m',
-    cyan: '\x1b[36m',
+    gray: '\x1b[90m',
     bold: '\x1b[1m',
+    dim: '\x1b[2m',
+    cyan: '\x1b[36m',
+    magenta: '\x1b[35m',
 };
 
 function validateAndInterpolate(message: string, params?: Record<string, any>) {
@@ -77,7 +72,7 @@ function log(baseColor: string, message: string, params?: Record<string, any>) {
     console.log(`${prefix}${baseColor}${coloredMessage}${ANSI_COLORS.reset}`);
 }
 
-export function $LT_CreateDefaultLogger(debugMode?: boolean): $LT_Logger {
+export function $LT_CreateDefaultLogger(debugMode?: boolean, translationArgPosition = 1): LangTagCLILogger {
     return {
         info: (msg, params) => log(ANSI_COLORS.blue, msg, params),
         success: (msg, params) => log(ANSI_COLORS.green, msg, params),
@@ -87,9 +82,20 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean): $LT_Logger {
             if (!debugMode) return;
             log(ANSI_COLORS.gray, msg, params);
         },
-        errorLinePreview: (tag) => {
-            // TODO: Implement error line preview functionality
-            console.log(`${ANSI_COLORS.red}Error in tag: ${JSON.stringify(tag)}${ANSI_COLORS.reset}`);
+        conflict: async (conflict: LangTagCLIConflict) => {
+            const { path, conflictType, tagA } = conflict;
+
+            console.log();
+            console.log(`${ANSI_COLORS.bold}${ANSI_COLORS.red}⚠ Translation Conflict Detected${ANSI_COLORS.reset}`);
+            console.log(`${ANSI_COLORS.gray}${'─'.repeat(60)}${ANSI_COLORS.reset}`);
+            console.log(`  ${ANSI_COLORS.cyan}Conflict Type:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${conflictType}${ANSI_COLORS.reset}`);
+            console.log(`  ${ANSI_COLORS.cyan}Translation Key:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${path}${ANSI_COLORS.reset}`);
+            console.log(`  ${ANSI_COLORS.cyan}Namespace:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${tagA.tag.parameterConfig.namespace}${ANSI_COLORS.reset}`);
+            console.log(`${ANSI_COLORS.gray}${'─'.repeat(60)}${ANSI_COLORS.reset}`);
+            
+            await $LT_LogConflict(conflict, translationArgPosition);
+
+            console.log();
         },
     };
 }

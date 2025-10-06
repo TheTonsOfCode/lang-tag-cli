@@ -27,6 +27,8 @@ export default defineConfig({
         'commander',
         'pathe',
         'json5',
+        'acorn',
+        'mustache',
         'fs',
         'path',
         'url',
@@ -51,7 +53,7 @@ export default defineConfig({
   },
   plugins: [
     dts({
-      include: ['src/index.ts', "src/cli/config.ts"],
+      include: ['src/index.ts', "src/cli/config.ts", "src/cli/logger.ts"],
       // include: ['src/**/*.ts'],
       // exclude: ['src/cli/**/*.ts']
     })
