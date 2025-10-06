@@ -3,9 +3,42 @@ import {CONFIG_FILE_NAME} from "@/cli/core/constants.ts";
 import {existsSync} from "fs";
 import {LangTagCLILogger} from "@/cli/logger.ts";
 import {$LT_CreateDefaultLogger} from "@/cli/core/logger/default-logger.ts";
+import {readFile} from 'fs/promises';
+import {join} from 'path';
 
-const DEFAULT_INIT_CONFIG = `
-/** @type {import('lang-tag/cli/config').LangTagCLIConfig} */
+async function detectModuleSystem(): Promise<'esm' | 'cjs'> {
+    const packageJsonPath = join(process.cwd(), 'package.json');
+    
+    if (!existsSync(packageJsonPath)) {
+        return 'cjs';
+    }
+    
+    try {
+        const content = await readFile(packageJsonPath, 'utf-8');
+        const packageJson = JSON.parse(content);
+        
+        if (packageJson.type === 'module') {
+            return 'esm';
+        }
+        
+        // Maybe check for .mjs files or other ESM indicators
+        // For now, default to CommonJS if not explicitly set to module
+        return 'cjs';
+    } catch (error) {
+        // Default to CommonJS on error
+        return 'cjs';
+    }
+}
+
+function getExportStatement(moduleSystem: 'esm' | 'cjs'): string {
+    return moduleSystem === 'esm' ? 'export default config;' : 'module.exports = config;';
+}
+
+async function generateDefaultConfig(): Promise<string> {
+    const moduleSystem = await detectModuleSystem();
+    const exportStatement = getExportStatement(moduleSystem);
+    
+    return `/** @type {import('lang-tag/cli/config').LangTagCLIConfig} */
 const config = {
     tagName: 'lang',
     isLibrary: false,
@@ -38,12 +71,9 @@ const config = {
     debug: false,
 };
 
-module.exports = config;
-`;
+${exportStatement}`;
+}
 
-/**
- * Initialize project with default configuration
- */
 export async function $LT_CMD_InitConfig() {
     const logger: LangTagCLILogger = $LT_CreateDefaultLogger();
 
@@ -53,7 +83,8 @@ export async function $LT_CMD_InitConfig() {
     }
 
     try {
-        await writeFile(CONFIG_FILE_NAME, DEFAULT_INIT_CONFIG, 'utf-8');
+        const configContent = await generateDefaultConfig();
+        await writeFile(CONFIG_FILE_NAME, configContent, 'utf-8');
         logger.success('Configuration file created successfully');
     } catch (error: any) {
         logger.error(error?.message);
