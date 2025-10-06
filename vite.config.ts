@@ -27,6 +27,7 @@ export default defineConfig({
         'commander',
         'pathe',
         'json5',
+        'acorn',
         'fs',
         'path',
         'url',
