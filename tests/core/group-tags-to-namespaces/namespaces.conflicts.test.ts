@@ -169,51 +169,6 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         );
     });
 
-    it('should detect conflicts between simple values at root level', async () => {
-        const files: $LT_TagCandidateFile[] = [
-            createMockFile('src/Component1.tsx', [
-                createMockTag({
-                    fullMatch: 'lang({ abc: "XD1" })',
-                    parameter1Text: '{ abc: "XD1" }',
-                    parameter2Text: '{}',
-                    parameterTranslations: {
-                        abc: 'XD1'
-                    },
-                    parameterConfig: {
-                        namespace: 'common',
-                        path: undefined
-                    }
-                })
-            ]),
-            createMockFile('src/Component2.tsx', [
-                createMockTag({
-                    fullMatch: 'lang({ abc: "XD2" })',
-                    parameter1Text: '{ abc: "XD2" }',
-                    parameter2Text: '{}',
-                    parameterTranslations: {
-                        abc: 'XD2'
-                    },
-                    parameterConfig: {
-                        namespace: 'common',
-                        path: undefined
-                    }
-                })
-            ])
-        ];
-
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
-
-        // Should call onConflictResolution with correct path
-        expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
-        expect(mockOnConflictResolution).toHaveBeenCalledWith(
-            expect.objectContaining({
-                path: 'abc',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
-        );
-    });
-
     it('should NOT detect conflicts between different namespaces', async () => {
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Component1.tsx', [
@@ -577,6 +532,198 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         );
         
         // Should detect type_mismatch for app.header
+        expect(mockOnConflictResolution).toHaveBeenCalledWith(
+            expect.objectContaining({
+                path: 'app.header',
+                conflictType: 'type_mismatch'
+            }),
+            mockLogger
+        );
+    });
+
+    it('should detect conflicts with default namespace when no namespace specified in tags', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Component1.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ title: "Title 1" })',
+                    parameter1Text: '{ title: "Title 1" }',
+                    parameter2Text: '{}',
+                    parameterTranslations: { title: 'Title 1' },
+                    parameterConfig: { namespace: 'common', path: undefined }
+                })
+            ]),
+            createMockFile('src/Component2.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ title: "Title 2" })',
+                    parameter1Text: '{ title: "Title 2" }',
+                    parameter2Text: '{}',
+                    parameterTranslations: { title: 'Title 2' },
+                    parameterConfig: { namespace: 'common', path: undefined }
+                })
+            ])
+        ];
+
+        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+
+        // Should detect conflicts even when no explicit namespace in tags
+        expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
+        expect(mockOnConflictResolution).toHaveBeenCalledWith(
+            expect.objectContaining({
+                path: 'title',
+                conflictType: 'path_overwrite'
+            }),
+            mockLogger
+        );
+    });
+
+    it('should detect conflicts with default namespace and nested structures', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Component1.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ user: { name: "John", age: 25 } })',
+                    parameter1Text: '{ user: { name: "John", age: 25 } }',
+                    parameter2Text: '{}',
+                    parameterTranslations: { user: { name: 'John', age: 25 } },
+                    parameterConfig: { namespace: 'common', path: undefined }
+                })
+            ]),
+            createMockFile('src/Component2.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ name: "Jane" }, { path: "user" })',
+                    parameter1Text: '{ name: "Jane" }',
+                    parameter2Text: '{ path: "user" }',
+                    parameterTranslations: { name: 'Jane' },
+                    parameterConfig: { namespace: 'common', path: 'user' }
+                })
+            ])
+        ];
+
+        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+
+        expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
+        expect(mockOnConflictResolution).toHaveBeenCalledWith(
+            expect.objectContaining({
+                path: 'user.name',
+                conflictType: 'path_overwrite'
+            }),
+            mockLogger
+        );
+    });
+
+    it('should detect conflicts with default namespace and mixed explicit/implicit namespace usage', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Component1.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ title: "Default Title" })',
+                    parameter1Text: '{ title: "Default Title" }',
+                    parameter2Text: '{}',
+                    parameterTranslations: { title: 'Default Title' },
+                    parameterConfig: { namespace: 'common', path: undefined }
+                })
+            ]),
+            createMockFile('src/Component2.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ title: "Explicit Title" }, { namespace: "common" })',
+                    parameter1Text: '{ title: "Explicit Title" }',
+                    parameter2Text: '{ namespace: "common" }',
+                    parameterTranslations: { title: 'Explicit Title' },
+                    parameterConfig: { namespace: 'common', path: undefined }
+                })
+            ])
+        ];
+
+        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+
+        // Should detect conflicts between default and explicit namespace usage
+        expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
+        expect(mockOnConflictResolution).toHaveBeenCalledWith(
+            expect.objectContaining({
+                path: 'title',
+                conflictType: 'path_overwrite'
+            }),
+            mockLogger
+        );
+    });
+
+    it('should NOT detect conflicts between default namespace and different explicit namespace', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Component1.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ title: "Default Title" })',
+                    parameter1Text: '{ title: "Default Title" }',
+                    parameter2Text: '{}',
+                    parameterTranslations: { title: 'Default Title' },
+                    parameterConfig: { namespace: 'common', path: undefined }
+                })
+            ]),
+            createMockFile('src/Component2.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ title: "Admin Title" }, { namespace: "admin" })',
+                    parameter1Text: '{ title: "Admin Title" }',
+                    parameter2Text: '{ namespace: "admin" }',
+                    parameterTranslations: { title: 'Admin Title' },
+                    parameterConfig: { namespace: 'admin', path: undefined }
+                })
+            ])
+        ];
+
+        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+
+        // Should NOT detect conflicts between different namespaces
+        expect(mockOnConflictResolution).not.toHaveBeenCalled();
+    });
+
+    it('should detect conflicts with default namespace and complex nested paths', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Component1.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ app: { header: { title: "App Title" }, footer: { text: "Footer" } } })',
+                    parameter1Text: '{ app: { header: { title: "App Title" }, footer: { text: "Footer" } } }',
+                    parameter2Text: '{}',
+                    parameterTranslations: {
+                        app: {
+                            header: { title: 'App Title' },
+                            footer: { text: 'Footer' }
+                        }
+                    },
+                    parameterConfig: { namespace: 'common', path: undefined }
+                })
+            ]),
+            createMockFile('src/Component2.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ title: "New Title" }, { path: "app.header" })',
+                    parameter1Text: '{ title: "New Title" }',
+                    parameter2Text: '{ path: "app.header" }',
+                    parameterTranslations: { title: 'New Title' },
+                    parameterConfig: { namespace: 'common', path: 'app.header' }
+                })
+            ]),
+            createMockFile('src/Component3.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ header: "Simple Header" }, { path: "app" })',
+                    parameter1Text: '{ header: "Simple Header" }',
+                    parameter2Text: '{ path: "app" }',
+                    parameterTranslations: { header: 'Simple Header' },
+                    parameterConfig: { namespace: 'common', path: 'app' }
+                })
+            ])
+        ];
+
+        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+
+        // Should detect both types of conflicts
+        expect(mockOnConflictResolution).toHaveBeenCalledTimes(2);
+        
+        // Check for path_overwrite conflict
+        expect(mockOnConflictResolution).toHaveBeenCalledWith(
+            expect.objectContaining({
+                path: 'app.header.title',
+                conflictType: 'path_overwrite'
+            }),
+            mockLogger
+        );
+        
+        // Check for type_mismatch conflict
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
                 path: 'app.header',
