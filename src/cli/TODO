@@ -21,6 +21,24 @@ at: app/TEST.ts
     path: 'some.structured'
     i   foo: 'Another conflict'
 
+==========
+==========
+==========
+==========
+==========
+- moze 'acorn' jednak?
+
+- 'mustache' aby nie kompilowało bo builda...
+
+// komentarz w jednej lini wycinac langtaga aby nie bralo pod uwage
+
+- testy na to ze jak ktos se da template stringa to pominie tego lang-taga
+- testy na to ze jak ktos da z json5 multiline zmienna to też nie wezmie pod uwage
+==========
+==========
+==========
+==========
+==========
 
 
  - onConfigurationGeneration, undefined powinno usuwac konfiguracje, a powinna byc inna zmienna 'save: true'
