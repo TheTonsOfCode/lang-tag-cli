@@ -128,16 +128,19 @@ async function ensureNestedObject(
     for (const key of path.split('.')) {
         currentPath = currentPath ? `${currentPath}.${key}` : key;
         
-        if (current[key] && typeof current[key] !== 'object') {
-            // Found a conflict - trying to create object structure over existing value
+        // If key exists but is a primitive value, we can't navigate deeper
+        if (current[key] !== undefined && typeof current[key] !== 'object') {
+            // Found a conflict - trying to navigate through a primitive value
             const existingInfo = valueTracker.get(currentPath);
             if (existingInfo) {
-                await addConflict(currentPath, existingInfo, null, 'type_mismatch'); // null because we're trying to create object structure
+                // We're trying to create nested structure but there's already a primitive here
+                await addConflict(currentPath, existingInfo, {}, 'type_mismatch');
             }
-            // Skip creating the nested structure if there's a conflict
+            // Can't navigate deeper, return current level
             return current;
         }
         
+        // Create object if it doesn't exist, or use existing object
         current[key] = current[key] || {};
         current = current[key];
     }
@@ -180,7 +183,20 @@ async function mergeWithConflictDetection(
             const sourceType = typeof sourceValue;
 
             // Get existing value info from our tracking map
-            const existingInfo = valueTracker.get(currentPath);
+            let existingInfo = valueTracker.get(currentPath);
+
+            // If we don't have direct info but target is an object, try to find info from nested values
+            if (!existingInfo && targetType === 'object' && targetValue !== null && !Array.isArray(targetValue)) {
+                // Try to find any nested value info
+                for (const nestedKey in targetValue) {
+                    const nestedPath = `${currentPath}.${nestedKey}`;
+                    const nestedInfo = valueTracker.get(nestedPath);
+                    if (nestedInfo) {
+                        existingInfo = nestedInfo;
+                        break;
+                    }
+                }
+            }
 
             // Detect type mismatch conflicts (any type change)
             if (targetType !== sourceType) {
