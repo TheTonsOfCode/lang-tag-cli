@@ -1,44 +1,12 @@
 
 
 
-- rozwiazywanie konfliktow z pokazywaniem w jakich plikach i dlaczego
 
-jak sie daje prefix:
-    'file://' + file + ":11:4"
-    i do tego linie to tworzy się link w konsoli ktory przenosi do pliku
-    zrobic tak:
- (file:///Users/pawel/homedev/lang-tag/.e2e-tests/.template-regenerate/node_modules/lang-tag/cli/index.js:395:30)
-
-
-
-
-at: app/TEST.ts
-25 | lang({
-26 |    foo: 'Another conflict'
-27 | }, {namespace: 'common', path: 'some.structured'})
-
-- Tutaj wyzej kolorowac dokładnie to:
-    path: 'some.structured'
-    i   foo: 'Another conflict'
-
-==========
-==========
-==========
-==========
-==========
-- moze 'acorn' jednak?
-
-- 'mustache' aby nie kompilowało bo builda...
-
+- dodac ze w linii langtaga processor cofa sie i szuka // jesli znalazl to znaczy ze jest to zakomentowany lang-tag  i go pomija
 // komentarz w jednej lini wycinac langtaga aby nie bralo pod uwage
 
 - testy na to ze jak ktos se da template stringa to pominie tego lang-taga
 - testy na to ze jak ktos da z json5 multiline zmienna to też nie wezmie pod uwage
-==========
-==========
-==========
-==========
-==========
 
 
  - onConfigurationGeneration, undefined powinno usuwac konfiguracje, a powinna byc inna zmienna 'save: true'
@@ -61,9 +29,6 @@ at: app/TEST.ts
         }
     )
 
-- dodac ze w linii langtaga processor cofa sie i szuka // jesli znalazl to znaczy ze jest to zakomentowany lang-tag  i go pomija
-
-- mozliwe ze definicje loggera wrzucic do configu prostu, aby sie kompilowala. Sprawdzic w dist czy czegos nie brakuje..., albo dodac do vite poprostu zeg logger sie koompilowal z typami i zmienic wtedy nazwe na LangTagLogger
 
 - w readConfig jesli nie ma:
     onConflictResolution

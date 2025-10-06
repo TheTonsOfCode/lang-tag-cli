@@ -28,6 +28,7 @@ export default defineConfig({
         'pathe',
         'json5',
         'acorn',
+        'mustache',
         'fs',
         'path',
         'url',
