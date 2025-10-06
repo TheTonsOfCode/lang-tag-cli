@@ -477,7 +477,7 @@ describe('collect command e2e tests', () => {
         });
     });
 
-    it('should handle multiple namespaces in the same file', () => {
+    it('should stop on duplicate translation keys in different files (1 - this file "multiNamespaceFile.ts", 2 - one of base lang files "test.ts")', () => {
         // Create a test file with multiple namespaces
         const multiNamespaceFile = `
             // @ts-ignore
@@ -498,41 +498,16 @@ describe('collect command e2e tests', () => {
 
         writeFileSync(join(TESTS_TEST_DIR, 'src/multi-namespace.ts'), multiNamespaceFile);
 
-        // Run the collect command
-        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        // Run the collect command and capture output
+        let collectOutput = '';
+        try {
+            collectOutput = execSync('npm run c', {cwd: TESTS_TEST_DIR, encoding: 'utf-8'});
+        } catch (error: any) {
+            collectOutput = error.stdout || '';
+        }
 
-        // Verify translations in different namespaces
-        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
-        
-        const commonTranslations = JSON.parse(
-            readFileSync(join(outputDir, 'common.json'), 'utf-8')
-        );
-        expect(commonTranslations).toEqual({
-            // Base common translations from "test.ts"
-            hello: 'Hello World',
-            bye: 'Goodbye',
-            // multi-namespace.ts
-            common: "Common text"
-        });
-
-        const errorsTranslations = JSON.parse(
-            readFileSync(join(outputDir, 'errors.json'), 'utf-8')
-        );
-        expect(errorsTranslations).toEqual({
-            // multi-namespace.ts
-            // was overridden by:
-            // error translations from "test.ts"
-            // cause 'test.ts' was indexed later than 'multi-namespace.ts'
-            error: "Error occurred"
-        });
-
-        const settingsTranslations = JSON.parse(
-            readFileSync(join(outputDir, 'settings.json'), 'utf-8')
-        );
-        expect(settingsTranslations).toEqual({
-            // multi-namespace.ts
-            setting: "Setting value"
-        });
+        // Check that the collect command output contains the expected finish message
+        expect(collectOutput).toContain('Processing stopped due to collect finish handler');
     });
 
     it('should handle translations with special characters', () => {
@@ -603,7 +578,7 @@ describe('collect command e2e tests', () => {
         }
     });
 
-    it('should handle duplicate translation keys by keeping the last occurrence', () => {
+    it('should stop on duplicate translation keys in same file', () => {
         // Create a test file with duplicate keys
         const duplicateKeysFile = `
             // @ts-ignore
@@ -620,15 +595,16 @@ describe('collect command e2e tests', () => {
 
         writeFileSync(join(TESTS_TEST_DIR, 'src/duplicates.ts'), duplicateKeysFile);
 
-        // Run the collect command
-        execSync('npm run c', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        // Run the collect command and capture output
+        let collectOutput = '';
+        try {
+            collectOutput = execSync('npm run c', {cwd: TESTS_TEST_DIR, encoding: 'utf-8'});
+        } catch (error: any) {
+            collectOutput = error.stdout || '';
+        }
 
-        // Verify only the last occurrence was kept
-        const outputDir = join(TESTS_TEST_DIR, 'locales/en');
-        const commonTranslations = JSON.parse(
-            readFileSync(join(outputDir, 'common.json'), 'utf-8')
-        );
-        expect(commonTranslations.greeting).toBe("Hello second");
+        // Check that the collect command output contains the expected finish message
+        expect(collectOutput).toContain('Processing stopped due to collect finish handler');
     });
 
     it('should handle different file extensions correctly', () => {
