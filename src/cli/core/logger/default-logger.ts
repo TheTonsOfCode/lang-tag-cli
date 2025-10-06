@@ -69,7 +69,7 @@ function log(baseColor: string, message: string, params?: Record<string, any>) {
     console.log(`${prefix}${baseColor}${coloredMessage}${ANSI_COLORS.reset}`);
 }
 
-export function $LT_CreateDefaultLogger(debugMode?: boolean): LangTagCLILogger {
+export function $LT_CreateDefaultLogger(debugMode?: boolean, translationArgPosition = 1): LangTagCLILogger {
     return {
         info: (msg, params) => log(ANSI_COLORS.blue, msg, params),
         success: (msg, params) => log(ANSI_COLORS.green, msg, params),
@@ -88,7 +88,7 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean): LangTagCLILogger {
                 namespace: tagA.tag.parameterConfig.namespace
             });
             
-            await $LT_LogConflict(conflict);
+            await $LT_LogConflict(conflict, translationArgPosition);
         },
     };
 }

@@ -11,7 +11,7 @@ const ANSI = {
 /**
  * Colorizes JavaScript object code and returns formatted lines
  */
-export function colorizeCode(code: string, startLineNumber: number = 1): string[] {
+export function colorizeCode(code: string): string {
     let colorized = code;
     
     try {
@@ -80,38 +80,36 @@ export function colorizeCode(code: string, startLineNumber: number = 1): string[
             colorized = before + range.color + text + ANSI.reset + after;
         }
     } catch {
-        // If Acorn fails, use simple character-by-character coloring
-        let result = '';
-        let i = 0;
-        
-        while (i < code.length) {
-            // Check for key pattern (word followed by optional spaces and colon)
-            const keyMatch = code.substring(i).match(/^(\w+)(\s*):/);
-            if (keyMatch) {
-                result += ANSI.cyan + keyMatch[1] + ANSI.reset + keyMatch[2] + ANSI.green + ':' + ANSI.reset;
-                i += keyMatch[0].length;
-                continue;
-            }
-            
-            // Check for special characters
-            if (/[{}[\](),]/.test(code[i])) {
-                result += ANSI.green + code[i] + ANSI.reset;
-                i++;
-                continue;
-            }
-            
-            // Regular character
-            result += code[i];
-            i++;
-        }
-        
-        colorized = result;
+        // // If Acorn fails, use simple character-by-character coloring
+        // let result = '';
+        // let i = 0;
+        //
+        // while (i < code.length) {
+        //     // Check for key pattern (word followed by optional spaces and colon)
+        //     const keyMatch = code.substring(i).match(/^(\w+)(\s*):/);
+        //     if (keyMatch) {
+        //         result += ANSI.cyan + keyMatch[1] + ANSI.reset + keyMatch[2] + ANSI.green + ':' + ANSI.reset;
+        //         i += keyMatch[0].length;
+        //         continue;
+        //     }
+        //
+        //     // Check for special characters
+        //     if (/[{}[\](),]/.test(code[i])) {
+        //         result += ANSI.green + code[i] + ANSI.reset;
+        //         i++;
+        //         continue;
+        //     }
+        //
+        //     // Regular character
+        //     result += code[i];
+        //     i++;
+        // }
+        //
+        // colorized = result;
+        colorized = code;
     }
     
-    // Split into lines and add line numbers
-    const lines = colorized.split('\n');
-    return lines.map((line, i) => 
-        `${ANSI.cyan}${startLineNumber + i}${ANSI.reset} | ${line}`
-    );
+    // Return colorized lines without line numbers
+    return colorized;
 }
 
