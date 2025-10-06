@@ -1,6 +1,5 @@
 import { $LT_ReadFileContent } from '../io/file.ts';
 import {LangTagCLIConflict, LangTagCLITagConflictInfo} from '../../config.ts';
-import { colorizeCode } from './simple-colorize.ts';
 import { parseObjectAST, markConflictNodes } from './ast-parser.ts';
 import { colorizeFromAST } from './ast-colorizer.ts';
 import * as path from 'path';
@@ -45,9 +44,7 @@ function stripPrefix(str: string, prefix: string) {
 }
 
 async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPath: string, translationArgPosition: number): Promise<void> {
-    const { tag, relativeFilePath } = tagInfo;
-
-    console.log(`${ANSI.white}at: file://${path.join(process.cwd(), relativeFilePath)}:${tag.line} ${ANSI.reset}`);
+    const { tag } = tagInfo;
 
     try {
         const startLine = tag.line;
@@ -120,8 +117,13 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPa
 }
 
 export async function $LT_LogConflict(conflict: LangTagCLIConflict, translationArgPosition: number): Promise<void> {
-    const { path, tagA, tagB } = conflict;
+    const { path: conflictPath, tagA, tagB } = conflict;
     
-    await logTagConflictInfo(tagA, path, translationArgPosition);
-    await logTagConflictInfo(tagB, path, translationArgPosition);
+    const logTag = async (tagInfo: LangTagCLITagConflictInfo, prefix: string) => {
+        console.log(`${ANSI.white}${prefix} file://${path.join(process.cwd(), tagInfo.relativeFilePath)}:${tagInfo.tag.line} ${ANSI.reset}`);
+        await logTagConflictInfo(tagInfo, conflictPath, translationArgPosition);
+    };
+    
+    await logTag(tagA, 'between');
+    await logTag(tagB, 'and');
 }

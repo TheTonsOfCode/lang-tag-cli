@@ -81,7 +81,9 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean, translationArgPosit
         },
         conflict: async (conflict: LangTagCLIConflict) => {
             const { path, conflictType, tagA } = conflict;
-            
+
+            console.log();
+
             log(ANSI_COLORS.yellow, `Conflict detected: {conflictType} at "{path}" in namespace "{namespace}"`, { 
                 conflictType, 
                 path,
@@ -89,6 +91,8 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean, translationArgPosit
             });
             
             await $LT_LogConflict(conflict, translationArgPosition);
+
+            console.log();
         },
     };
 }
