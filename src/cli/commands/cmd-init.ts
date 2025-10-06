@@ -8,6 +8,7 @@ const DEFAULT_INIT_CONFIG = `
 /** @type {import('lang-tag/cli/config').LangTagCLIConfig} */
 const config = {
     tagName: 'lang',
+    isLibrary: false,
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
     outputDir: 'public/locales/en',
@@ -33,6 +34,7 @@ const config = {
             event.exit(); // Do not merge on conflicts
         }
     },
+    translationArgPosition: 1,
     debug: false,
 };
 
