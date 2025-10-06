@@ -44,14 +44,14 @@ export interface LangTagCLIConfig {
          * Allows custom resolution logic for handling individual conflicts.
          * Return true to continue processing, false to stop execution.
          */
-        onConflictResolution?: (conflict: LangTagCLIConflict, logger: LangTagCLILogger) => Promise<boolean>;
+        onConflictResolution?: (event: LangTagCLIConflictResolutionEvent) => Promise<void>;
 
         /**
          * A function called after all conflicts have been collected and processed.
          * Allows custom logic to decide whether to continue or stop based on all conflicts.
          * Return true to continue processing, false to stop execution.
          */
-        onCollectFinish?: (conflicts: LangTagCLIConflict[], logger: LangTagCLILogger) => boolean;
+        onCollectFinish?: (event: LangTagCLICollectFinishEvent) => void;
     }
 
     import: {
@@ -200,6 +200,24 @@ export interface LangTagCLIConflict {
     conflictType: 'path_overwrite' | 'type_mismatch';
 }
 
+/*
+ * Events
+ */
+
+export interface LangTagCLIConflictResolutionEvent {
+    conflict: LangTagCLIConflict,
+    logger: LangTagCLILogger
+    /** Breaks translation collection process */
+    exit(): void;
+}
+
+export interface LangTagCLICollectFinishEvent {
+    conflicts: LangTagCLIConflict[]
+    logger: LangTagCLILogger
+    /** Breaks translation collection process */
+    exit(): void;
+}
+
 export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     tagName: 'lang',
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
@@ -215,12 +233,13 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
             if (!config.namespace) config.namespace = langTagConfig.collect!.defaultNamespace!;
             return config;
         },
-        onConflictResolution: async (conflict, logger) => {
-            await logger.conflict(conflict);
-            return true; // Continue processing by default
+        onConflictResolution: async event => {
+            await event.logger.conflict(event.conflict);
+            // Continue processing by default
+            // event.exit(); // In order to break command on first conflict
         },
-        onCollectFinish: (conflicts, logger) => {
-            return false; // Do not merge on conflicts
+        onCollectFinish: event => {
+            event.exit(); // Do not merge on conflicts
         }
     },
     import: {

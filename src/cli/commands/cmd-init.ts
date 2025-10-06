@@ -24,12 +24,13 @@ const config = {
     },
     collect: {
         defaultNamespace: 'common',
-        onConflictResolution: async (conflict, logger) => {
-            await logger.conflict(conflict);
-            return true; // Continue processing by default
+        onConflictResolution: async event => {
+            await event.logger.conflict(event.conflict);
+            // Continue processing by default
+            // event.exit(); // In order to break command on first conflict
         },
-        onCollectFinish: (conflicts, logger) => {
-            return false; // Do not merge on conflicts
+        onCollectFinish: event => {
+            event.exit(); // Do not merge on conflicts
         }
     },
     debug: false,

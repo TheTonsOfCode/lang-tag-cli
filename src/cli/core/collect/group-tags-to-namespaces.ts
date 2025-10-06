@@ -49,7 +49,7 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
             const valueTracker: ValueTracker = {
                 get: (path: string) => existingValues.get(path),
                 trackValue: (path: string, value: any) => {
-                    existingValues.set(path, { tag, relativeFilePath: file.relativeFilePath, value });
+                    existingValues.set(path, {tag, relativeFilePath: file.relativeFilePath, value});
                 }
             };
 
@@ -67,25 +67,30 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
 
                 // Call onConflictResolution for each conflict
                 if (config.collect?.onConflictResolution) {
-                    const shouldContinue = await config.collect.onConflictResolution(conflict, logger);
+                    let shouldContinue = true;
+                    await config.collect.onConflictResolution({
+                        conflict, logger, exit() {
+                            shouldContinue = false;
+                        }
+                    });
                     if (!shouldContinue) {
                         throw new Error(`LangTagConflictResolution:Processing stopped due to conflict resolution: ${conflict.tagA.tag.parameterConfig.namespace}|${conflict.path}`);
                     }
                 }
-                
+
                 allConflicts.push(conflict);
             };
 
             const target = await ensureNestedObject(
-                tagConfig.path, 
+                tagConfig.path,
                 namespaceTranslations,
                 valueTracker,
                 addConflict
             );
-            
+
             await mergeWithConflictDetection(
-                target, 
-                tag.parameterTranslations, 
+                target,
+                tag.parameterTranslations,
                 tagConfig.path || '',
                 valueTracker,
                 addConflict
@@ -99,7 +104,12 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
 
         // Call onCollectFinish with all conflicts
         if (config.collect?.onCollectFinish) {
-            const shouldContinue = config.collect.onCollectFinish(allConflicts, logger);
+            let shouldContinue = true;
+            config.collect.onCollectFinish({
+                conflicts: allConflicts, logger, exit() {
+                    shouldContinue = false;
+                }
+            });
             if (!shouldContinue) {
                 throw new Error(`LangTagConflictResolution:Processing stopped due to collect finish handler`);
             }
@@ -121,13 +131,13 @@ async function ensureNestedObject(
     addConflict: AddConflictFunction
 ): Promise<Record<string, any>> {
     if (!path || !path.trim()) return root;
-    
+
     let current = root;
     let currentPath = '';
-    
+
     for (const key of path.split('.')) {
         currentPath = currentPath ? `${currentPath}.${key}` : key;
-        
+
         // If key exists but is a primitive value, we can't navigate deeper
         if (current[key] !== undefined && typeof current[key] !== 'object') {
             // Found a conflict - trying to navigate through a primitive value
@@ -139,12 +149,12 @@ async function ensureNestedObject(
             // Can't navigate deeper, return current level
             return current;
         }
-        
+
         // Create object if it doesn't exist, or use existing object
         current[key] = current[key] || {};
         current = current[key];
     }
-    
+
     return current;
 }
 
@@ -223,9 +233,9 @@ async function mergeWithConflictDetection(
             }
 
             await mergeWithConflictDetection(
-                targetValue, 
-                sourceValue, 
-                currentPath, 
+                targetValue,
+                sourceValue,
+                currentPath,
                 valueTracker,
                 addConflict
             );

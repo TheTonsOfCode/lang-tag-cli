@@ -27,7 +27,7 @@ const mockConfig: LangTagCLIConfig = {
     collect: {
         ...LANG_TAG_DEFAULT_CONFIG.collect,
         onCollectConfigFix: (config) => config,
-        onCollectFinish: conflicts => true
+        onCollectFinish: event => {}
     },
     import: {
         dir: 'src/lang-libraries',
@@ -117,10 +117,12 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'some.structured.foo',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'some.structured.foo',
+                    conflictType: 'path_overwrite'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
@@ -162,10 +164,12 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'page.header.title',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'page.header.title',
+                    conflictType: 'path_overwrite'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
@@ -251,10 +255,12 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'some.structured',
-                conflictType: 'type_mismatch'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'some.structured',
+                    conflictType: 'type_mismatch'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
@@ -295,10 +301,12 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(2);
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'count',
-                conflictType: 'type_mismatch'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'count',
+                    conflictType: 'type_mismatch'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
@@ -385,10 +393,12 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'level1.level2.level3.level4.value',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'level1.level2.level3.level4.value',
+                    conflictType: 'path_overwrite'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
@@ -466,19 +476,23 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         // Check for path_overwrite conflict
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'user.name',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'user.name',
+                    conflictType: 'path_overwrite'
+                }),
+                logger: mockLogger
+            })
         );
         
         // Check for type_mismatch conflict
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'user',
-                conflictType: 'type_mismatch'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'user',
+                    conflictType: 'type_mismatch'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
@@ -525,19 +539,23 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         // Should detect path_overwrite for app.header.title
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'app.header.title',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'app.header.title',
+                    conflictType: 'path_overwrite'
+                }),
+                logger: mockLogger
+            })
         );
         
         // Should detect type_mismatch for app.header
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'app.header',
-                conflictType: 'type_mismatch'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'app.header',
+                    conflictType: 'type_mismatch'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
@@ -569,10 +587,12 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'title',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'title',
+                    conflictType: 'path_overwrite'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
@@ -603,10 +623,12 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'user.name',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'user.name',
+                    conflictType: 'path_overwrite'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
@@ -638,10 +660,12 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'title',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'title',
+                    conflictType: 'path_overwrite'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
@@ -717,19 +741,23 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         // Check for path_overwrite conflict
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'app.header.title',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'app.header.title',
+                    conflictType: 'path_overwrite'
+                }),
+                logger: mockLogger
+            })
         );
         
         // Check for type_mismatch conflict
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'app.header',
-                conflictType: 'type_mismatch'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'app.header',
+                    conflictType: 'type_mismatch'
+                }),
+                logger: mockLogger
+            })
         );
     });
 

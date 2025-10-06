@@ -27,6 +27,7 @@ const mockConfig: LangTagCLIConfig = {
     collect: {
         ...LANG_TAG_DEFAULT_CONFIG.collect,
         onCollectConfigFix: (config) => config,
+        onCollectFinish: () => {}, // Don't exit on conflicts in tests
     },
     import: {
         dir: 'src/lang-libraries',
@@ -430,7 +431,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
     });
 
     it('should call onConflictResolution for each conflict', async () => {
-        const onConflictResolution = vi.fn().mockReturnValue(true);
+        const onConflictResolution = vi.fn();
         const configWithHandler = {
             ...mockConfig,
             collect: {
@@ -459,15 +460,17 @@ describe('$LT_GroupTagsToNamespaces', () => {
         expect(onConflictResolution).toHaveBeenCalledTimes(1);
         expect(onConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
-                path: 'buttons.primary.text',
-                conflictType: 'path_overwrite'
-            }),
-            mockLogger
+                conflict: expect.objectContaining({
+                    path: 'buttons.primary.text',
+                    conflictType: 'path_overwrite'
+                }),
+                logger: mockLogger
+            })
         );
     });
 
     it('should call onCollectFinish with all conflicts', async () => {
-        const onCollectFinish = vi.fn().mockReturnValue(true);
+        const onCollectFinish = vi.fn();
         const configWithHandler = {
             ...mockConfig,
             collect: {
@@ -495,18 +498,22 @@ describe('$LT_GroupTagsToNamespaces', () => {
 
         expect(onCollectFinish).toHaveBeenCalledTimes(1);
         expect(onCollectFinish).toHaveBeenCalledWith(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    path: 'buttons.primary.text',
-                    conflictType: 'path_overwrite'
-                })
-            ]),
-            mockLogger
+            expect.objectContaining({
+                conflicts: expect.arrayContaining([
+                    expect.objectContaining({
+                        path: 'buttons.primary.text',
+                        conflictType: 'path_overwrite'
+                    })
+                ]),
+                logger: mockLogger
+            })
         );
     });
 
-    it('should stop processing when onConflictResolution returns false', async () => {
-        const onConflictResolution = vi.fn().mockReturnValue(false);
+    it('should stop processing when onConflictResolution calls exit()', async () => {
+        const onConflictResolution = vi.fn().mockImplementation(async (event) => {
+            event.exit();
+        });
         const configWithHandler = {
             ...mockConfig,
             collect: {
@@ -535,8 +542,10 @@ describe('$LT_GroupTagsToNamespaces', () => {
         ).rejects.toThrow('Processing stopped due to conflict resolution: common|buttons.primary.text');
     });
 
-    it('should stop processing when onCollectFinish returns false', async () => {
-        const onCollectFinish = vi.fn().mockReturnValue(false);
+    it('should stop processing when onCollectFinish calls exit()', async () => {
+        const onCollectFinish = vi.fn().mockImplementation((event) => {
+            event.exit();
+        });
         const configWithHandler = {
             ...mockConfig,
             collect: {
