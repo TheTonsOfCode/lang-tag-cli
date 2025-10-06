@@ -187,7 +187,7 @@ async function mergeWithConflictDetection(
             continue; // Skip arrays silently
         }
 
-        // Check for conflicts if target already has a value
+            // Check for conflicts if target already has a value
         if (targetValue !== undefined) {
             const targetType = typeof targetValue;
             const sourceType = typeof sourceValue;
@@ -197,15 +197,24 @@ async function mergeWithConflictDetection(
 
             // If we don't have direct info but target is an object, try to find info from nested values
             if (!existingInfo && targetType === 'object' && targetValue !== null && !Array.isArray(targetValue)) {
-                // Try to find any nested value info
-                for (const nestedKey in targetValue) {
-                    const nestedPath = `${currentPath}.${nestedKey}`;
-                    const nestedInfo = valueTracker.get(nestedPath);
-                    if (nestedInfo) {
-                        existingInfo = nestedInfo;
-                        break;
+                // Recursively search for any tracked nested value
+                const findNestedInfo = (obj: any, prefix: string): LangTagCLITagConflictInfo | undefined => {
+                    for (const key in obj) {
+                        const path = prefix ? `${prefix}.${key}` : key;
+                        const info = valueTracker.get(path);
+                        if (info) {
+                            return info;
+                        }
+                        if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                            const nestedInfo = findNestedInfo(obj[key], path);
+                            if (nestedInfo) {
+                                return nestedInfo;
+                            }
+                        }
                     }
-                }
+                    return undefined;
+                };
+                existingInfo = findNestedInfo(targetValue, currentPath);
             }
 
             // Detect type mismatch conflicts (any type change)
@@ -217,7 +226,8 @@ async function mergeWithConflictDetection(
             }
 
             // Detect path overwrite conflicts (same type but different values)
-            if (targetValue !== sourceValue) {
+            // For objects, we let the recursive merge handle nested conflicts
+            if (targetValue !== sourceValue && targetType !== 'object') {
                 if (existingInfo) {
                     await addConflict(currentPath, existingInfo, sourceValue, 'path_overwrite');
                 }
