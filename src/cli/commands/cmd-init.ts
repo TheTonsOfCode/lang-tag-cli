@@ -24,6 +24,13 @@ const config = {
     },
     collect: {
         defaultNamespace: 'common',
+        onConflictResolution: async (conflict, logger) => {
+            await logger.conflict(conflict);
+            return true; // Continue processing by default
+        },
+        onCollectFinish: (conflicts, logger) => {
+            return false; // Do not merge on conflicts
+        }
     },
     debug: false,
 };

@@ -2,11 +2,15 @@ import { ASTNode, ASTNodeType } from './ast-parser.ts';
 
 const ANSI = {
     reset: '\x1b[0m',
-    white: '\x1b[37m',
+    white: '\x1b[97m',
+    brightCyan: '\x1b[96m',
     cyan: '\x1b[36m',
-    green: '\x1b[32m',
-    red: '\x1b[41m\x1b[37m',
-    yellow: '\x1b[33m',
+    green: '\x1b[92m',
+    yellow: '\x1b[93m',
+    gray: '\x1b[90m',
+    red: '\x1b[91m',
+    redBg: '\x1b[41m\x1b[97m',
+    bold: '\x1b[1m',
 };
 
 /**
@@ -49,16 +53,16 @@ export function colorizeFromAST(code: string, nodes: ASTNode[]): string {
 function getColorForNodeType(type: ASTNodeType): string {
     switch (type) {
         case 'key':
-            return ANSI.cyan;
+            return ANSI.brightCyan;
         case 'bracket':
         case 'colon':
-            return ANSI.green;
+            return ANSI.gray;
         case 'value':
-            return ANSI.white;
+            return ANSI.green;
         case 'comment':
-            return ANSI.yellow;
+            return ANSI.gray;
         case 'error':
-            return ANSI.red;
+            return ANSI.bold + ANSI.redBg;
         default:
             return ANSI.white;
     }

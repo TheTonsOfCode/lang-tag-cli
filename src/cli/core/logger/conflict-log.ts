@@ -6,8 +6,10 @@ import * as path from 'path';
 
 const ANSI = {
     reset: '\x1b[0m',
-    white: '\x1b[37m',
-    cyan: '\x1b[36m',
+    white: '\x1b[97m',
+    cyan: '\x1b[96m',
+    gray: '\x1b[90m',
+    bold: '\x1b[1m',
 };
 
 /**
@@ -16,7 +18,8 @@ const ANSI = {
 function printLines(lines: string[], startLineNumber: number): void {
     lines.forEach((line, i) => {
         const lineNumber = startLineNumber + i;
-        console.log(`${ANSI.cyan}${lineNumber}${ANSI.reset} | ${line}`);
+        const lineNumStr = String(lineNumber).padStart(3, ' ');
+        console.log(`${ANSI.gray}${lineNumStr}${ANSI.reset} ${ANSI.gray}│${ANSI.reset} ${line}`);
     });
 }
 
@@ -120,7 +123,10 @@ export async function $LT_LogConflict(conflict: LangTagCLIConflict, translationA
     const { path: conflictPath, tagA, tagB } = conflict;
     
     const logTag = async (tagInfo: LangTagCLITagConflictInfo, prefix: string) => {
-        console.log(`${ANSI.white}${prefix} file://${path.join(process.cwd(), tagInfo.relativeFilePath)}:${tagInfo.tag.line} ${ANSI.reset}`);
+        const filePath = path.join(process.cwd(), tagInfo.relativeFilePath);
+        const lineNum = tagInfo.tag.line;
+        
+        console.log(`${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}file://${filePath}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`);
         await logTagConflictInfo(tagInfo, conflictPath, translationArgPosition);
     };
     

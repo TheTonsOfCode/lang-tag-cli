@@ -218,6 +218,9 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
         onConflictResolution: async (conflict, logger) => {
             await logger.conflict(conflict);
             return true; // Continue processing by default
+        },
+        onCollectFinish: (conflicts, logger) => {
+            return false; // Do not merge on conflicts
         }
     },
     import: {

@@ -9,8 +9,11 @@ const ANSI_COLORS: Record<string, string> = {
     green: '\x1b[32m',
     yellow: '\x1b[33m',
     red: '\x1b[31m',
-    gray: '\x1b[37m',
+    gray: '\x1b[90m',
     bold: '\x1b[1m',
+    dim: '\x1b[2m',
+    cyan: '\x1b[36m',
+    magenta: '\x1b[35m',
 };
 
 function validateAndInterpolate(message: string, params?: Record<string, any>) {
@@ -83,12 +86,12 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean, translationArgPosit
             const { path, conflictType, tagA } = conflict;
 
             console.log();
-
-            log(ANSI_COLORS.yellow, `Conflict detected: {conflictType} at "{path}" in namespace "{namespace}"`, { 
-                conflictType, 
-                path,
-                namespace: tagA.tag.parameterConfig.namespace
-            });
+            console.log(`${ANSI_COLORS.bold}${ANSI_COLORS.red}⚠ Translation Conflict Detected${ANSI_COLORS.reset}`);
+            console.log(`${ANSI_COLORS.gray}${'─'.repeat(60)}${ANSI_COLORS.reset}`);
+            console.log(`  ${ANSI_COLORS.cyan}Conflict Type:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${conflictType}${ANSI_COLORS.reset}`);
+            console.log(`  ${ANSI_COLORS.cyan}Translation Key:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${path}${ANSI_COLORS.reset}`);
+            console.log(`  ${ANSI_COLORS.cyan}Namespace:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${tagA.tag.parameterConfig.namespace}${ANSI_COLORS.reset}`);
+            console.log(`${ANSI_COLORS.gray}${'─'.repeat(60)}${ANSI_COLORS.reset}`);
             
             await $LT_LogConflict(conflict, translationArgPosition);
 
