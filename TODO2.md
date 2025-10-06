@@ -1,6 +1,14 @@
 
 
-
+- jak są tagi które mają po 100 linijek tłumaczeń to zrobić że wycina linie które są nie istotne i wygląda to tak:
+9  | const translations = lang ({
+10 | some: {
+-  | ...
+22 |      sub: {
+-  | ...
+24 |           pathValue: 'Some value'
+-  | ...
+70 | })
 
 - dodac ze w linii langtaga processor cofa sie i szuka // jesli znalazl to znaczy ze jest to zakomentowany lang-tag  i go pomija
 // komentarz w jednej lini wycinac langtaga aby nie bralo pod uwage
