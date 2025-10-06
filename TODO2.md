@@ -3,6 +3,8 @@
 //
 //
 //  Obsługa flagi condense w logowaniu konfliktu
+
+    niech kolory linii w logach będą jasno szare
 //
 //
 //
