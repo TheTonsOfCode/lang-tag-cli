@@ -7,5 +7,5 @@ export interface LangTagCLILogger {
     error(message: string, params?: Record<string, any>): void;
     debug(message: string, params?: Record<string, any>): void;
 
-    conflict(conflict: LangTagCLIConflict): Promise<void>;
+    conflict(conflict: LangTagCLIConflict, condense: boolean): Promise<void>;
 }

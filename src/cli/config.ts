@@ -239,7 +239,7 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
             return config;
         },
         onConflictResolution: async event => {
-            await event.logger.conflict(event.conflict);
+            await event.logger.conflict(event.conflict, true);
             // Continue processing by default
             // event.exit(); // In order to break command on first conflict
         },

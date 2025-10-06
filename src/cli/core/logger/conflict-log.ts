@@ -1,6 +1,6 @@
 import { $LT_ReadFileContent } from '../io/file.ts';
 import {LangTagCLIConflict, LangTagCLITagConflictInfo} from '../../config.ts';
-import { parseObjectAST, markConflictNodes } from './ast-parser.ts';
+import { parseObjectAST, markConflictNodes, ASTNode } from './ast-parser.ts';
 import { colorizeFromAST } from './ast-colorizer.ts';
 import * as path from 'path';
 
@@ -13,14 +13,63 @@ const ANSI = {
 };
 
 /**
- * Prints lines with line numbers
+ * Determines which lines should be visible based on error lines
  */
-function printLines(lines: string[], startLineNumber: number): void {
-    lines.forEach((line, i) => {
-        const lineNumber = startLineNumber + i;
-        const lineNumStr = String(lineNumber).padStart(3, ' ');
-        console.log(`${ANSI.gray}${lineNumStr}${ANSI.reset} ${ANSI.gray}│${ANSI.reset} ${line}`);
-    });
+function getVisibleLines(totalLines: number, errorLines: Set<number>, threshold = 20): Set<number> | null {
+    // If the code is short enough, show all lines
+    if (totalLines <= threshold) {
+        return null; // null means show all
+    }
+
+    const visible = new Set<number>();
+    const contextLines = 2; // Lines before and after errors to show
+
+    // Always show first 2 and last 2 lines
+    visible.add(0);
+    visible.add(1);
+    visible.add(totalLines - 2);
+    visible.add(totalLines - 1);
+
+    // Add error lines and their context
+    for (const errorLine of errorLines) {
+        for (let i = Math.max(0, errorLine - contextLines); i <= Math.min(totalLines - 1, errorLine + contextLines); i++) {
+            visible.add(i);
+        }
+    }
+
+    return visible;
+}
+
+/**
+ * Prints lines with line numbers, collapsing non-essential lines if needed
+ */
+function printLines(lines: string[], startLineNumber: number, errorLines: Set<number> = new Set()): void {
+    const visibleLines = getVisibleLines(lines.length, errorLines);
+
+    if (visibleLines === null) {
+        // Show all lines
+        lines.forEach((line, i) => {
+            const lineNumber = startLineNumber + i;
+            const lineNumStr = String(lineNumber).padStart(3, ' ');
+            console.log(`${ANSI.gray}${lineNumStr}${ANSI.reset} ${ANSI.gray}│${ANSI.reset} ${line}`);
+        });
+    } else {
+        // Show only visible lines with collapse indicators
+        let lastPrinted = -2;
+        lines.forEach((line, i) => {
+            if (visibleLines.has(i)) {
+                // Print collapse indicator if we skipped lines (but not before the first line)
+                if (i > lastPrinted + 1 && lastPrinted >= 0) {
+                    console.log(`${ANSI.gray}  -${ANSI.reset} ${ANSI.gray}│${ANSI.reset} ${ANSI.gray}...${ANSI.reset}`);
+                }
+                
+                const lineNumber = startLineNumber + i;
+                const lineNumStr = String(lineNumber).padStart(3, ' ');
+                console.log(`${ANSI.gray}${lineNumStr}${ANSI.reset} ${ANSI.gray}│${ANSI.reset} ${line}`);
+                lastPrinted = i;
+            }
+        });
+    }
 }
 
 async function getLangTagCodeSection(tagInfo: LangTagCLITagConflictInfo) {
@@ -46,7 +95,36 @@ function stripPrefix(str: string, prefix: string) {
     return str;
 }
 
-async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPath: string, translationArgPosition: number): Promise<void> {
+/**
+ * Extracts line numbers that contain error nodes from AST
+ */
+function getErrorLineNumbers(code: string, nodes: ASTNode[]): Set<number> {
+    const errorLines = new Set<number>();
+    const lines = code.split('\n');
+    
+    // Find all error nodes
+    const errorNodes = nodes.filter(n => n.type === 'error');
+    
+    for (const errorNode of errorNodes) {
+        // Calculate which lines this error spans
+        let currentPos = 0;
+        for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+            const lineLength = lines[lineIndex].length;
+            const lineEnd = currentPos + lineLength;
+            
+            // Check if this error node overlaps with this line
+            if (errorNode.start < lineEnd && errorNode.end > currentPos) {
+                errorLines.add(lineIndex);
+            }
+            
+            currentPos = lineEnd + 1; // +1 for newline
+        }
+    }
+    
+    return errorLines;
+}
+
+async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPath: string, translationArgPosition: number, condense: boolean): Promise<void> {
     const { tag } = tagInfo;
 
     try {
@@ -58,6 +136,7 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPa
         const translationErrorPath = stripPrefix(conflictPath, tag.parameterConfig?.path);
 
         let colorizedWhole = wholeTagCode;
+        let errorLines = new Set<number>();
 
         // Step 1: Colorize translation code
         if (translationTagCode) {
@@ -69,6 +148,19 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPa
                 const markedTranslationNodes = translationErrorPath ? 
                     markConflictNodes(translationNodes, translationErrorPath) : 
                     translationNodes;
+                
+                // Extract error line numbers from the translation section
+                const translationErrorLines = getErrorLineNumbers(translationTagCode, markedTranslationNodes);
+                
+                // Find the start line of translation section in whole code
+                const translationStartInWhole = wholeTagCode.indexOf(translationTagCode);
+                if (translationStartInWhole >= 0) {
+                    const linesBeforeTranslation = wholeTagCode.substring(0, translationStartInWhole).split('\n').length - 1;
+                    // Map translation error lines to whole code line numbers
+                    translationErrorLines.forEach(lineNum => {
+                        errorLines.add(linesBeforeTranslation + lineNum);
+                    });
+                }
                 
                 // Colorize translation
                 const colorizedTranslation = colorizeFromAST(translationTagCode, markedTranslationNodes);
@@ -105,6 +197,19 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPa
                     return node;
                 });
                 
+                // Extract error line numbers from config section
+                const configErrorLines = getErrorLineNumbers(configTagCode, markedConfigNodes);
+                
+                // Find the start line of config section in whole code
+                const configStartInWhole = wholeTagCode.indexOf(configTagCode);
+                if (configStartInWhole >= 0) {
+                    const linesBeforeConfig = wholeTagCode.substring(0, configStartInWhole).split('\n').length - 1;
+                    // Map config error lines to whole code line numbers
+                    configErrorLines.forEach(lineNum => {
+                        errorLines.add(linesBeforeConfig + lineNum);
+                    });
+                }
+                
                 // Colorize config
                 const colorizedConfig = colorizeFromAST(configTagCode, markedConfigNodes);
                 colorizedWhole = colorizedWhole.replace(configTagCode, colorizedConfig);
@@ -113,13 +218,13 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPa
             }
         }
 
-        printLines(colorizedWhole.split('\n'), startLine);
+        printLines(colorizedWhole.split('\n'), startLine, errorLines);
     } catch (error) {
         console.error('Error displaying conflict:', error);
     }
 }
 
-export async function $LT_LogConflict(conflict: LangTagCLIConflict, translationArgPosition: number): Promise<void> {
+export async function $LT_LogConflict(conflict: LangTagCLIConflict, translationArgPosition: number, condense: boolean): Promise<void> {
     const { path: conflictPath, tagA, tagB } = conflict;
     
     const logTag = async (tagInfo: LangTagCLITagConflictInfo, prefix: string) => {
@@ -127,7 +232,7 @@ export async function $LT_LogConflict(conflict: LangTagCLIConflict, translationA
         const lineNum = tagInfo.tag.line;
         
         console.log(`${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}file://${filePath}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`);
-        await logTagConflictInfo(tagInfo, conflictPath, translationArgPosition);
+        await logTagConflictInfo(tagInfo, conflictPath, translationArgPosition, condense);
     };
     
     await logTag(tagA, 'between');

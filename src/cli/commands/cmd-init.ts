@@ -59,7 +59,7 @@ const config = {
     collect: {
         defaultNamespace: 'common',
         onConflictResolution: async event => {
-            await event.logger.conflict(event.conflict);
+            await event.logger.conflict(event.conflict, true);
             // Continue processing by default
             // event.exit(); // In order to break command on first conflict
         },
