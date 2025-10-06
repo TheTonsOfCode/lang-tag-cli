@@ -8,6 +8,10 @@
 //
 //
 //
+//  Jak jest 1:1 tak samo wartość to nie wykrywa teraz konfliktów i nie wiem czy to dobrze..., 
+//  choc z drugiej strony mozna tworzyc takie same langtagi z wskazaniem na ta sama sciezke bez importu innego langtaga
+//
+//
 
 - dodac ze w linii langtaga processor cofa sie i szuka // jesli znalazl to znaczy ze jest to zakomentowany lang-tag  i go pomija
 // komentarz w jednej lini wycinac langtaga aby nie bralo pod uwage
