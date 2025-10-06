@@ -250,4 +250,55 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
         // Should NOT call onConflictResolution - different namespaces
         expect(mockOnConflictResolution).not.toHaveBeenCalled();
     });
+
+    it('should detect conflicts when trying to create object structure over existing primitive value in nested path', async () => {
+        const files: $LT_TagCandidateFile[] = [
+            createMockFile('src/Component1.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ some: { structured: { foo: "Foo", bar: "Bar" } }, "abc": "XD2" }, { namespace: "admin" })',
+                    parameter1Text: '{ some: { structured: { foo: "Foo", bar: "Bar" } }, "abc": "XD2" }',
+                    parameter2Text: '{ namespace: "admin" }',
+                    parameterTranslations: {
+                        some: {
+                            structured: {
+                                foo: 'Foo',
+                                bar: 'Bar'
+                            }
+                        },
+                        abc: 'XD2'
+                    },
+                    parameterConfig: {
+                        namespace: 'admin',
+                        path: undefined
+                    }
+                })
+            ]),
+            createMockFile('src/Component2.tsx', [
+                createMockTag({
+                    fullMatch: 'lang({ structured: "XAXAXA" }, { namespace: "admin", path: "some" })',
+                    parameter1Text: '{ structured: "XAXAXA" }',
+                    parameter2Text: '{ namespace: "admin", path: "some" }',
+                    parameterTranslations: {
+                        structured: 'XAXAXA'
+                    },
+                    parameterConfig: {
+                        namespace: 'admin',
+                        path: 'some'
+                    }
+                })
+            ])
+        ];
+
+        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+
+        // Should call onConflictResolution with correct path
+        expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
+        expect(mockOnConflictResolution).toHaveBeenCalledWith(
+            expect.objectContaining({
+                path: 'some.structured',
+                conflictType: 'type_mismatch'
+            }),
+            mockLogger
+        );
+    });
 });
