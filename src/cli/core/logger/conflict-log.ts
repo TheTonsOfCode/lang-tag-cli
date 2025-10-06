@@ -1,68 +1,29 @@
 import { $LT_ReadFileContent } from '../io/file.ts';
 import { LangTagCLIConflict } from '../../config.ts';
+import { parseSimpleJSON5Object, findKeyInSimpleAST, SimpleASTNode } from './simple-json5-ast-parser.ts';
 
 const ANSI_COLORS: Record<string, string> = {
     reset: '\x1b[0m',
     white: '\x1b[37m',
     cyan: '\x1b[36m',
     bgRedWhiteText: '\x1b[41m\x1b[37m',
+    yellow: '\x1b[33m',
+    green: '\x1b[32m',
 };
 
 /**
- * Finds the line numbers in the tag's fullMatch that should be highlighted for a conflict
- * Returns an array of line numbers that contain either:
- * 1. The conflicting key definition
- * 2. The path option (when path_overwrite conflict with explicit path option)
+ * Highlights specific characters in a line with color
  */
-function findConflictLinesInTag(tag: any, conflictPath: string): number[] {
-    const conflictLines: number[] = [];
-    const pathSegments = conflictPath.split('.');
-    const translations = tag.parameterTranslations;
-    const fullMatchLines = tag.fullMatch.split('\n');
-    
-    // Find the conflicting key line
-    let current = translations;
-    let searchKey = pathSegments[pathSegments.length - 1]; // Get the last segment (the actual key)
-    
-    // Navigate through nested objects to find the target
-    for (let i = 0; i < pathSegments.length - 1; i++) {
-        if (current && typeof current === 'object' && pathSegments[i] in current) {
-            current = current[pathSegments[i]];
-        } else {
-            break; // Path not found in this tag's translations
-        }
+function highlightInLine(line: string, startCol: number, endCol: number, color: string): string {
+    if (startCol < 0 || endCol <= startCol || startCol >= line.length) {
+        return line;
     }
     
-    // Check if the final key exists at this level and find its line
-    if (current && typeof current === 'object' && searchKey in current) {
-        const keyPattern = new RegExp(`^\\s*['"\`]?${searchKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"\`]?\\s*:`, 'm');
-        
-        for (let i = 0; i < fullMatchLines.length; i++) {
-            if (keyPattern.test(fullMatchLines[i])) {
-                conflictLines.push(tag.line + i);
-                break;
-            }
-        }
-    }
+    const before = line.substring(0, startCol);
+    const highlight = line.substring(startCol, Math.min(endCol, line.length));
+    const after = line.substring(Math.min(endCol, line.length));
     
-    // Also check if there's an explicit path option being used
-    // This handles cases where conflict occurs due to path_overwrite
-    if (tag.path && pathSegments.length > 1) {
-        const pathPrefix = pathSegments.slice(0, -1).join('.');
-        if (tag.path === pathPrefix) {
-            // Find the line with path: 'some.structured'
-            const pathPattern = new RegExp(`\\bpath\\s*:\\s*['"\`]${pathPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"\`]`, 'm');
-            
-            for (let i = 0; i < fullMatchLines.length; i++) {
-                if (pathPattern.test(fullMatchLines[i])) {
-                    conflictLines.push(tag.line + i);
-                    break;
-                }
-            }
-        }
-    }
-    
-    return conflictLines;
+    return `${before}${color}${highlight}${ANSI_COLORS.reset}${after}`;
 }
 
 async function logTagConflictInfo(tagInfo: any, conflictPath: string): Promise<void> {
@@ -72,26 +33,90 @@ async function logTagConflictInfo(tagInfo: any, conflictPath: string): Promise<v
 
     try {
         const fileContent = await $LT_ReadFileContent(relativeFilePath);
-
         const fileLines = fileContent.split('\n');
         const startLine = Math.max(0, tag.line - 1); // Convert to 0-based index
         const endLine = Math.min(fileLines.length - 1, tag.line + tag.fullMatch.split('\n').length - 2);
+        
 
-        // Find all lines that should be highlighted for this conflict
-        const conflictLineNumbers = findConflictLinesInTag(tag, conflictPath);
+        // Parse the object using AST parser
+        const astResult = parseSimpleJSON5Object(tag.parameter1Text || tag.parameter2Text || '{}', tag.index);
+        
+        // Find the conflicting key in AST
+        const pathSegments = conflictPath.split('.');
+        let conflictingKeyNode = astResult ? findKeyInSimpleAST(astResult.ast, pathSegments) : null;
+        
+        // For path_overwrite conflicts, if we can't find the full path, try to find the key at root level
+        if (!conflictingKeyNode && tag.path && pathSegments.length > 1) {
+            const rootKey = pathSegments[pathSegments.length - 1]; // Get last segment (the actual key)
+            conflictingKeyNode = astResult ? findKeyInSimpleAST(astResult.ast, [rootKey]) : null;
+        }
+        
+        
+        // Find path option node if it exists (for path_overwrite conflicts)
+        let pathOptionNode: SimpleASTNode | null = null;
+        if (tag.path && pathSegments.length > 1) {
+            const pathPrefix = pathSegments.slice(0, -1).join('.');
+            if (tag.path === pathPrefix) {
+                // Look for path option in the tag's config parameter
+                const configText = tag.parameterConfig ? 
+                    (typeof tag.parameterConfig === 'string' ? tag.parameterConfig : JSON.stringify(tag.parameterConfig)) :
+                    '';
+                if (configText) {
+                    const configAst = parseSimpleJSON5Object(configText, tag.index);
+                    if (configAst) {
+                        pathOptionNode = findKeyInSimpleAST(configAst.ast, ['path']);
+                    }
+                }
+            }
+        }
 
+        // Render each line with proper highlighting
         for (let i = startLine; i <= endLine; i++) {
             const lineNumber = i + 1; // Convert back to 1-based
-            const line = fileLines[i];
+            let line = fileLines[i];
             
-            // Check if this is one of the conflict lines
-            const isConflictLine = conflictLineNumbers.includes(lineNumber);
-            
-            if (isConflictLine) {
-                console.log(`${ANSI_COLORS.cyan}${lineNumber}${ANSI_COLORS.reset} | ${ANSI_COLORS.bgRedWhiteText}${line}${ANSI_COLORS.reset}`);
-            } else {
-                console.log(`${ANSI_COLORS.cyan}${lineNumber}${ANSI_COLORS.reset} | ${ANSI_COLORS.white}${line}${ANSI_COLORS.reset}`);
+            // Highlight conflicting key if it's on this line
+            // Map AST line to file line: AST line 1 = tag.line + 1 (since tag.line is where the tag starts)
+            const astLineInFile = tag.line + conflictingKeyNode.line - 1;
+            if (conflictingKeyNode && astLineInFile === lineNumber) {
+                const keyStartCol = conflictingKeyNode.column - 1; // Convert to 0-based
+                const keyEndCol = keyStartCol + (conflictingKeyNode.key?.length || 0);
+                
+                // Highlight the key name in red
+                line = highlightInLine(line, keyStartCol, keyEndCol, ANSI_COLORS.bgRedWhiteText);
             }
+            
+            // Highlight path option if it's on this line
+            if (pathOptionNode) {
+                const pathAstLineInFile = tag.line + pathOptionNode.line - 1;
+                if (pathAstLineInFile === lineNumber) {
+                // Find "path:" in the line
+                const pathMatch = line.match(/\bpath\s*:/);
+                if (pathMatch) {
+                    const pathStartCol = pathMatch.index || 0;
+                    const pathEndCol = pathStartCol + pathMatch[0].length;
+                    
+                    // Highlight "path:" in yellow
+                    line = highlightInLine(line, pathStartCol, pathEndCol, ANSI_COLORS.yellow);
+                    
+                    // Also highlight the path value
+                    const restOfLine = line.substring(pathEndCol);
+                    const pathValueMatch = restOfLine.match(/['"`][^'"`]*['"`]/);
+                    if (pathValueMatch) {
+                        const valueStartCol = pathEndCol + (pathValueMatch.index || 0);
+                        const valueEndCol = valueStartCol + pathValueMatch[0].length;
+                        
+                    // Highlight path value in yellow
+                    line = highlightInLine(line, valueStartCol, valueEndCol, ANSI_COLORS.yellow);
+                }
+                }
+            }
+            }
+            
+            // Highlight brackets and structure in green
+            line = line.replace(/([{}[\]])/g, `${ANSI_COLORS.green}$1${ANSI_COLORS.reset}`);
+            
+            console.log(`${ANSI_COLORS.cyan}${lineNumber}${ANSI_COLORS.reset} | ${ANSI_COLORS.white}${line}${ANSI_COLORS.reset}`);
         }
     } catch (error) {
         throw error;
