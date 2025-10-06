@@ -47,7 +47,7 @@ function stripPrefix(str: string, prefix: string) {
 async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPath: string, translationArgPosition: number): Promise<void> {
     const { tag, relativeFilePath } = tagInfo;
 
-    console.log(`${ANSI.white}at: file://${path.join(process.cwd(), relativeFilePath)} ${ANSI.reset}`);
+    console.log(`${ANSI.white}at: file://${path.join(process.cwd(), relativeFilePath)}:${tag.line} ${ANSI.reset}`);
 
     try {
         const startLine = tag.line;
