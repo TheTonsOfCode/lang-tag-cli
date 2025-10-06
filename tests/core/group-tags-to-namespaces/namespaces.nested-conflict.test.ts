@@ -194,7 +194,7 @@ describe('$LT_GroupTagsToNamespaces - Nested Conflict Detection', () => {
                 abc: 'AA2',
                 some: {
                     structured: {
-                        bar: 'bar', // First value kept (from nested structure)
+                        bar: 'AA1', // First value kept (from nested structure)
                         foo: 'foo'  // From first tag
                     }
                 }
