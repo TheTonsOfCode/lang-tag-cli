@@ -3,6 +3,7 @@ import {LangTagCLIConflict, LangTagCLITagConflictInfo} from '../../config.ts';
 import { colorizeCode } from './simple-colorize.ts';
 import { parseObjectAST, markConflictNodes } from './ast-parser.ts';
 import { colorizeFromAST } from './ast-colorizer.ts';
+import * as path from 'path';
 
 const ANSI = {
     reset: '\x1b[0m',
@@ -46,7 +47,7 @@ function stripPrefix(str: string, prefix: string) {
 async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPath: string, translationArgPosition: number): Promise<void> {
     const { tag, relativeFilePath } = tagInfo;
 
-    console.log(`${ANSI.white}at: ${ANSI.cyan}${relativeFilePath}${ANSI.reset}`);
+    console.log(`${ANSI.white}at: file://${path.join(process.cwd(), relativeFilePath)} ${ANSI.reset}`);
 
     try {
         const startLine = tag.line;
