@@ -35,8 +35,10 @@ const config = {
     includes: ['src/**/*.{js,ts,jsx,tsx}', 'app/components/**/*.{js,ts}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
     outputDir: 'public/locales/en',
-    onConfigGeneration: (params) => {
-        return params.config;
+    onConfigGeneration: async (event) => {
+        if (event.config) {
+            event.save(event.config);
+        }
     }
 };
 module.exports = config;`;
