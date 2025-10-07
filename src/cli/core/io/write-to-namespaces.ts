@@ -36,7 +36,9 @@ export async function $LT_WriteToNamespaces({config, namespaces, logger, clean}:
         try {
             originalJSON = await $LT_ReadJSON(filePath);
         } catch (e) {
-            logger.warn(`Original namespace file "{namespace}.json" not found. A new one will be created.`, { namespace })
+            if (!clean) {
+                logger.warn(`Original namespace file "{namespace}.json" not found. A new one will be created.`, { namespace })
+            }
         }
 
         if (deepMergeTranslations(originalJSON, namespaces[namespace])) {
