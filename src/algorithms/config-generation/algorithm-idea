@@ -1,0 +1,36 @@
+
+Wymyśl nazwe dla algorytmu. Ma ona zaczyna się tak że jest to algorytm do generowania configow i odrazu jest to wiadome.
+
+Algorytm ma uzupełniać:
+- namespace
+- path
+
+opcje:
+a) boolean który mówi czy sama nazwa pliku ma byc brana pod uwage
+b) boolean, który pomija foldery zawarte w nawiasy (), lub [] aka. (admin)
+c) ignorowane nazwy folderów całkowicie
+d) hierarchiczne ignorowanie (można odzwierciedlic strukture katalogów)
+e) boolean czy końcowe nazwy namespace mają być lower-case
+f) opcje jaki case ma być zastosowany dla namespace, a jaki dla path (użyj biblioteki 'case')
+g) fallbackNamespace = defaultNamespace z configa (langTagConfig.collect.defaultNamespace)
+h) clearOnDefaultNamespace (defaultowo na true)
+
+1. Bierzesz pod uwagę "relativePath"
+2. Biblioteką path dzielisz ten string na listę(D) katalogów
+3. Jeśli opcja a) jest na:
+    -. false to wyrzucasz tego stringa nazwy pliku z listy D
+    -. true, to pozbywasz sie jego rozszerzenia w liscie
+4. Jesli opcja b) jest na:
+    - true to usuwasz tego typu katalogi z listy
+    - false to usuwasz nawiasy wokół
+5. Dalej bierzesz pod uwagę punkt d) i usuwasz po kolei wgłąb pasujące z listy hierarchicznie
+6. Następnie opcja c) i usuwasz globalnie wykluczone nazwy
+7. Jeśli pozostała lista ma conajmniej 1 entry
+    - to jest ono nazwą namespace
+    - jesli jednak nie to save z namespacem fallbackName
+        - jesli fallbackNamespace jest == defaultNamespace to leci save(undefined) (czysci konfiguracje bo nie potrzebna h) )
+8. Jesli jest więcej niż 1 entry to reszta listy D tworzy złączony "." path
+
+jesli path po połączeniu miałby być pusty to nie jest on zapisywany i jest zapisany sam namespace
+
+od punktów 7 bier pod uwagę opcję e i f)
