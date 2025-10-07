@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "acorn": "^8.15.0",
+    "case": "^1.6.3",
     "chokidar": "^4.0.3",
     "commander": "^13.1.0",
     "globby": "^14.1.0",

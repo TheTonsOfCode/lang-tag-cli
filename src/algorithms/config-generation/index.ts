@@ -5,5 +5,5 @@
  * during collection and regeneration.
  */
 
-export { namespaceIgnoreAlgorithm, type NamespaceIgnoreConfig } from './namespace-ignore.ts';
+export { pathBasedConfigGenerator, type PathBasedConfigGeneratorOptions } from './path-based-config-generator.ts';
 
