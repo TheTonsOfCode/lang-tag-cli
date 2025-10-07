@@ -5,7 +5,7 @@ import {$LT_WriteAsExportFile} from "@/cli/core/io/write-as-export-file.ts";
 import {$LT_GroupTagsToNamespaces} from "@/cli/core/collect/group-tags-to-namespaces.ts";
 import {$LT_WriteToNamespaces} from "@/cli/core/io/write-to-namespaces.ts";
 
-export async function $LT_CMD_Collect() {
+export async function $LT_CMD_Collect(options?: { clean?: boolean }) {
     const {config, logger} = await $LT_GetCommandEssentials();
 
     logger.info('Collecting translations from source files...')

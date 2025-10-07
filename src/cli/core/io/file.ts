@@ -1,8 +1,16 @@
-import {mkdir, readFile, writeFile} from 'fs/promises';
+import {mkdir, readFile, writeFile, rm} from 'fs/promises';
 import {dirname, resolve} from 'path';
 
 export async function $LT_EnsureDirectoryExists(filePath: string): Promise<void> {
     await mkdir(filePath, {recursive: true});
+}
+
+export async function $LT_RemoveDirectory(dirPath: string): Promise<void> {
+    try {
+        await rm(dirPath, {recursive: true, force: true});
+    } catch (error) {
+        // Ignore errors if directory doesn't exist
+    }
 }
 
 export async function $LT_WriteJSON(filePath: string, data: unknown): Promise<void> {

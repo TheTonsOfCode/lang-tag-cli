@@ -18,6 +18,7 @@ export function createCli() {
         .command('collect')
         .alias('c')
         .description('Collect translations from source files')
+        .option('--clean', 'Remove output directory before collecting')
         .action($LT_CMD_Collect);
 
     program
