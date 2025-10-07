@@ -199,10 +199,10 @@ export interface LangTagCLIConflict {
 
 export interface LangTagCLIConfigGenerationEvent {
     /** The absolute path to the source file being processed. */
-    fullPath: string;
+    absolutePath: string;
 
     /** The path of the source file relative to the project root (where the command was invoked). */
-    path: string;
+    relativePath: string;
 
     /** True if the file being processed is located within the configured library import directory (`config.import.dir`). */
     isImportedLibrary: boolean;

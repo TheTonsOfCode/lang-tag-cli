@@ -30,15 +30,22 @@ export async function checkAndRegenerateFileLangTags(
     const replacements: $LT_TagReplaceData[] = [];
 
     for (let tag of tags) {
-        const newConfig = config.onConfigGeneration({
+        let newConfig: any = undefined;
+        let shouldUpdate = false;
+
+        await config.onConfigGeneration({
             config: tag.parameterConfig,
-            fullPath: file,
-            path,
-            isImportedLibrary: path.startsWith(libraryImportsDir)
+            absolutePath: file,
+            relativePath: path,
+            isImportedLibrary: path.startsWith(libraryImportsDir),
+            save: (updatedConfig) => {
+                newConfig = updatedConfig;
+                shouldUpdate = true;
+            }
         });
 
-        // undefined means, configuration should stay as it was
-        if (newConfig === undefined) {
+        // If save was not called, configuration should stay as it was
+        if (!shouldUpdate) {
             continue;
         }
 

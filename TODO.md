@@ -41,9 +41,6 @@ Processor: Consider switching to acorn:
 
 
 
-- onConfigurationGeneration, undefined powinno usuwac konfiguracje, a powinna byc inna zmienna 'save: true'
-
-
 - zrobic podstawowy regenerate config ktory omija generowanie tam gdzie powinno byc common
 ```
     import {} from "langtag/cli/base-regenerates"

@@ -23,7 +23,7 @@ const createBaseConfig = (): LangTagCLIConfig => ({
     outputDir: 'dist',
     language: 'en',
     isLibrary: false,
-    onConfigGeneration: () => undefined,
+    onConfigGeneration: async () => {},
     collect: {
         ...LANG_TAG_DEFAULT_CONFIG.collect,
         onCollectFinish: () => {} // Don't exit on conflicts in tests
