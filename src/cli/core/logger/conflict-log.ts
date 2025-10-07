@@ -129,9 +129,7 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, prefix: st
     const { tag } = tagInfo;
 
     const filePath = path.join(process.cwd(), tagInfo.relativeFilePath);
-    const lineNum = tagInfo.tag.line;
-
-    console.log(`${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}file://${filePath}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`);
+    let lineNum = tagInfo.tag.line;
 
     try {
         const startLine = tag.line;
@@ -166,6 +164,12 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, prefix: st
                     translationErrorLines.forEach(lineNum => {
                         errorLines.add(linesBeforeTranslation + lineNum);
                     });
+                    
+                    // Update lineNum to the last error line in translations if there are any
+                    if (translationErrorLines.size > 0) {
+                        const lastTranslationErrorLine = Math.max(...Array.from(translationErrorLines));
+                        lineNum = startLine + linesBeforeTranslation + lastTranslationErrorLine;
+                    }
                 }
                 
                 // Colorize translation
@@ -224,6 +228,9 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, prefix: st
             }
         }
 
+        // Print file path with the updated line number
+        console.log(`${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}file://${filePath}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`);
+        
         printLines(colorizedWhole.split('\n'), startLine, errorLines, condense);
     } catch (error) {
         console.error('Error displaying conflict:', error);
