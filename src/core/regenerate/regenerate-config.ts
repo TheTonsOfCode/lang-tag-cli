@@ -6,6 +6,7 @@ import {sep} from "path";
 import {$LT_TagProcessor, $LT_TagReplaceData} from "@/core/processor.ts";
 import {$LT_FilterInvalidTags} from "@/core/collect/fillters.ts";
 import {LangTagCLILogger} from "@/logger.ts";
+import {deepFreezeObject} from "@/core/utils.ts";
 
 export async function checkAndRegenerateFileLangTags(
     config: LangTagCLIConfig,
@@ -33,9 +34,11 @@ export async function checkAndRegenerateFileLangTags(
         let newConfig: any = undefined;
         let shouldUpdate = false;
 
+        const frozenConfig = tag.parameterConfig ? deepFreezeObject(tag.parameterConfig) : tag.parameterConfig;
+
         await config.onConfigGeneration({
             langTagConfig: config,
-            config: tag.parameterConfig,
+            config: frozenConfig,
             absolutePath: file,
             relativePath: path,
             isImportedLibrary: path.startsWith(libraryImportsDir),

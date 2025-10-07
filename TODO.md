@@ -41,9 +41,6 @@ Processor: Consider switching to acorn:
 
 
 
-- wartosc config w evencie generowania ma byc nie mutowalna, zrobić tak żeby js nawet pruł błędem jak będzie się seta próbowało robić  
-
-
 - w debug, dodać że loguje zawsze jaki plik miał wywołany jaki save
 
 
