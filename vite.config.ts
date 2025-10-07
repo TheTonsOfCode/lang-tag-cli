@@ -26,6 +26,7 @@ export default defineConfig({
       external: [
         'commander',
         'pathe',
+        'case',
         'json5',
         'acorn',
         'mustache',
