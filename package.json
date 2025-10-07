@@ -23,6 +23,11 @@
     ".": {
       "import": "./index.js",
       "require": "./index.cjs"
+    },
+    "./algorithms": {
+      "types": "./algorithms/index.d.ts",
+      "import": "./algorithms/index.js",
+      "require": "./algorithms/index.cjs"
     }
   },
   "scripts": {
