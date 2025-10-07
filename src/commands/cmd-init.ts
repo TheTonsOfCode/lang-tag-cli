@@ -45,16 +45,17 @@ const config = {
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
     outputDir: 'public/locales/en',
-    onConfigGeneration: (params) => {
+    onConfigGeneration: async event => {
         // We do not modify imported configurations
-        if (params.isImportedLibrary) return undefined;
+        if (event.isImportedLibrary) return;
 
-        //if (!params.config.path) {
-        //    params.config.path = 'test';
-        //    params.config.namespace = 'testNamespace';
-        //}
-
-        return undefined
+        // const config = event.config || {};
+        //
+        // if (!config.path) {
+        //     config.path = 'test';
+        //     config.namespace = 'testNamespace';
+        //     event.save(config);
+        // }
     },
     collect: {
         defaultNamespace: 'common',

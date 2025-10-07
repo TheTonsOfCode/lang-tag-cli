@@ -49,7 +49,7 @@ describe('init command e2e tests', () => {
         expect(configContent).toContain('includes: [\'src/**/*.{js,ts,jsx,tsx}\']');
         expect(configContent).toContain('excludes: [\'node_modules\', \'dist\', \'build\', \'**/*.test.ts\']');
         expect(configContent).toContain('outputDir: \'public/locales/en\'');
-        expect(configContent).toContain('onConfigGeneration: (params) => {');
+        expect(configContent).toContain('onConfigGeneration: async event => {');
     });
 
     it('should not overwrite existing configuration file', () => {
@@ -59,8 +59,10 @@ const config = {
     includes: ['custom/**/*.{js,ts}'],
     excludes: ['node_modules'],
     outputDir: 'custom/locales/en',
-    onConfigGeneration: (params) => {
-        return params.config;
+    onConfigGeneration: async (event) => {
+        if (event.config) {
+            event.save(event.config);
+        }
     }
 };
 

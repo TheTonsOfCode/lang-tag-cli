@@ -4,15 +4,18 @@ import {$LT_CollectCandidateFilesWithTags} from "@/core/collect/collect-tags.ts"
 import {$LT_WriteAsExportFile} from "@/core/io/write-as-export-file.ts";
 import {$LT_GroupTagsToNamespaces} from "@/core/collect/group-tags-to-namespaces.ts";
 import {$LT_WriteToNamespaces} from "@/core/io/write-to-namespaces.ts";
-import {$LT_RemoveDirectory} from "@/core/io/file.ts";
 
 export async function $LT_CMD_Collect(options?: { clean?: boolean }) {
     const {config, logger} = await $LT_GetCommandEssentials();
 
     logger.info('Collecting translations from source files...')
 
-
-    const files = await $LT_CollectCandidateFilesWithTags({config, logger})
+    const files = await $LT_CollectCandidateFilesWithTags({config, logger});
+    if (config.debug) {
+        for (let file of files) {
+            logger.debug('Found {count} translations tags inside: {file}', { count: file.tags.length, file: file.relativeFilePath })
+        }
+    }
 
     if (config.isLibrary) {
         await $LT_WriteAsExportFile({config, logger, files})

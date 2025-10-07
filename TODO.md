@@ -1,8 +1,3 @@
-# Tests:
-
-## Unit:
-
-- Consider removing readConfig, and conduct all tests inside e2e (init.test)
 
 ## E2E:
 
@@ -37,3 +32,29 @@ At .lang-tag.import-cache.json in format:
 Then always at update use "userInputVariableName"
 
 System/Function to decide output file(json collectFile), so instead of /locale/en/[namespace].json we can redirect collecting all translations to something like: /locale/en.json 
+
+
+
+Processor: Consider switching to acorn:
+    1. Simple regex checks if file contains lang() functions
+    2. Later on acorn parses to AST and checks if top level functions are valid lang-tags without some rubberish comments iteration and etc.
+
+
+
+- zrobic podstawowy regenerate config ktory omija generowanie tam gdzie powinno byc common
+```
+    import {} from "langtag/cli/base-regenerates"
+    SkipDirNameAlgorithm(
+        namespace: {
+            ignoreAlways: ['core', 'components', 'pages', 'app']
+            ignoreStructured: {
+                'app': {
+                    'components': [
+                        'orders', 'products'
+                    ],
+                    'pages'
+                }
+            }
+        }
+    )
+```

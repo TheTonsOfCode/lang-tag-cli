@@ -106,32 +106,33 @@ describe('regenerate-tags command e2e tests', () => {
         };
     }`;
 
-    const testConfigGenerationFunction = `(params) => {
-        const { path, isImportedLibrary, config } = params;
+    const testConfigGenerationFunction = `async (event) => {
+        const { relativePath, isImportedLibrary, config } = event;
         
         // Don't modify imported library configurations
-        if (isImportedLibrary) return config;
+        if (isImportedLibrary) return;
         
         // Skip auto-generation for paths starting with '!'
-        if (config.path && config.path.startsWith('!')) {
-            return undefined;
+        if (config && config.path && config.path.startsWith('!')) {
+            return;
         }
         
         // Skip auto-generation for configurations marked as manual
-        if (config.manual) {
-            return undefined;
+        if (config && config.manual) {
+            return;
         }
         
-        const withoutSrc = path.replace(/^src\\//, '');
+        const withoutSrc = relativePath.replace(/^src\\//, '');
   
         const parts = withoutSrc.split('/');
         
         if (parts.length === 1) {
-            return {
+            event.save({
                 ...config,
                 namespace: 'too-short-path',
                 path: ''
-            };    
+            });
+            return;
         }
         
         const namespace = parts[0];
@@ -139,11 +140,11 @@ describe('regenerate-tags command e2e tests', () => {
         const pathParts = parts.slice(1, -1);
         const newPath = pathParts.join('.');
         
-        return {
+        event.save({
             ...config,
             namespace,
             path: newPath
-        };
+        });
     }`;
 
     const testConfig: any = {
