@@ -1,5 +1,5 @@
 import { LangTagCLIConfigGenerationEvent } from "@/config.ts";
-import { basename } from "pathe";
+import { dirname, basename, sep } from "pathe";
 import * as caseLib from "case";
 
 export interface PathBasedConfigGeneratorOptions {
@@ -67,14 +67,14 @@ export interface PathBasedConfigGeneratorOptions {
 
     /**
      * Fallback namespace to use when no segments remain after filtering.
-     * If not provided, uses the defaultNamespace from langTagConfig.collect.defaultNamespace
-     * @default undefined (will use config default)
+     * Defaults to the defaultNamespace from langTagConfig.collect.defaultNamespace if not provided.
+     * @default undefined
      */
     fallbackNamespace?: string;
 
     /**
-     * If true, when the generated namespace equals the fallback/default namespace,
-     * the configuration will be cleared (save(undefined)) as it's not needed.
+     * When true and the generated namespace equals the fallback/default namespace,
+     * the namespace will be omitted from the configuration as it's redundant.
      * @default true
      */
     clearOnDefaultNamespace?: boolean;
@@ -122,92 +122,83 @@ export function pathBasedConfigGenerator(
     return async (event: LangTagCLIConfigGenerationEvent) => {
         const { relativePath, langTagConfig } = event;
         
-        // Determine the actual fallback namespace (option g)
+        // Determine the actual fallback namespace from options or config default
         const actualFallbackNamespace = fallbackNamespace ?? langTagConfig.collect?.defaultNamespace;
 
-        // Step 1: Take relative path
-        // Step 2: Split path into segments using path library
-        let pathSegments = relativePath.split('/').filter(Boolean);
+        // Extract path segments from relative path using path library for cross-platform compatibility
+        let pathSegments = relativePath.split(sep).filter(Boolean);
 
         if (pathSegments.length === 0) {
             return;
         }
 
-        // Step 3: Handle filename based on option a)
+        // Handle filename inclusion
         const fileName = pathSegments[pathSegments.length - 1];
         const fileNameWithoutExt = fileName.replace(/\.[^.]+$/, '');
 
         if (includeFileName) {
-            // true: remove extension from filename in the list
+            // Include filename without extension as a segment
             pathSegments[pathSegments.length - 1] = fileNameWithoutExt;
         } else {
-            // false: remove filename from the list
+            // Remove filename from segments
             pathSegments = pathSegments.slice(0, -1);
         }
 
-        // Step 4: Handle bracketed folders based on option b)
+        // Process bracketed folders
         pathSegments = pathSegments.map(segment => {
             const bracketMatch = segment.match(/^[\(\[](.+)[\)\]]$/);
             if (bracketMatch) {
-                if (removeBracketedFolders) {
-                    // true: remove these folders from the list
-                    return null;
-                } else {
-                    // false: remove brackets around them
-                    return bracketMatch[1];
-                }
+                // Folder is wrapped in brackets
+                return removeBracketedFolders ? null : bracketMatch[1];
             }
             return segment;
         }).filter((seg): seg is string => seg !== null);
 
-        // Step 5: Apply hierarchical ignore (option d) - remove matching folders hierarchically
+        // Apply hierarchical ignore rules
         pathSegments = applyStructuredIgnore(pathSegments, ignoreStructured);
 
-        // Step 6: Apply global ignore (option c) - remove globally excluded names
+        // Apply global ignore rules
         pathSegments = pathSegments.filter(seg => !ignoreFolders.includes(seg));
 
-        // Step 7: Determine namespace and handle fallback
+        // Generate namespace and path from remaining segments
         let namespace: string | undefined;
         let path: string | undefined;
 
         if (pathSegments.length >= 1) {
-            // At least 1 entry - it becomes the namespace
+            // First segment becomes the namespace
             namespace = pathSegments[0];
 
-            // Step 8: If more than 1 entry, rest creates joined "." path
+            // Remaining segments form the path
             if (pathSegments.length > 1) {
                 path = pathSegments.slice(1).join('.');
             }
         } else {
-            // No entries left - use fallback namespace
+            // No segments remain, use fallback
             namespace = actualFallbackNamespace;
         }
 
-        // Apply case transformations (from step 7 with options e) and f))
+        // Apply case transformations
         if (namespace) {
-            // Option e): lowercase namespace
             if (lowercaseNamespace) {
                 namespace = namespace.toLowerCase();
             }
-            // Option f): apply case transformation to namespace
             if (namespaceCase) {
                 namespace = applyCaseTransform(namespace, namespaceCase);
             }
         }
 
-        // Option f): apply case transformation to path segments
         if (path && pathCase) {
             const pathParts = path.split('.');
             const transformedParts = pathParts.map(part => applyCaseTransform(part, pathCase));
             path = transformedParts.join('.');
         }
 
-        // Build the new configuration
+        // Build the configuration object
         const newConfig: any = {};
 
-        // Option h): clearOnDefaultNamespace
+        // Handle default namespace clearing
         if (clearOnDefaultNamespace && namespace === actualFallbackNamespace) {
-            // When namespace equals default, clear it (don't add to config)
+            // Omit namespace when it equals the default
             if (path) {
                 newConfig.path = path;
             } else {
@@ -216,17 +207,15 @@ export function pathBasedConfigGenerator(
                 return;
             }
         } else {
-            // Add namespace if present
             if (namespace) {
                 newConfig.namespace = namespace;
             }
-            // Add path if present and not empty
             if (path) {
                 newConfig.path = path;
             }
         }
 
-        // Save only if we have something to save
+        // Save configuration if we have any fields
         if (Object.keys(newConfig).length > 0) {
             event.save(newConfig);
         }
