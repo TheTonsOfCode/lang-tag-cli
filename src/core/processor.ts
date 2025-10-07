@@ -20,6 +20,9 @@ export class $LT_TagProcessor {
         const matches: LangTagCLIProcessedTag[] = [];
         let currentIndex = 0;
 
+        // Build position maps for comments and strings to skip them
+        const skipRanges = this.buildSkipRanges(fileContent);
+
         // Create a regex to find the start of a lang tag
         const startPattern = new RegExp(`${optionalVariableAssignment}${tagName}\\(\\s*\\{`, 'g');
 
@@ -32,6 +35,12 @@ export class $LT_TagProcessor {
 
             const matchStartIndex = startMatch.index;
             const variableName = startMatch[1] || undefined;
+
+            // Check if this match is inside a comment or string literal
+            if (this.isInSkipRange(matchStartIndex, skipRanges)) {
+                currentIndex = matchStartIndex + 1;
+                continue;
+            }
 
             // Find the matching closing brace for the first object
             let braceCount = 1;
@@ -137,17 +146,34 @@ export class $LT_TagProcessor {
             let parameter1 = undefined;
             let parameter2 = undefined;
 
+            // Check for template string interpolation (${...}) - not allowed
+            if (this.hasTemplateInterpolation(parameter1Text) || (parameter2Text && this.hasTemplateInterpolation(parameter2Text))) {
+                // Skip this match - template interpolation not allowed
+                currentIndex = matchStartIndex + 1;
+                continue;
+            }
+
             try {
                 parameter1 = JSON5.parse(parameter1Text);
                 if (parameter2Text) {
                     try {
                         parameter2 = JSON5.parse(parameter2Text);
                     } catch (error) {
-                        validity = 'invalid-param-2';
+                        // Try to parse with escaped newlines in strings
+                        try {
+                            parameter2 = JSON5.parse(this.escapeNewlinesInStrings(parameter2Text));
+                        } catch {
+                            validity = 'invalid-param-2';
+                        }
                     }
                 }
             } catch (error) {
-                validity = 'invalid-param-1';
+                // Try to parse with escaped newlines in strings (for multiline string support)
+                try {
+                    parameter1 = JSON5.parse(this.escapeNewlinesInStrings(parameter1Text));
+                } catch {
+                    validity = 'invalid-param-1';
+                }
             }
 
             let parameterTranslations = this.config.translationArgPosition === 1 ? parameter1 : parameter2;
@@ -234,6 +260,213 @@ export class $LT_TagProcessor {
         });
 
         return fileContent;
+    }
+
+    private buildSkipRanges(fileContent: string): Array<[number, number]> {
+        const ranges: Array<[number, number]> = [];
+        let i = 0;
+
+        while (i < fileContent.length) {
+            const char = fileContent[i];
+            const nextChar = fileContent[i + 1];
+
+            // Single-line comment
+            if (char === '/' && nextChar === '/') {
+                const start = i;
+                i += 2;
+                while (i < fileContent.length && fileContent[i] !== '\n') {
+                    i++;
+                }
+                ranges.push([start, i]);
+                continue;
+            }
+
+            // Block comment
+            if (char === '/' && nextChar === '*') {
+                const start = i;
+                i += 2;
+                while (i < fileContent.length - 1) {
+                    if (fileContent[i] === '*' && fileContent[i + 1] === '/') {
+                        i += 2;
+                        break;
+                    }
+                    i++;
+                }
+                ranges.push([start, i]);
+                continue;
+            }
+
+            // String literals (single quote)
+            if (char === "'") {
+                const start = i;
+                i++;
+                while (i < fileContent.length) {
+                    if (fileContent[i] === '\\') {
+                        i += 2; // Skip escaped character
+                        continue;
+                    }
+                    if (fileContent[i] === "'") {
+                        i++;
+                        break;
+                    }
+                    i++;
+                }
+                ranges.push([start, i]);
+                continue;
+            }
+
+            // String literals (double quote)
+            if (char === '"') {
+                const start = i;
+                i++;
+                while (i < fileContent.length) {
+                    if (fileContent[i] === '\\') {
+                        i += 2; // Skip escaped character
+                        continue;
+                    }
+                    if (fileContent[i] === '"') {
+                        i++;
+                        break;
+                    }
+                    i++;
+                }
+                ranges.push([start, i]);
+                continue;
+            }
+
+            // Template literals (backtick)
+            if (char === '`') {
+                const start = i;
+                i++;
+                while (i < fileContent.length) {
+                    if (fileContent[i] === '\\') {
+                        i += 2; // Skip escaped character
+                        continue;
+                    }
+                    if (fileContent[i] === '`') {
+                        i++;
+                        break;
+                    }
+                    i++;
+                }
+                ranges.push([start, i]);
+                continue;
+            }
+
+            i++;
+        }
+
+        return ranges;
+    }
+
+    private isInSkipRange(position: number, skipRanges: Array<[number, number]>): boolean {
+        for (const [start, end] of skipRanges) {
+            if (position >= start && position < end) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private hasTemplateInterpolation(text: string): boolean {
+        // Check if the text contains template string interpolation ${...}
+        // We need to be careful to only check inside backtick strings
+        let i = 0;
+        while (i < text.length) {
+            if (text[i] === '`') {
+                // Inside template literal
+                i++;
+                while (i < text.length) {
+                    if (text[i] === '\\') {
+                        i += 2; // Skip escaped character
+                        continue;
+                    }
+                    if (text[i] === '$' && text[i + 1] === '{') {
+                        return true; // Found interpolation
+                    }
+                    if (text[i] === '`') {
+                        i++;
+                        break;
+                    }
+                    i++;
+                }
+                continue;
+            }
+            i++;
+        }
+        return false;
+    }
+
+    private escapeNewlinesInStrings(text: string): string {
+        // Helper method to escape literal newlines in strings for JSON5 parsing
+        // This allows parsing of multiline strings that have literal newlines
+        let result = '';
+        let i = 0;
+
+        while (i < text.length) {
+            const char = text[i];
+
+            // Handle double-quoted strings
+            if (char === '"') {
+                result += char;
+                i++;
+                while (i < text.length) {
+                    if (text[i] === '\\') {
+                        // Already escaped character, keep as-is
+                        result += text[i] + text[i + 1];
+                        i += 2;
+                        continue;
+                    }
+                    if (text[i] === '\n') {
+                        // Escape the literal newline
+                        result += '\\n';
+                        i++;
+                        continue;
+                    }
+                    if (text[i] === '"') {
+                        result += text[i];
+                        i++;
+                        break;
+                    }
+                    result += text[i];
+                    i++;
+                }
+                continue;
+            }
+
+            // Handle single-quoted strings
+            if (char === "'") {
+                result += char;
+                i++;
+                while (i < text.length) {
+                    if (text[i] === '\\') {
+                        // Already escaped character, keep as-is
+                        result += text[i] + text[i + 1];
+                        i += 2;
+                        continue;
+                    }
+                    if (text[i] === '\n') {
+                        // Escape the literal newline
+                        result += '\\n';
+                        i++;
+                        continue;
+                    }
+                    if (text[i] === "'") {
+                        result += text[i];
+                        i++;
+                        break;
+                    }
+                    result += text[i];
+                    i++;
+                }
+                continue;
+            }
+
+            result += char;
+            i++;
+        }
+
+        return result;
     }
 }
 
