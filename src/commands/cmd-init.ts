@@ -42,12 +42,12 @@ async function generateDefaultConfig(): Promise<string> {
     return `${importStatement}
 
 const generationAlgorithm = pathBasedConfigGenerator({
-    ignoreIncludesRootFolders: true,
-    removeBracketedFolders: true,
+    ignoreIncludesRootDirectories: true,
+    removeBracketedDirectories: true,
     namespaceCase: 'kebab',
     pathCase: 'camel',
     clearOnDefaultNamespace: true,
-    ignoreFolders: ['core', 'utils', 'helpers']
+    ignoreDirectories: ['core', 'utils', 'helpers']
 });
 
 /** @type {import('@lang-tag/cli/config').LangTagCLIConfig} */

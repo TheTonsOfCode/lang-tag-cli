@@ -12,13 +12,13 @@ Automatically generates `namespace` and `path` configuration from file path stru
    - `false`: Removes filename from segments (default)
    - `true`: Strips extension and includes filename as a segment
 
-3. **Process Bracketed Folders** (option `removeBracketedFolders`)
-   - `true`: Completely removes folders wrapped in `()` or `[]` (default)
-   - `false`: Only removes the brackets, keeps folder name
+3. **Process Bracketed Directories** (option `removeBracketedDirectories`)
+   - `true`: Completely removes directories wrapped in `()` or `[]` (default)
+   - `false`: Only removes the brackets, keeps directory name
 
-4. **Extract Root Folders from Includes** (option `ignoreIncludesRootFolders`)
-   - When enabled, automatically extracts root folder names from `config.includes` patterns
-   - Adds extracted folders to the ignore list
+4. **Extract Root Directories from Includes** (option `ignoreIncludesRootDirectories`)
+   - When enabled, automatically extracts root directory names from `config.includes` patterns
+   - Adds extracted directories to the ignore list
    - Handles group patterns like `(src|app)` and `[frontend|backend]`
 
 5. **Apply Hierarchical Ignore** (option `ignoreStructured`)
@@ -26,8 +26,8 @@ Automatically generates `namespace` and `path` configuration from file path stru
    - Removes segments that match the structured pattern
    - Supports nested structures for precise path matching
 
-6. **Apply Global Ignore** (option `ignoreFolders`)
-   - Removes all segments matching globally ignored folder names
+6. **Apply Global Ignore** (option `ignoreDirectories`)
+   - Removes all segments matching globally ignored directory names
    - Applied regardless of position in path
 
 7. **Generate Namespace**
@@ -56,9 +56,9 @@ Automatically generates `namespace` and `path` configuration from file path stru
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `includeFileName` | boolean | `false` | Include filename (without extension) as path segment |
-| `removeBracketedFolders` | boolean | `true` | Remove folders in `()` or `[]`, otherwise just remove brackets |
-| `ignoreFolders` | string[] | `[]` | Folder names to ignore globally |
-| `ignoreIncludesRootFolders` | boolean | `false` | Auto-extract and ignore root folders from `includes` patterns |
+| `removeBracketedDirectories` | boolean | `true` | Remove directories in `()` or `[]`, otherwise just remove brackets |
+| `ignoreDirectories` | string[] | `[]` | Directory names to ignore globally |
+| `ignoreIncludesRootDirectories` | boolean | `false` | Auto-extract and ignore root directories from `includes` patterns |
 | `ignoreStructured` | object | `{}` | Hierarchical ignore rules matching path structure |
 | `lowercaseNamespace` | boolean | `false` | Convert namespace to lowercase |
 | `namespaceCase` | string | - | Case transformation for namespace (camel, snake, kebab, etc.) |
@@ -71,7 +71,7 @@ Automatically generates `namespace` and `path` configuration from file path stru
 ### Basic Usage
 ```typescript
 pathBasedConfigGenerator({
-  ignoreFolders: ['src', 'app'],
+  ignoreDirectories: ['src', 'app'],
   lowercaseNamespace: true
 })
 ```
@@ -83,18 +83,18 @@ pathBasedConfigGenerator({
 ```typescript
 pathBasedConfigGenerator({
   includeFileName: true,
-  ignoreFolders: ['src']
+  ignoreDirectories: ['src']
 })
 ```
 
 **File:** `src/components/Button.tsx`  
 **Result:** `{ namespace: 'components', path: 'Button' }`
 
-### Bracketed Folders
+### Bracketed Directories
 ```typescript
 pathBasedConfigGenerator({
-  removeBracketedFolders: true,
-  ignoreFolders: ['app']
+  removeBracketedDirectories: true,
+  ignoreDirectories: ['app']
 })
 ```
 
@@ -122,18 +122,18 @@ pathBasedConfigGenerator({
 pathBasedConfigGenerator({
   namespaceCase: 'kebab',
   pathCase: 'camel',
-  ignoreFolders: ['src']
+  ignoreDirectories: ['src']
 })
 ```
 
 **File:** `src/UserProfile/EditForm.tsx`  
 **Result:** `{ namespace: 'user-profile', path: 'editForm' }`
 
-### Auto-Ignore Root Folders from Includes
+### Auto-Ignore Root Directories from Includes
 ```typescript
 // With config.includes: ['(src|app)/**/*.{js,ts,jsx,tsx}', 'components/**/*.{jsx,tsx}']
 pathBasedConfigGenerator({
-  ignoreIncludesRootFolders: true,  // Auto-ignores: src, app, components
+  ignoreIncludesRootDirectories: true,  // Auto-ignores: src, app, components
   lowercaseNamespace: true
 })
 ```

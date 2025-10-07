@@ -14,7 +14,7 @@ The core is optimized for performance, with a bundle size of just **~1KB** ([che
 
 ### Effortless translation structure
 
-Instead of manually managing centralized translation files, `lang-tag` lets you colocate keys within components and automatically organizes them into namespaces based on your project structure. For example, all components in `components/orders` or pages in `pages/order` share the `orders` namespace. You define a simple folder-to-namespace mapping once, and `lang-tag` handles merging and file organization—while you retain full control over how namespaces are merged. 
+Instead of manually managing centralized translation files, `lang-tag` lets you colocate keys within components and automatically organizes them into namespaces based on your project structure. For example, all components in `components/orders` or pages in `pages/order` share the `orders` namespace. You define a simple directory-to-namespace mapping once, and `lang-tag` handles merging and file organization—while you retain full control over how namespaces are merged. 
 
 > Set your rules, then let `lang-tag` do the rest.
 
@@ -23,7 +23,7 @@ Instead of manually managing centralized translation files, `lang-tag` lets you 
 Full functionality is available through an advanced CLI that keeps your application bundle size untouched:
 
 - **Automatic translation collection** – `lang-tag collect` scans your project for translation tags and aggregates them into organized JSON files (e.g., `public/locales/en/common.json`), based on your configuration
-- **Dynamic configuration updates** – `lang-tag regenerate-tags` automatically refreshes translation settings in your code, using rules defined in your configuration (e.g., mapping namespaces based on folder structure)
+- **Dynamic configuration updates** – `lang-tag regenerate-tags` automatically refreshes translation settings in your code, using rules defined in your configuration (e.g., mapping namespaces based on directory structure)
 - **Third-party translation import** – `lang-tag import` detects and integrates translations from external libraries, adapting them to your project’s translation system
 - **Watch mode** – `lang-tag watch` monitors your source files for changes and automatically re-collects/re-generates translations when needed
 

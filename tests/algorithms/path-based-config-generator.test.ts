@@ -47,7 +47,7 @@ describe('pathBasedConfigGenerator', () => {
     describe('Basic functionality', () => {
         it('should generate namespace and path from file path', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/features/auth/Login.tsx');
@@ -61,7 +61,7 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should generate only namespace when path has one segment after filtering', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
                 includeFileName: true,
             });
             
@@ -76,7 +76,7 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should use fallback namespace when all segments are filtered', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
                 fallbackNamespace: 'common',
             });
             
@@ -88,7 +88,7 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should handle deep nested paths', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/features/admin/users/list/components/UserRow.tsx');
@@ -101,10 +101,10 @@ describe('pathBasedConfigGenerator', () => {
         });
     });
 
-    describe('ignoreIncludesRootFolders option', () => {
-        it('should auto-ignore single root folder from includes pattern', async () => {
+    describe('ignoreIncludesRootDirectories option', () => {
+        it('should auto-ignore single root directory from includes pattern', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
+                ignoreIncludesRootDirectories: true,
             });
             
             const event = createMockEvent('src/features/auth/Login.tsx', ['src/**/*.{js,ts,jsx,tsx}']);
@@ -116,9 +116,9 @@ describe('pathBasedConfigGenerator', () => {
             });
         });
 
-        it('should auto-ignore multiple root folders from group pattern with parentheses', async () => {
+        it('should auto-ignore multiple root directories from group pattern with parentheses', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
+                ignoreIncludesRootDirectories: true,
             });
             
             const event1 = createMockEvent('src/features/auth/Login.tsx', ['(src|app)/**/*.{js,ts,jsx,tsx}']);
@@ -138,9 +138,9 @@ describe('pathBasedConfigGenerator', () => {
             });
         });
 
-        it('should auto-ignore multiple root folders from group pattern with brackets', async () => {
+        it('should auto-ignore multiple root directories from group pattern with brackets', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
+                ignoreIncludesRootDirectories: true,
             });
             
             const event1 = createMockEvent('frontend/pages/Home.tsx', ['[frontend|backend]/**/*.tsx']);
@@ -158,9 +158,9 @@ describe('pathBasedConfigGenerator', () => {
             });
         });
 
-        it('should auto-ignore folders from multiple include patterns', async () => {
+        it('should auto-ignore directories from multiple include patterns', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
+                ignoreIncludesRootDirectories: true,
             });
             
             const event1 = createMockEvent(
@@ -185,10 +185,10 @@ describe('pathBasedConfigGenerator', () => {
             });
         });
 
-        it('should combine ignoreIncludesRootFolders with manual ignoreFolders', async () => {
+        it('should combine ignoreIncludesRootDirectories with manual ignoreDirectories', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
-                ignoreFolders: ['features'],
+                ignoreIncludesRootDirectories: true,
+                ignoreDirectories: ['features'],
             });
             
             const event = createMockEvent(
@@ -203,10 +203,10 @@ describe('pathBasedConfigGenerator', () => {
             });
         });
 
-        it('should not duplicate folders when they appear in both ignoreFolders and includes', async () => {
+        it('should not duplicate directories when they appear in both ignoreDirectories and includes', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
-                ignoreFolders: ['src'],
+                ignoreIncludesRootDirectories: true,
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent(
@@ -223,7 +223,7 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should work with leading ./ in patterns', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
+                ignoreIncludesRootDirectories: true,
             });
             
             const event = createMockEvent(
@@ -239,7 +239,7 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should be disabled by default', async () => {
             const generator = pathBasedConfigGenerator({
-                // ignoreIncludesRootFolders not set (defaults to false)
+                // ignoreIncludesRootDirectories not set (defaults to false)
             });
             
             const event = createMockEvent('src/features/auth/Login.tsx', ['src/**/*.{js,ts,jsx,tsx}']);
@@ -257,7 +257,7 @@ describe('pathBasedConfigGenerator', () => {
         it('should include filename as segment when enabled', async () => {
             const generator = pathBasedConfigGenerator({
                 includeFileName: true,
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/components/Button.tsx');
@@ -271,7 +271,7 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should exclude filename by default', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/components/Button.tsx');
@@ -285,7 +285,7 @@ describe('pathBasedConfigGenerator', () => {
         it('should strip file extension when including filename', async () => {
             const generator = pathBasedConfigGenerator({
                 includeFileName: true,
-                ignoreFolders: ['src', 'pages'],
+                ignoreDirectories: ['src', 'pages'],
             });
             
             const event = createMockEvent('src/pages/UserProfile.tsx');
@@ -297,10 +297,10 @@ describe('pathBasedConfigGenerator', () => {
         });
     });
 
-    describe('removeBracketedFolders option', () => {
-        it('should remove folders in parentheses by default', async () => {
+    describe('removeBracketedDirectories option', () => {
+        it('should remove directories in parentheses by default', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['app'],
+                ignoreDirectories: ['app'],
             });
             
             const event = createMockEvent('app/(admin)/users/List.tsx');
@@ -311,9 +311,9 @@ describe('pathBasedConfigGenerator', () => {
             });
         });
 
-        it('should remove folders in square brackets by default', async () => {
+        it('should remove directories in square brackets by default', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['app'],
+                ignoreDirectories: ['app'],
             });
             
             const event = createMockEvent('app/[locale]/about/page.tsx');
@@ -324,10 +324,10 @@ describe('pathBasedConfigGenerator', () => {
             });
         });
 
-        it('should keep folder name without brackets when disabled', async () => {
+        it('should keep directory name without brackets when disabled', async () => {
             const generator = pathBasedConfigGenerator({
-                removeBracketedFolders: false,
-                ignoreFolders: ['app'],
+                removeBracketedDirectories: false,
+                ignoreDirectories: ['app'],
             });
             
             const event = createMockEvent('app/(admin)/users/List.tsx');
@@ -341,7 +341,7 @@ describe('pathBasedConfigGenerator', () => {
     });
 
     describe('ignoreStructured option', () => {
-        it('should ignore specific folders hierarchically', async () => {
+        it('should ignore specific directories hierarchically', async () => {
             const generator = pathBasedConfigGenerator({
                 ignoreStructured: {
                     'src': {
@@ -359,7 +359,7 @@ describe('pathBasedConfigGenerator', () => {
             });
         });
 
-        it('should ignore array of folders at specific level', async () => {
+        it('should ignore array of directories at specific level', async () => {
             const generator = pathBasedConfigGenerator({
                 ignoreStructured: {
                     'src': {
@@ -410,7 +410,7 @@ describe('pathBasedConfigGenerator', () => {
         it('should apply lowercaseNamespace', async () => {
             const generator = pathBasedConfigGenerator({
                 lowercaseNamespace: true,
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/UserProfile/EditForm.tsx');
@@ -424,7 +424,7 @@ describe('pathBasedConfigGenerator', () => {
         it('should apply namespaceCase transformation', async () => {
             const generator = pathBasedConfigGenerator({
                 namespaceCase: 'kebab',
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/UserProfile/EditForm.tsx');
@@ -438,7 +438,7 @@ describe('pathBasedConfigGenerator', () => {
         it('should apply pathCase transformation', async () => {
             const generator = pathBasedConfigGenerator({
                 pathCase: 'camel',
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/features/EditUserForm/components.tsx');
@@ -454,7 +454,7 @@ describe('pathBasedConfigGenerator', () => {
             const generator = pathBasedConfigGenerator({
                 namespaceCase: 'snake',
                 pathCase: 'kebab',
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/UserProfile/EditForm/Components.tsx');
@@ -470,7 +470,7 @@ describe('pathBasedConfigGenerator', () => {
     describe('fallbackNamespace option', () => {
         it('should use custom fallback when all segments filtered', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['src', 'components'],
+                ignoreDirectories: ['src', 'components'],
                 fallbackNamespace: 'ui',
                 clearOnDefaultNamespace: false,
             });
@@ -486,7 +486,7 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should use config default namespace when fallback not provided', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/Button.tsx', ['src/**/*.tsx'], 'common');
@@ -501,7 +501,7 @@ describe('pathBasedConfigGenerator', () => {
         it('should clear config when namespace equals default and enabled', async () => {
             const generator = pathBasedConfigGenerator({
                 clearOnDefaultNamespace: true,
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/common/Button.tsx', ['src/**/*.tsx'], 'common');
@@ -513,7 +513,7 @@ describe('pathBasedConfigGenerator', () => {
         it('should keep namespace even if equals default when disabled', async () => {
             const generator = pathBasedConfigGenerator({
                 clearOnDefaultNamespace: false,
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/common/Button.tsx', ['src/**/*.tsx'], 'common');
@@ -527,7 +527,7 @@ describe('pathBasedConfigGenerator', () => {
         it('should keep path when namespace equals default but path exists', async () => {
             const generator = pathBasedConfigGenerator({
                 clearOnDefaultNamespace: true,
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent('src/common/auth/Login.tsx', ['src/**/*.tsx'], 'common');
@@ -543,9 +543,9 @@ describe('pathBasedConfigGenerator', () => {
         it('should handle combination of all options', async () => {
             const generator = pathBasedConfigGenerator({
                 includeFileName: true,
-                removeBracketedFolders: true,
-                ignoreIncludesRootFolders: true,
-                ignoreFolders: ['features'],
+                removeBracketedDirectories: true,
+                ignoreIncludesRootDirectories: true,
+                ignoreDirectories: ['features'],
                 ignoreStructured: {
                     'admin': {
                         'temp': true,
@@ -573,7 +573,7 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should handle empty path after all filtering', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['src', 'components', 'ui'],
+                ignoreDirectories: ['src', 'components', 'ui'],
             });
             
             const event = createMockEvent('src/components/ui/Button.tsx');
@@ -593,8 +593,8 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should work with monorepo-style paths', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
-                ignoreFolders: ['src'],
+                ignoreIncludesRootDirectories: true,
+                ignoreDirectories: ['src'],
             });
             
             const event = createMockEvent(
@@ -611,8 +611,8 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should handle Next.js app directory structure', async () => {
             const generator = pathBasedConfigGenerator({
-                removeBracketedFolders: true,
-                ignoreIncludesRootFolders: true,
+                removeBracketedDirectories: true,
+                ignoreIncludesRootDirectories: true,
                 lowercaseNamespace: true,
             });
             
@@ -632,21 +632,21 @@ describe('pathBasedConfigGenerator', () => {
     describe('Edge cases', () => {
         it('should handle paths with special characters', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreFolders: ['src'],
+                ignoreDirectories: ['src'],
             });
             
-            const event = createMockEvent('src/my-feature/sub_folder/Component.tsx');
+            const event = createMockEvent('src/my-feature/sub_directory/Component.tsx');
             await generator(event);
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'my-feature',
-                path: 'sub_folder',
+                path: 'sub_directory',
             });
         });
 
         it('should handle empty includes array gracefully', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
+                ignoreIncludesRootDirectories: true,
             });
             
             const event = createMockEvent('src/components/Button.tsx', []);
@@ -660,7 +660,7 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should handle patterns without /** wildcard', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
+                ignoreIncludesRootDirectories: true,
             });
             
             const event = createMockEvent('src/components/Button.tsx', ['src/*.tsx']);
@@ -673,7 +673,7 @@ describe('pathBasedConfigGenerator', () => {
 
         it('should handle deeply nested group patterns', async () => {
             const generator = pathBasedConfigGenerator({
-                ignoreIncludesRootFolders: true,
+                ignoreIncludesRootDirectories: true,
             });
             
             const event = createMockEvent(
@@ -682,7 +682,7 @@ describe('pathBasedConfigGenerator', () => {
             );
             await generator(event);
             
-            // Should only extract first segment root folders
+            // Should only extract first segment root directories
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'pages',
             });

@@ -188,7 +188,7 @@ module.exports = {
     // e.g., features/auth/LoginForm.tsx -> namespace: auth
     const featureOrComponentIndex = parts.findIndex(p => ['components', 'features', 'pages', 'views'].includes(p.toLowerCase()));
     if (featureOrComponentIndex !== -1 && parts.length > featureOrComponentIndex + 1) {
-      // Check if the next part is not a file itself (implying it's a feature/module folder)
+      // Check if the next part is not a file itself (implying it's a feature/module directory)
       if (!parts[featureOrComponentIndex + 1].includes('.')) {
          calculatedNamespace = parts[featureOrComponentIndex + 1].toLowerCase();
       }
