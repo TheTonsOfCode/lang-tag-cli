@@ -16,7 +16,7 @@ in instance in English, so it would be nice if there will be command which detec
 in build lang-tags and replaces whole string values to just empty string `""` if somebody does
 not use that default value, so he can run that command on dist or other eg.: Next.js build directory and clean it
 
-- when importing - list all node_modules packages containing lang-tag.exports, then importing them first, and change depth of scanning to 2 folders and 3 organization namespaced folders
+- when importing - list all node_modules packages containing lang-tag.exports, then importing them first, and change depth of scanning to 2 directories and 3 organization namespaced directories
 
 - When importing tags via `lang-tag collect -l`, e.g., from an updated package, implement a process to parse local imported tags, then imported ones, then implement a prompting mechanism similar to Drizzle's question system (yes/no) asking whether users want to replace their modified translations with ones updated in the library
 - Implement a collision detection system that throws information about path, file A, file B with tag indices when the same translation path is used in multiple locations (can be helpful for incorrectly written onGenerationConfig functions)
@@ -39,6 +39,18 @@ Processor: Consider switching to acorn:
     1. Simple regex checks if file contains lang() functions
     2. Later on acorn parses to AST and checks if top level functions are valid lang-tags without some rubberish comments iteration and etc.
 
+
+
+- wartosc config w evencie generowania ma byc nie mutowalna, zrobić tak żeby js nawet pruł błędem jak będzie się seta próbowało robić  
+
+
+- w debug, dodać że loguje zawsze jaki plik miał wywołany jaki save
+
+
+- generowac tagi w init-tag z zmienną `keepOnGeneration: 'namespace' | 'path' | 'both'`
+
+
+- tutaj może setCancelled też dodać
 , { path: 'testimonials', namespace: 'auth' });
 podmienia na:
 , { namespace: 'auth' });
