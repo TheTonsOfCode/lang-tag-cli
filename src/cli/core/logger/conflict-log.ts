@@ -125,8 +125,13 @@ function getErrorLineNumbers(code: string, nodes: ASTNode[]): Set<number> {
     return errorLines;
 }
 
-async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPath: string, translationArgPosition: number, condense?: boolean): Promise<void> {
+async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, prefix: string, conflictPath: string, translationArgPosition: number, condense?: boolean): Promise<void> {
     const { tag } = tagInfo;
+
+    const filePath = path.join(process.cwd(), tagInfo.relativeFilePath);
+    const lineNum = tagInfo.tag.line;
+
+    console.log(`${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}file://${filePath}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`);
 
     try {
         const startLine = tag.line;
@@ -227,15 +232,7 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPa
 
 export async function $LT_LogConflict(conflict: LangTagCLIConflict, translationArgPosition: number, condense?: boolean): Promise<void> {
     const { path: conflictPath, tagA, tagB } = conflict;
-    
-    const logTag = async (tagInfo: LangTagCLITagConflictInfo, prefix: string) => {
-        const filePath = path.join(process.cwd(), tagInfo.relativeFilePath);
-        const lineNum = tagInfo.tag.line;
-        
-        console.log(`${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}file://${filePath}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`);
-        await logTagConflictInfo(tagInfo, conflictPath, translationArgPosition, condense);
-    };
-    
-    await logTag(tagA, 'between');
-    await logTag(tagB, 'and');
+
+    await logTagConflictInfo(tagA, 'between', conflictPath, translationArgPosition, condense);
+    await logTagConflictInfo(tagB, 'and', conflictPath, translationArgPosition, condense);
 }
