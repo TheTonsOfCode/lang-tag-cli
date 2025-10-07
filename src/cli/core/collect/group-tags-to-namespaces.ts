@@ -54,6 +54,13 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
             };
 
             const addConflict: AddConflictFunction = async (path: string, tagA: LangTagCLITagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => {
+                // Skip conflicts when values match and ignoreConflictsWithMatchingValues is enabled
+                if (conflictType === 'path_overwrite' && 
+                    config.collect?.ignoreConflictsWithMatchingValues !== false &&
+                    tagA.value === tagBValue) {
+                    return; // Silently skip this conflict
+                }
+
                 const conflict: LangTagCLIConflict = {
                     path,
                     tagA,
@@ -225,13 +232,17 @@ async function mergeWithConflictDetection(
                 continue; // Skip this merge
             }
 
-            // Detect path overwrite conflicts (same type but different values)
+            // Detect path overwrite conflicts (same type)
             // For objects, we let the recursive merge handle nested conflicts
-            if (targetValue !== sourceValue && targetType !== 'object') {
+            if (targetType !== 'object') {
                 if (existingInfo) {
+                    // Always call addConflict - it will decide whether to skip based on config
                     await addConflict(currentPath, existingInfo, sourceValue, 'path_overwrite');
                 }
-                continue; // Skip this merge
+                // Skip merge only if values are different
+                if (targetValue !== sourceValue) {
+                    continue;
+                }
             }
         }
 
