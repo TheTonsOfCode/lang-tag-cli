@@ -1,12 +1,5 @@
 
 
-- dodac ze w linii langtaga processor cofa sie i szuka // jesli znalazl to znaczy ze jest to zakomentowany lang-tag  i go pomija
-// komentarz w jednej lini wycinac langtaga aby nie bralo pod uwage
-
-- testy na to ze jak ktos se da template stringa to pominie tego lang-taga
-- testy na to ze jak ktos da z json5 multiline zmienna to też nie wezmie pod uwage
-
-
  - onConfigurationGeneration, undefined powinno usuwac konfiguracje, a powinna byc inna zmienna 'save: true'
 
 
