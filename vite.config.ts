@@ -12,6 +12,7 @@ export default defineConfig({
     lib: {
       entry: {
         'index': resolve(__dirname, 'src/index.ts'),
+        'algorithms/index': resolve(__dirname, 'src/algorithms/index.ts'),
       },
       formats: ['es', 'cjs'],
       fileName: (format, entryName) => {
@@ -25,6 +26,7 @@ export default defineConfig({
       external: [
         'commander',
         'pathe',
+        'case',
         'json5',
         'acorn',
         'mustache',
@@ -52,7 +54,7 @@ export default defineConfig({
   },
   plugins: [
     dts({
-      include: ["src/config.ts", "src/logger.ts"],
+      include: ["src/config.ts", "src/logger.ts", "src/algorithms/**/*.ts"],
       // include: ['src/**/*.ts'],
     })
   ]

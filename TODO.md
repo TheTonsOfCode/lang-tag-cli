@@ -39,22 +39,21 @@ Processor: Consider switching to acorn:
     1. Simple regex checks if file contains lang() functions
     2. Later on acorn parses to AST and checks if top level functions are valid lang-tags without some rubberish comments iteration and etc.
 
-
-
-- zrobic podstawowy regenerate config ktory omija generowanie tam gdzie powinno byc common
+, { path: 'testimonials', namespace: 'auth' });
+podmienia na:
+, { namespace: 'auth' });
+przy takim configu: 
 ```
-    import {} from "langtag/cli/base-regenerates"
-    SkipDirNameAlgorithm(
-        namespace: {
-            ignoreAlways: ['core', 'components', 'pages', 'app']
-            ignoreStructured: {
-                'app': {
-                    'components': [
-                        'orders', 'products'
-                    ],
-                    'pages'
-                }
-            }
-        }
-    )
+onConfigGeneration: async event => {
+		// We do not modify imported configurations
+		if (event.isImportedLibrary) return;
+
+		if (event.config?.manual) return;
+
+		await generationAlgorithm(event);
+	},
 ```
+Dodać/przerobić logikę tak, że moge po fakcie sprawdzić czy np. config miał 'keepPath:true' i wtedy wrócić path na poprzednie, 
+albo zrobić drugi algorytm który jest nakładany na ten i podaje się mu nazwy zmienny które mają być na true aby jak one sa w configu to blokował nadpisywanie ich przez algorytmy
+jakos nazwac go: 'configKeeper' czy jakos tak
+ale nakłada się go PO wykonaniu algorytmu zeby mozna go bylo kombinowac z innymi 

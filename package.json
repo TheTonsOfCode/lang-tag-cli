@@ -1,6 +1,6 @@
 {
   "name": "@lang-tag/cli",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "type": "module",
   "private": true,
   "publishConfig": {
@@ -23,6 +23,11 @@
     ".": {
       "import": "./index.js",
       "require": "./index.cjs"
+    },
+    "./algorithms": {
+      "types": "./algorithms/index.d.ts",
+      "import": "./algorithms/index.js",
+      "require": "./algorithms/index.cjs"
     }
   },
   "scripts": {
@@ -37,6 +42,7 @@
   },
   "dependencies": {
     "acorn": "^8.15.0",
+    "case": "^1.6.3",
     "chokidar": "^4.0.3",
     "commander": "^13.1.0",
     "globby": "^14.1.0",

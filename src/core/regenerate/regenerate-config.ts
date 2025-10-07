@@ -34,6 +34,7 @@ export async function checkAndRegenerateFileLangTags(
         let shouldUpdate = false;
 
         await config.onConfigGeneration({
+            langTagConfig: config,
             config: tag.parameterConfig,
             absolutePath: file,
             relativePath: path,

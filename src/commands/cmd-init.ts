@@ -30,15 +30,27 @@ async function detectModuleSystem(): Promise<'esm' | 'cjs'> {
     }
 }
 
-function getExportStatement(moduleSystem: 'esm' | 'cjs'): string {
-    return moduleSystem === 'esm' ? 'export default config;' : 'module.exports = config;';
-}
-
 async function generateDefaultConfig(): Promise<string> {
     const moduleSystem = await detectModuleSystem();
-    const exportStatement = getExportStatement(moduleSystem);
-    
-    return `/** @type {import('@lang-tag/cli/config').LangTagCLIConfig} */
+    const importStatement = moduleSystem === 'esm'
+        ? `import { pathBasedConfigGenerator } from '@lang-tag/cli/algorithms';`
+        : `const { pathBasedConfigGenerator } = require('@lang-tag/cli/algorithms');`;
+    const exportStatement = moduleSystem === 'esm' 
+        ? 'export default config;' 
+        : 'module.exports = config;';
+
+    return `${importStatement}
+
+const generationAlgorithm = pathBasedConfigGenerator({
+    ignoreIncludesRootFolders: true,
+    removeBracketedFolders: true,
+    namespaceCase: 'kebab',
+    pathCase: 'camel',
+    clearOnDefaultNamespace: true,
+    ignoreFolders: ['core', 'utils', 'helpers']
+});
+
+/** @type {import('@lang-tag/cli/config').LangTagCLIConfig} */
 const config = {
     tagName: 'lang',
     isLibrary: false,
@@ -49,13 +61,9 @@ const config = {
         // We do not modify imported configurations
         if (event.isImportedLibrary) return;
 
-        // const config = event.config || {};
-        //
-        // if (!config.path) {
-        //     config.path = 'test';
-        //     config.namespace = 'testNamespace';
-        //     event.save(config);
-        // }
+        if (event.config?.manual) return;
+        
+        await generationAlgorithm(event);
     },
     collect: {
         defaultNamespace: 'common',

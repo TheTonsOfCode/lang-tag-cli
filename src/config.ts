@@ -210,6 +210,8 @@ export interface LangTagCLIConfigGenerationEvent {
     /** The configuration object extracted from the lang tag's options argument (e.g., `{ namespace: 'common', path: 'my.path' }`). */
     config: LangTagTranslationsConfig | undefined;
 
+    langTagConfig: LangTagCLIConfig
+
     /**
      * Tells CLI to replace tag configuration
      * undefined = means configuration will be removed
