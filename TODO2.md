@@ -11,6 +11,8 @@
 //  Jak jest 1:1 tak samo wartość to nie wykrywa teraz konfliktów i nie wiem czy to dobrze..., 
 //  choc z drugiej strony mozna tworzyc takie same langtagi z wskazaniem na ta sama sciezke bez importu innego langtaga
 //
+        to jest przez tego if'a
+        dodac do CLIConfigu i zrobic to opcjonalne "skipConflictsOnSameValues=true" zawsze pomija podstawowo, a mozna dac na false
 //
 
 - dodac ze w linii langtaga processor cofa sie i szuka // jesli znalazl to znaczy ze jest to zakomentowany lang-tag  i go pomija
