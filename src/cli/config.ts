@@ -34,6 +34,13 @@ export interface LangTagCLIConfig {
         defaultNamespace?: string;
 
         /**
+         * When true, conflicts are not reported when two translation tags have the same path but identical values.
+         * This is useful for shared translations that appear in multiple files with the same content.
+         * @default true
+         */
+        ignoreConflictsWithMatchingValues?: boolean;
+
+        /**
          * A function called when the collected translation configuration needs to be fixed or validated.
          * Allows modification of the configuration before it's saved to the output files.
          */
@@ -230,6 +237,7 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     outputDir: 'locales/en',
     collect: {
         defaultNamespace: 'common',
+        ignoreConflictsWithMatchingValues: true,
         onCollectConfigFix: ({config, langTagConfig}) => {
             if (langTagConfig.isLibrary) return config;
 
@@ -239,12 +247,12 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
             return config;
         },
         onConflictResolution: async event => {
-            await event.logger.conflict(event.conflict);
-            // Continue processing by default
-            // event.exit(); // In order to break command on first conflict
+            await event.logger.conflict(event.conflict, true);
+            // By default, continue processing even if conflicts occur
+            // Call event.exit(); to terminate the process upon the first conflict
         },
         onCollectFinish: event => {
-            event.exit(); // Do not merge on conflicts
+            event.exit(); // Stop the process to avoid merging on conflict
         }
     },
     import: {

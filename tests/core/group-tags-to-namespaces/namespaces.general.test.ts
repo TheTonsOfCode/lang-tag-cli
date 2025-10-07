@@ -130,7 +130,8 @@ describe('$LT_GroupTagsToNamespaces', () => {
             expect.objectContaining({
                 path: 'buttons.primary.text',
                 conflictType: 'path_overwrite'
-            })
+            }),
+            true
         );
     });
 
@@ -295,7 +296,8 @@ describe('$LT_GroupTagsToNamespaces', () => {
             expect.objectContaining({
                 path: 'settings.count.value',
                 conflictType: 'type_mismatch'
-            })
+            }),
+            true
         );
     });
 
@@ -392,7 +394,8 @@ describe('$LT_GroupTagsToNamespaces', () => {
             expect.objectContaining({
                 path: 'text',
                 conflictType: 'path_overwrite'
-            })
+            }),
+            true
         );
     });
 

@@ -59,12 +59,12 @@ const config = {
     collect: {
         defaultNamespace: 'common',
         onConflictResolution: async event => {
-            await event.logger.conflict(event.conflict);
-            // Continue processing by default
-            // event.exit(); // In order to break command on first conflict
+            await event.logger.conflict(event.conflict, true);
+            // By default, continue processing even if conflicts occur
+            // Call event.exit(); to terminate the process upon the first conflict
         },
         onCollectFinish: event => {
-            event.exit(); // Do not merge on conflicts
+            event.exit(); // Stop the process to avoid merging on conflict
         }
     },
     translationArgPosition: 1,

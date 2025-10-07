@@ -82,7 +82,7 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean, translationArgPosit
             if (!debugMode) return;
             log(ANSI_COLORS.gray, msg, params);
         },
-        conflict: async (conflict: LangTagCLIConflict) => {
+        conflict: async (conflict: LangTagCLIConflict, condense?: boolean) => {
             const { path, conflictType, tagA } = conflict;
 
             console.log();
@@ -93,7 +93,7 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean, translationArgPosit
             console.log(`  ${ANSI_COLORS.cyan}Namespace:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${tagA.tag.parameterConfig.namespace}${ANSI_COLORS.reset}`);
             console.log(`${ANSI_COLORS.gray}${'─'.repeat(60)}${ANSI_COLORS.reset}`);
             
-            await $LT_LogConflict(conflict, translationArgPosition);
+            await $LT_LogConflict(conflict, translationArgPosition, condense);
 
             console.log();
         },
