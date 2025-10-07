@@ -118,9 +118,12 @@ export interface LangTagCLIConfig {
      * A function called for each found lang tag before processing.
      * Allows dynamic modification of the tag's configuration (namespace, path, etc.)
      * based on the file path or other context.
-     * If it returns `undefined`, the tag's configuration is not automatically generated or updated.
+     *
+     * Changes made inside this function are **applied only if you explicitly call**
+     * `event.save(configuration)`. Returning a value or modifying the event object
+     * without calling `save()` will **not** update the configuration.
      */
-    onConfigGeneration: (params: LangTagCLIOnConfigGenerationParams) => LangTagTranslationsConfig | undefined;
+    onConfigGeneration: (event: LangTagCLIConfigGenerationEvent) => Promise<void>;
 
     debug?: boolean;
 }
@@ -153,23 +156,6 @@ export interface LangTagCLIOnImportActions {
     setExportName: (name: string) => void;
     /** Sets the configuration for the currently imported tag. */
     setConfig: (config: LangTagTranslationsConfig) => void;
-}
-
-/**
- * Parameters passed to the `onConfigGeneration` configuration function.
- */
-export interface LangTagCLIOnConfigGenerationParams {
-    /** The absolute path to the source file being processed. */
-    fullPath: string;
-
-    /** The path of the source file relative to the project root (where the command was invoked). */
-    path: string;
-
-    /** True if the file being processed is located within the configured library import directory (`config.import.dir`). */
-    isImportedLibrary: boolean;
-
-    /** The configuration object extracted from the lang tag's options argument (e.g., `{ namespace: 'common', path: 'my.path' }`). */
-    config: LangTagTranslationsConfig;
 }
 
 type Validity = 'ok' | 'invalid-param-1' | 'invalid-param-2' | 'translations-not-found';
@@ -210,6 +196,26 @@ export interface LangTagCLIConflict {
 /*
  * Events
  */
+
+export interface LangTagCLIConfigGenerationEvent {
+    /** The absolute path to the source file being processed. */
+    fullPath: string;
+
+    /** The path of the source file relative to the project root (where the command was invoked). */
+    path: string;
+
+    /** True if the file being processed is located within the configured library import directory (`config.import.dir`). */
+    isImportedLibrary: boolean;
+
+    /** The configuration object extracted from the lang tag's options argument (e.g., `{ namespace: 'common', path: 'my.path' }`). */
+    config: LangTagTranslationsConfig | undefined;
+
+    /**
+     * Tells CLI to replace tag configuration
+     * undefined = means configuration will be removed
+     **/
+    save(config: LangTagTranslationsConfig | undefined): void;
+}
 
 export interface LangTagCLICollectConfigFixEvent {
     config: LangTagTranslationsConfig,
@@ -269,5 +275,5 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     isLibrary: false,
     language: 'en',
     translationArgPosition: 1,
-    onConfigGeneration: (params: LangTagCLIOnConfigGenerationParams) => undefined,
+    onConfigGeneration: async event => {},
 };
