@@ -1,11 +1,4 @@
 
-//
-//
-//
-//  Obsługa flagi condense w logowaniu konfliktu
-
-//
-
 
 - dodac ze w linii langtaga processor cofa sie i szuka // jesli znalazl to znaczy ze jest to zakomentowany lang-tag  i go pomija
 // komentarz w jednej lini wycinac langtaga aby nie bralo pod uwage

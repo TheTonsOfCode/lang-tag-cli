@@ -44,8 +44,8 @@ function getVisibleLines(totalLines: number, errorLines: Set<number>, threshold 
 /**
  * Prints lines with line numbers, collapsing non-essential lines if needed
  */
-function printLines(lines: string[], startLineNumber: number, errorLines: Set<number> = new Set()): void {
-    const visibleLines = getVisibleLines(lines.length, errorLines);
+function printLines(lines: string[], startLineNumber: number, errorLines: Set<number> = new Set(), condense: boolean = false): void {
+    const visibleLines = condense ? getVisibleLines(lines.length, errorLines) : null;
 
     if (visibleLines === null) {
         // Show all lines
@@ -125,7 +125,7 @@ function getErrorLineNumbers(code: string, nodes: ASTNode[]): Set<number> {
     return errorLines;
 }
 
-async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPath: string, translationArgPosition: number, condense: boolean): Promise<void> {
+async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPath: string, translationArgPosition: number, condense?: boolean): Promise<void> {
     const { tag } = tagInfo;
 
     try {
@@ -219,13 +219,13 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, conflictPa
             }
         }
 
-        printLines(colorizedWhole.split('\n'), startLine, errorLines);
+        printLines(colorizedWhole.split('\n'), startLine, errorLines, condense);
     } catch (error) {
         console.error('Error displaying conflict:', error);
     }
 }
 
-export async function $LT_LogConflict(conflict: LangTagCLIConflict, translationArgPosition: number, condense: boolean): Promise<void> {
+export async function $LT_LogConflict(conflict: LangTagCLIConflict, translationArgPosition: number, condense?: boolean): Promise<void> {
     const { path: conflictPath, tagA, tagB } = conflict;
     
     const logTag = async (tagInfo: LangTagCLITagConflictInfo, prefix: string) => {

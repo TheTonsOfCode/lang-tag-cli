@@ -82,7 +82,7 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean, translationArgPosit
             if (!debugMode) return;
             log(ANSI_COLORS.gray, msg, params);
         },
-        conflict: async (conflict: LangTagCLIConflict, condense: boolean) => {
+        conflict: async (conflict: LangTagCLIConflict, condense?: boolean) => {
             const { path, conflictType, tagA } = conflict;
 
             console.log();
