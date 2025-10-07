@@ -1,8 +1,3 @@
-# Tests:
-
-## Unit:
-
-- Consider removing readConfig, and conduct all tests inside e2e (init.test)
 
 ## E2E:
 
@@ -37,3 +32,25 @@ At .lang-tag.import-cache.json in format:
 Then always at update use "userInputVariableName"
 
 System/Function to decide output file(json collectFile), so instead of /locale/en/[namespace].json we can redirect collecting all translations to something like: /locale/en.json 
+
+
+- onConfigurationGeneration, undefined powinno usuwac konfiguracje, a powinna byc inna zmienna 'save: true'
+
+
+- zrobic podstawowy regenerate config ktory omija generowanie tam gdzie powinno byc common
+```
+    import {} from "langtag/cli/base-regenerates"
+    SkipDirNameAlgorithm(
+        namespace: {
+            ignoreAlways: ['core', 'components', 'pages', 'app']
+            ignoreStructured: {
+                'app': {
+                    'components': [
+                        'orders', 'products'
+                    ],
+                    'pages'
+                }
+            }
+        }
+    )
+```
