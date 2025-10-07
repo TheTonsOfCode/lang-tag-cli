@@ -240,11 +240,11 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
         },
         onConflictResolution: async event => {
             await event.logger.conflict(event.conflict, true);
-            // Continue processing by default
-            // event.exit(); // In order to break command on first conflict
+            // By default, continue processing even if conflicts occur
+            // Call event.exit(); to terminate the process upon the first conflict
         },
         onCollectFinish: event => {
-            event.exit(); // Do not merge on conflicts
+            event.exit(); // Stop the process to avoid merging on conflict
         }
     },
     import: {
