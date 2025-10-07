@@ -9,7 +9,7 @@ import {
     prepareMainProjectBase,
     TESTS_TEST_DIR as _TESTS_TEST_DIR
 } from "./utils.ts";
-import {CONFIG_FILE_NAME} from '@/cli/core/constants.ts';
+import {CONFIG_FILE_NAME} from '@/core/constants.ts';
 
 const SUFFIX = 'init';
 const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;

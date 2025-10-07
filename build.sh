@@ -13,7 +13,7 @@ echo "Building project..."
 rm -rf dist/
 tsc
 vite build
-chmod 777 dist/cli/index.js
+chmod 777 dist/index.js
 
 # Check if dist exists
 if [ ! -d "dist" ]; then
@@ -26,8 +26,8 @@ echo "Copying files to dist..."
 [ -f "README.md" ] && cp README.md dist/
 [ -f "LICENSE" ] && cp LICENSE dist/
 # Copy mustache templates for init-tag command
-mkdir -p dist/cli/template
-cp src/cli/core/init-tag/template/* dist/cli/template/ 2>/dev/null || true
+mkdir -p dist/template
+cp src/core/init-tag/template/* dist/template/ 2>/dev/null || true
 # Exclude docs. README links points to github
 #cp -r docs dist/docs/
 

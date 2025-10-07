@@ -9,10 +9,10 @@ import {
     prepareMainProjectBase,
     TESTS_TEST_DIR as _TESTS_TEST_DIR
 } from "./utils.ts";
-import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/cli/core/constants.ts';
-import {LangTagCLIConfig} from "@/cli/config.ts";
+import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/core/constants.ts';
+import {LangTagCLIConfig} from "@/config.ts";
 import JSON5 from "json5";
-import {$LT_TagProcessor} from "@/cli/core/processor.ts";
+import {$LT_TagProcessor} from "@/core/processor.ts";
 
 function expectJSON5Equal(a: string | undefined, b: string) {
     expect(JSON5.stringify(JSON5.parse(a || ''))).toEqual(JSON5.stringify(JSON5.parse(b)));

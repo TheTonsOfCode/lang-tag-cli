@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { $LT_ReadConfig } from '@/cli/core/io/read-config.ts';
-import { CONFIG_FILE_NAME } from '@/cli/core/constants.ts';
+import { $LT_ReadConfig } from '@/core/io/read-config.ts';
+import { CONFIG_FILE_NAME } from '@/core/constants.ts';
 import { resolve } from 'pathe';
 import * as fs from 'fs';
 import { pathToFileURL } from 'url';
-import {LANG_TAG_DEFAULT_CONFIG} from "@/cli/config.ts";
+import {LANG_TAG_DEFAULT_CONFIG} from "@/config.ts";
 
 const defaultConfig = LANG_TAG_DEFAULT_CONFIG;
 

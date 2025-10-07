@@ -9,9 +9,9 @@ import {
     prepareMainProjectBase,
     TESTS_TEST_DIR as _TESTS_TEST_DIR,
 } from "./utils.ts";
-import {LangTagTranslationsConfig} from "@/index.ts";
-import {CONFIG_FILE_NAME} from "@/cli/core/constants.ts";
-import {$LT_TagProcessor} from "@/cli/core/processor.ts";
+import {LangTagTranslationsConfig} from "lang-tag";
+import {CONFIG_FILE_NAME} from "@/core/constants.ts";
+import {$LT_TagProcessor} from "@/core/processor.ts";
 
 const SUFFIX = 'regenerate';
 const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;

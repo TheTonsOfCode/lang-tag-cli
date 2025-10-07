@@ -82,9 +82,10 @@ export function prepareMainProjectBase(suffix: string) {
                 compile: `${RUN_CMD}tsc`,
             },
             dependencies: {
-                'lang-tag': 'file:../../dist/lang-tag.tgz'
+                "lang-tag": "0.10.0"
             },
             devDependencies: {
+                '@lang-tag/cli': 'file:../../dist/lang-tag-cli.tgz',
                 'ts-node': '^10.9.2',
                 'typescript': '^5.0.0'
             }

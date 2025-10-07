@@ -1,4 +1,4 @@
-# Lang-tag: Component-Colocated Translation Management / Translation Engine Proxy
+# Lang-tag CLI
 
 A professional solution for managing translations in modern JavaScript/TypeScript projects, especially those using component-based architectures. `lang-tag` simplifies internationalization by allowing you to define translation keys directly within the components where they are used. Translations become local, callable function objects with full TypeScript support, IntelliSense, and compile-time safety.
 

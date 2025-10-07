@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { $LT_GroupTagsToNamespaces } from '@/cli/core/collect/group-tags-to-namespaces.ts';
-import { $LT_TagCandidateFile } from '@/cli/core/collect/collect-tags.ts';
-import {LangTagCLIProcessedTag, LangTagCLIConfig, LANG_TAG_DEFAULT_CONFIG} from '@/cli/config.ts';
-import { LangTagCLILogger } from '@/cli/logger.ts';
+import { $LT_GroupTagsToNamespaces } from '@/core/collect/group-tags-to-namespaces.ts';
+import { $LT_TagCandidateFile } from '@/core/collect/collect-tags.ts';
+import {LangTagCLIProcessedTag, LangTagCLIConfig, LANG_TAG_DEFAULT_CONFIG} from '@/config.ts';
+import { LangTagCLILogger } from '@/logger.ts';
 
 // Mock logger
 const mockLogger: LangTagCLILogger = {

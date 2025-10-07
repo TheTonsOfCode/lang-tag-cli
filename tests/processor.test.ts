@@ -1,6 +1,6 @@
-import {LangTagCLIConfig} from "@/cli/config.ts";
+import {LangTagCLIConfig} from "@/config.ts";
 import {describe, expect, it} from 'vitest';
-import {$LT_TagProcessor, $LT_TagReplaceData} from '@/cli/core/processor.ts';
+import {$LT_TagProcessor, $LT_TagReplaceData} from '@/core/processor.ts';
 
 const commonConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
     tagName: 'lang',

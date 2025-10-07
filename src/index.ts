@@ -1,348 +1,62 @@
-/**
- * Configuration for LangTag translations.
- * @template Namespaces - The type used for namespaces, defaults to string.
- */
-export interface LangTagTranslationsConfig<Namespaces = string> {
-    /** Optional base path for translation keys. */
-    path?: string;
-    /** The namespace for the translations. */
-    namespace: Namespaces;
+#!/usr/bin/env node
+
+import {program} from 'commander';
+import {$LT_CMD_RegenerateTags} from '@/commands/cmd-regenerate-tags.ts';
+import {$LT_WatchTranslations} from '@/commands/cmd-watch.ts';
+import {$LT_CMD_InitConfig} from '@/commands/cmd-init.ts';
+import {$LT_ImportTranslations} from "@/commands/cmd-import.ts";
+import {$LT_CMD_Collect} from "@/commands/cmd-collect.ts";
+import {$LT_CMD_InitTagFile} from "@/commands/cmd-init-tag.ts";
+
+export function createCli() {
+    program
+        .name('lang-tag')
+        .description('CLI to manage language translations')
+        .version('0.1.0');
+
+    program
+        .command('collect')
+        .alias('c')
+        .description('Collect translations from source files')
+        .option('-c, --clean', 'Remove output directory before collecting')
+        .action($LT_CMD_Collect);
+
+    program
+        .command('import')
+        .alias('i')
+        .description('Import translations from libraries in node_modules')
+        .action($LT_ImportTranslations);
+
+    program
+        .command('regenerate-tags')
+        .alias('rt')
+        .description('Regenerate configuration for language tags')
+        .action($LT_CMD_RegenerateTags);
+
+    program
+        .command('watch')
+        .alias('w')
+        .description('Watch for changes in source files and automatically collect translations')
+        .action($LT_WatchTranslations);
+
+    program
+        .command('init')
+        .description('Initialize project with default configuration')
+        .action($LT_CMD_InitConfig);
+
+    program
+        .command('init-tag')
+        .description('Initialize a new lang-tag function file')
+        .option('-n, --name <name>', 'Name of the tag function (default: from config)')
+        .option('-l, --library', 'Generate library-style tag (default: from config)')
+        .option('-r, --react', 'Include React-specific optimizations (default: auto-detect)')
+        .option('-t, --typescript', 'Force TypeScript output (default: auto-detect)')
+        .option('-o, --output <path>', 'Output file path (default: auto-generated)')
+        .action(async (options) => {
+            await $LT_CMD_InitTagFile(options);
+        });
+
+    return program;
 }
 
-/**
- * Represents a collection of translations.
- * Keys are strings, and values can be either strings (translations)
- * or nested LangTagTranslations objects for hierarchical translations.
- */
-export type LangTagTranslations = {
-    [key: string]: string | LangTagTranslations;
-};
-
-// export type LangTag<Config extends LangTagConfig = LangTagConfig, T = any> = (translations: LangTagTranslations, config?: Config) => T;
-
-/**
- * Defines the structure for parameters used in interpolation.
- * It's a record where keys are placeholders and values are their replacements.
- */
-export type InterpolationParams = Record<string, any>;
-/**
- * Represents a function that takes optional interpolation parameters
- * and returns a translated string.
- */
-export type ParameterizedTranslation = (params?: InterpolationParams) => string;
-
-/**
- * Transforms a static translation object into an object where each
- * translation string or nested object is converted into a callable function
- * or a nested structure of callable functions.
- * @template T - The structure of the input translations.
- */
-export type CallableTranslations<T> = {
-    [P in keyof T]:
-        T[P] extends ParameterizedTranslation ? ParameterizedTranslation :
-        // Allow for pre-existing functions that might not strictly be ParameterizedTranslation
-        // but are still callable and return a string, or a nested structure.
-        T[P] extends (...args: any[]) => string ? T[P] :
-        T[P] extends Record<string, any> ? CallableTranslations<T[P]> :
-        ParameterizedTranslation; // Fallback for basic strings that will be converted
-};
-
-/**
- * Context provided to a translation transformer function.
- * @template Config - The LangTag translations configuration type.
- */
-export interface TranslationTransformContext<Config extends LangTagTranslationsConfig> {
-    /** The LangTag configuration object. */
-    config: Config | undefined;
-    /** The path of the direct parent object of the current translation key, including the base path from config. */
-    parentPath: string;
-    /** The full path to the current translation key, including the base path from config. */
-    path: string;
-    /** The path to the current translation key, relative to the root of the translations object (excluding the base path from config). */
-    unprefixedPath: string;
-    /** The current translation key. */
-    key: string;
-    /** The raw string value of the translation. */
-    value: string; // The raw string value of the translation
-    /** Optional interpolation parameters for the translation. */
-    params?: InterpolationParams;
-}
-
-/**
- * Defines the signature for a function that transforms a raw translation string.
- * @template Config - The LangTag translations configuration type.
- * @param transformContext - The context for the transformation.
- * @returns The transformed translation string.
- */
-export type TranslationTransformer<Config extends LangTagTranslationsConfig> = (transformContext: TranslationTransformContext<Config>) => string;
-
-/**
- * Context provided to a translation key processor function.
- * It omits the 'params' field from `TranslationTransformContext`.
- * @template Config - The LangTag translations configuration type.
- */
-export type TranslationKeyProcessorContext<Config extends LangTagTranslationsConfig> = Omit<TranslationTransformContext<Config>, 'params'>;
-
-/**
- * Defines the signature for a function that processes translation keys.
- * This allows for modifying or generating new keys based on the original key and value.
- * @template Config - The LangTag translations configuration type.
- */
-export type TranslationKeyProcessor<
-    Config extends LangTagTranslationsConfig = LangTagTranslationsConfig
-> = (
-    /** Context for processing the key. */
-    context: TranslationKeyProcessorContext<Config>,
-    /**
-     * Callback to add a processed key.
-     * @param newKey - The new key to be added to the result.
-     * @param originalValue - The original string value associated with the key being processed.
-     */
-    addProcessedKey: (newKey: string, originalValue: string) => void
-) => void;
-
-/**
- * Defines the strategy for mapping and transforming translations.
- * @template Config - The LangTag translations configuration type.
- */
-export interface TranslationMappingStrategy<Config extends LangTagTranslationsConfig> {
-    /** The function used to transform raw translation strings. */
-    transform: TranslationTransformer<Config>;
-    /** Optional function to process translation keys. */
-    processKey?: TranslationKeyProcessor<Config>;
-}
-
-/**
- * Recursively transforms a nested object of translation strings into an object
- * of callable translation functions.
- * @template T - The type of the input translations object.
- * @template Config - The LangTag translations configuration type.
- * @param config - The LangTag configuration object.
- * @param strategy - The translation mapping strategy.
- * @param input - The translations object to transform.
- * @param currentParentPath - The current parent path for building full translation keys.
- * @param currentRelativeParentPath - The current relative parent path for building full translation keys.
- * @returns An object with the same structure as input, but with strings replaced by callable functions.
- * @internal
- */
-function transformTranslationsToFunctions<
-    T extends LangTagTranslations,
-    Config extends LangTagTranslationsConfig
->(
-    config: Config | undefined,
-    strategy: TranslationMappingStrategy<Config>,
-    input: T,
-    currentParentPath: string, // This includes config.path prefix
-    currentRelativeParentPath: string // This is the path relative to translations root
-): CallableTranslations<T> {
-    const result: Record<string, any> = {};
-
-    for (const [originalKey, originalValue] of Object.entries(input)) {
-        const currentFullPath = `${currentParentPath}${originalKey}`;
-        const currentRelativePath = currentRelativeParentPath ? `${currentRelativeParentPath}.${originalKey}` : originalKey;
-
-        if (typeof originalValue === 'object' && originalValue !== null) {
-            result[originalKey] = transformTranslationsToFunctions(config, strategy, originalValue, `${currentFullPath}.`, currentRelativePath);
-        } else if (typeof originalValue === 'string') {
-            const createTranslationFunction = (pathForFunc: string, unprefixedPathForFunc: string, keyForFunc: string, valueForFunc: string) => {
-                return (params?: InterpolationParams) => strategy.transform({
-                    config,
-                    parentPath: currentParentPath, 
-                    path: pathForFunc,        
-                    unprefixedPath: unprefixedPathForFunc,
-                    key: keyForFunc,          
-                    value: valueForFunc,      
-                    params
-                });
-            };
-
-            if (strategy.processKey) {
-                const keyProcessingContext: TranslationKeyProcessorContext<Config> = {
-                    config,
-                    parentPath: currentParentPath,
-                    path: currentFullPath,
-                    unprefixedPath: currentRelativePath,
-                    key: originalKey,
-                    value: originalValue
-                };
-
-                strategy.processKey(
-                    keyProcessingContext,
-                    (newKeyToAdd: string, valueForNewKey: string) => {
-                        const pathForNewKey = currentParentPath + newKeyToAdd;
-                        const unprefixedPathForNewKey = currentRelativeParentPath ? `${currentRelativeParentPath}.${newKeyToAdd}` : newKeyToAdd;
-                        result[newKeyToAdd] = createTranslationFunction(pathForNewKey, unprefixedPathForNewKey, newKeyToAdd, valueForNewKey);
-                    }
-                );
-                
-                if (!result.hasOwnProperty(originalKey)) {
-                     result[originalKey] = createTranslationFunction(currentFullPath, currentRelativePath, originalKey, originalValue);
-                }
-            } else {
-                result[originalKey] = createTranslationFunction(currentFullPath, currentRelativePath, originalKey, originalValue);
-            }
-        }
-    }
-    return result as CallableTranslations<T>;
-}
-
-/**
- * Creates a callable translations object from a static translations object.
- * This function initializes the transformation process.
- * @template T - The type of the input translations object.
- * @template Config - The LangTag translations configuration type.
- * @param translations - The static translations object.
- * @param config - The LangTag configuration object.
- * @param strategy - The translation mapping strategy.
- * @returns A callable translations object.
- */
-export function createCallableTranslations<
-    T extends LangTagTranslations,
-    Config extends LangTagTranslationsConfig
->(
-    translations: T,
-    config: Config | undefined,
-    strategy: TranslationMappingStrategy<Config>,
-): CallableTranslations<T> {
-    let basePath = config?.path || '';
-    if (basePath && !basePath.endsWith('.')) basePath += '.';
-    return transformTranslationsToFunctions(
-        config,
-        strategy,
-        translations,
-        basePath,
-        ""
-    );
-}
-
-/**
- * Helper type to determine the flexible value of a translation property.
- * If `T` is a function returning a string, it can be `T` or `string`.
- * If `T` is a record, it recursively applies `RecursiveFlexibleTranslations`.
- * Otherwise, it can be `ParameterizedTranslation`, `T`, or `string`.
- * @template T - The type of the property value.
- * @template IsPartial - A boolean indicating whether properties should be optional.
- */
-type FlexibleValue<T, IsPartial extends boolean> =
-    T extends (...args: any[]) => string
-        ? T | string
-        : T extends Record<string, any>
-            ? RecursiveFlexibleTranslations<T, IsPartial>
-            : ParameterizedTranslation | T | string;
-
-/**
- * Core type for flexible translations, allowing properties to be optional recursively.
- * This type serves as the foundation for `FlexibleTranslations` and `PartialFlexibleTranslations`.
- * It transforms a given translation structure `T` into a flexible version where each property
- * can be its original type, a string, or a `ParameterizedTranslation` function.
- * If `IsPartial` is true, all properties at all levels of nesting become optional.
- *
- * @template T The original, un-transformed, structure of the translations.
- * @template IsPartial A boolean indicating whether properties should be optional. 
- *   If true, all properties at all levels become optional (e.g., `string | undefined`).
- *   If false, properties are required (e.g., `string`).
- */
-export type RecursiveFlexibleTranslations<T, IsPartial extends boolean> =
-    IsPartial extends true
-        ? { [P in keyof T]?: FlexibleValue<T[P], IsPartial>; }
-        : { [P in keyof T]: FlexibleValue<T[P], IsPartial>; };
-
-/**
- * Represents a flexible structure for translations where all properties are required, based on an original type `T`.
- * Allows for strings, `ParameterizedTranslation` functions, or other compatible functions
- * at any level of the translation object. This provides flexibility in how translations
- * are initially defined.
- * This type is an alias for `RecursiveFlexibleTranslations<T, false>`.
- * @template T - The original structure of the translations.
- */
-export type FlexibleTranslations<T> = RecursiveFlexibleTranslations<T, false>;
-
-/**
- * Represents a deeply partial version of the structure that `FlexibleTranslations<T>` would produce, based on an original type `T`.
- * All properties at all levels of nesting are made optional.
- * The transformation rules for property types mirror those in `FlexibleTranslations<T>`.
- * This type is an alias for `RecursiveFlexibleTranslations<T, true>`.
- * @template T - The original, un-transformed, structure of the translations. This is the same kind of type argument that `FlexibleTranslations<T>` expects.
- */
-export type PartialFlexibleTranslations<T> = RecursiveFlexibleTranslations<T, true>;
-
-/**
- * Normalizes a `FlexibleTranslations` or `PartialFlexibleTranslations` object into a `CallableTranslations` object.
- * Converts plain strings into `ParameterizedTranslation` functions and ensures
- * that all callable elements conform to the `ParameterizedTranslation` signature.
- * Only properties present in the input `translations` object will be processed and included in the result.
- * @template T - The structure of the original translations.
- * @param translations - The flexible or partial flexible translations object to normalize.
- * @returns A `CallableTranslations` object. The returned object will only contain callable translations for properties that were present in the input `translations` object.
- */
-export function normalizeTranslations<T>(
-    translations: RecursiveFlexibleTranslations<T, boolean>
-): CallableTranslations<T>  {
-    const result = {} as CallableTranslations<T>;
-
-    for (const key in translations) {
-        if (Object.prototype.hasOwnProperty.call(translations, key)) {
-            const value = translations[key];
-
-            if (value === null || value === undefined) {
-                continue;
-            }
-
-            if (typeof value === 'object' && !Array.isArray(value) && !(value instanceof Function)) {
-                // Recursively normalize nested objects
-                result[key] = normalizeTranslations(value as RecursiveFlexibleTranslations<any, boolean>) as any;
-            } else if (typeof value === 'string') {
-                // Convert string to a ParameterizedTranslation
-                result[key] = ((_params?: InterpolationParams) => value) as any;
-            } else if (typeof value === 'function') {
-                // Assume functions are already ParameterizedTranslation or compatible
-                result[key] = value as any;
-            }
-            // else {
-            //     // For other types (e.g., number, boolean), convert to string and then to ParameterizedTranslation
-            //     const stringValue = String(value);
-            //     result[key] = ((_params?: InterpolationParams) => stringValue) as any;
-            // }
-        }
-    }
-    return result;
-}
-
-/**
- * Resolves a translation function from a nested translation object using a path array.
- * @template T - The type of the translations object.
- * @param translations The object containing translation functions.
- * @param path An array of keys representing the path to the function.
- * @returns The translation function, or null if not found or invalid.
- * @internal
- */
-function resolveTranslationFunction<T>(
-    translations: CallableTranslations<T>,
-    path: string[]
-): ParameterizedTranslation | null {
-    let current: any = translations;
-
-    for (const key of path) {
-        if (current && typeof current === 'object' && key in current) {
-            current = current[key];
-        } else {
-            return null;
-        }
-    }
-
-    return typeof current === 'function' ? (current as ParameterizedTranslation) : null;
-}
-
-/**
- * Retrieves a translation function from a nested translation object using a dot-separated path.
- * It is recommended to use an unprefixed path (a path that does not include the base path from the configuration)
- * with this function, as it operates on the structure of the callable translations object where keys are unprefixed.
- * @template T - The type of the translations object.
- * @param translations The object containing translation functions.
- * @param dottedPath A string path using dot notation (e.g., "user.profile.greeting"). This path should generally be unprefixed.
- * @returns The translation function, or null if not found or invalid.
- */
-export function lookupTranslation<T>(translations: CallableTranslations<T>, dottedPath: string): ParameterizedTranslation | null {
-    const pathSegments = dottedPath.split('.');
-    return resolveTranslationFunction(translations, pathSegments);
-}
+createCli().parse();
