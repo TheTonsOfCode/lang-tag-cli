@@ -16,7 +16,7 @@ const ANSI = {
 /**
  * Determines which lines should be visible based on error lines
  */
-function getVisibleLines(totalLines: number, errorLines: Set<number>, threshold = 20): Set<number> | null {
+function getVisibleLines(totalLines: number, errorLines: Set<number>, threshold = 10): Set<number> | null {
     // If the code is short enough, show all lines
     if (totalLines <= threshold) {
         return null; // null means show all
