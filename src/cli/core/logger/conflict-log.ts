@@ -8,7 +8,8 @@ const ANSI = {
     reset: '\x1b[0m',
     white: '\x1b[97m',
     cyan: '\x1b[96m',
-    gray: '\x1b[90m',
+    gray: '\x1b[37m',
+    darkGray: '\x1b[90m',
     bold: '\x1b[1m',
 };
 
@@ -51,7 +52,7 @@ function printLines(lines: string[], startLineNumber: number, errorLines: Set<nu
         lines.forEach((line, i) => {
             const lineNumber = startLineNumber + i;
             const lineNumStr = String(lineNumber).padStart(3, ' ');
-            console.log(`${ANSI.gray}${lineNumStr}${ANSI.reset} ${ANSI.gray}│${ANSI.reset} ${line}`);
+            console.log(`${ANSI.gray}${lineNumStr}${ANSI.reset} ${ANSI.darkGray}│${ANSI.reset} ${line}`);
         });
     } else {
         // Show only visible lines with collapse indicators
@@ -60,12 +61,12 @@ function printLines(lines: string[], startLineNumber: number, errorLines: Set<nu
             if (visibleLines.has(i)) {
                 // Print collapse indicator if we skipped lines (but not before the first line)
                 if (i > lastPrinted + 1 && lastPrinted >= 0) {
-                    console.log(`${ANSI.gray}  -${ANSI.reset} ${ANSI.gray}│${ANSI.reset} ${ANSI.gray}...${ANSI.reset}`);
+                    console.log(`${ANSI.gray}  -${ANSI.reset} ${ANSI.darkGray}│${ANSI.reset} ${ANSI.gray}...${ANSI.reset}`);
                 }
                 
                 const lineNumber = startLineNumber + i;
                 const lineNumStr = String(lineNumber).padStart(3, ' ');
-                console.log(`${ANSI.gray}${lineNumStr}${ANSI.reset} ${ANSI.gray}│${ANSI.reset} ${line}`);
+                console.log(`${ANSI.gray}${lineNumStr}${ANSI.reset} ${ANSI.darkGray}│${ANSI.reset} ${line}`);
                 lastPrinted = i;
             }
         });
