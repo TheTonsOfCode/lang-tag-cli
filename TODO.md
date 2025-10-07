@@ -40,6 +40,17 @@ Processor: Consider switching to acorn:
     2. Later on acorn parses to AST and checks if top level functions are valid lang-tags without some rubberish comments iteration and etc.
 
 
+- zrobic ze jak save robi undefined to konvertowac to na null
+  - co pozniej funkcja łyka i zeruje config i nie ma:
+    "Replacement data is required!
+
+
+- dodac brakujący test na replaceTags gdzie konfig leci jako null
+
+
+- w logu ze updatowano plik dawać link do pliku
+
+
 
 - w debug, dodać że loguje zawsze jaki plik miał wywołany jaki save
 
