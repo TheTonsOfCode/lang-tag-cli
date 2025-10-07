@@ -1,5 +1,5 @@
 import { LangTagCLIConfigGenerationEvent } from "@/config.ts";
-import { dirname, basename, sep } from "pathe";
+import { sep } from "pathe";
 import * as caseLib from "case";
 
 export interface PathBasedConfigGeneratorOptions {
@@ -28,6 +28,21 @@ export interface PathBasedConfigGeneratorOptions {
      * @example ['src', 'app', 'components']
      */
     ignoreFolders?: string[];
+
+    /**
+     * When true, automatically extracts root folder names from the config.includes patterns
+     * and adds them to the ignoreFolders list.
+     * 
+     * @default false
+     * 
+     * @example
+     * // With includes: ['src/**\/*.{js,ts,jsx,tsx}']
+     * // Automatically ignores: ['src']
+     * 
+     * // With includes: ['(src|app)/**\/*.{js,ts,jsx,tsx}', 'components/**\/*.{jsx,tsx}']
+     * // Automatically ignores: ['src', 'app', 'components']
+     */
+    ignoreIncludesRootFolders?: boolean;
 
     /**
      * Hierarchical structure for ignoring specific folder patterns.
@@ -97,7 +112,8 @@ export interface PathBasedConfigGeneratorOptions {
  *   onConfigGeneration: pathBasedConfigGenerator({
  *     includeFileName: false,
  *     removeBracketedFolders: true,
- *     ignoreFolders: ['src', 'app', 'components'],
+ *     ignoreFolders: ['lib', 'utils'],
+ *     ignoreIncludesRootFolders: true, // Auto-ignores root folders from includes
  *     lowercaseNamespace: true,
  *     fallbackNamespace: 'common'
  *   })
@@ -111,6 +127,7 @@ export function pathBasedConfigGenerator(
         includeFileName = false,
         removeBracketedFolders = true,
         ignoreFolders = [],
+        ignoreIncludesRootFolders = false,
         ignoreStructured = {},
         lowercaseNamespace = false,
         namespaceCase,
@@ -124,6 +141,13 @@ export function pathBasedConfigGenerator(
         
         // Determine the actual fallback namespace from options or config default
         const actualFallbackNamespace = fallbackNamespace ?? langTagConfig.collect?.defaultNamespace;
+
+        // Build the final ignoreFolders list
+        let finalIgnoreFolders = [...ignoreFolders];
+        if (ignoreIncludesRootFolders && langTagConfig.includes) {
+            const extractedFolders = extractRootFoldersFromIncludes(langTagConfig.includes);
+            finalIgnoreFolders = [...new Set([...finalIgnoreFolders, ...extractedFolders])];
+        }
 
         // Extract path segments from relative path using path library for cross-platform compatibility
         let pathSegments = relativePath.split(sep).filter(Boolean);
@@ -158,7 +182,7 @@ export function pathBasedConfigGenerator(
         pathSegments = applyStructuredIgnore(pathSegments, ignoreStructured);
 
         // Apply global ignore rules
-        pathSegments = pathSegments.filter(seg => !ignoreFolders.includes(seg));
+        pathSegments = pathSegments.filter(seg => !finalIgnoreFolders.includes(seg));
 
         // Generate namespace and path from remaining segments
         let namespace: string | undefined;
@@ -282,4 +306,39 @@ function applyCaseTransform(str: string, caseType: string): string {
         return caseFunction(str);
     }
     return str;
+}
+
+/**
+ * Extracts root folder names from include glob patterns.
+ * Handles patterns like:
+ * - 'src/**\/*.{js,ts}' → ['src']
+ * - '(src|app)/**\/*.ts' → ['src', 'app']
+ * - 'components/**\/*.tsx' → ['components']
+ */
+function extractRootFoldersFromIncludes(includes: string[]): string[] {
+    const folders = new Set<string>();
+    
+    for (const pattern of includes) {
+        // Remove leading ./ if present
+        let cleanPattern = pattern.replace(/^\.\//, '');
+        
+        // Extract the first segment before /**
+        const match = cleanPattern.match(/^([^/]+)/);
+        if (!match) continue;
+        
+        const firstSegment = match[1];
+        
+        // Check if it's a group pattern like (src|app) or [src|app]
+        const groupMatch = firstSegment.match(/^[\(\[]([^\)\]]+)[\)\]]$/);
+        if (groupMatch) {
+            // Split by | and add each folder
+            const groupFolders = groupMatch[1].split('|').map(f => f.trim());
+            groupFolders.forEach(folder => folders.add(folder));
+        } else {
+            // Regular folder name
+            folders.add(firstSegment);
+        }
+    }
+    
+    return Array.from(folders);
 }

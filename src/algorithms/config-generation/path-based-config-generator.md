@@ -16,33 +16,38 @@ Automatically generates `namespace` and `path` configuration from file path stru
    - `true`: Completely removes folders wrapped in `()` or `[]` (default)
    - `false`: Only removes the brackets, keeps folder name
 
-4. **Apply Hierarchical Ignore** (option `ignoreStructured`)
+4. **Extract Root Folders from Includes** (option `ignoreIncludesRootFolders`)
+   - When enabled, automatically extracts root folder names from `config.includes` patterns
+   - Adds extracted folders to the ignore list
+   - Handles group patterns like `(src|app)` and `[frontend|backend]`
+
+5. **Apply Hierarchical Ignore** (option `ignoreStructured`)
    - Matches path structure against hierarchical ignore rules
    - Removes segments that match the structured pattern
    - Supports nested structures for precise path matching
 
-5. **Apply Global Ignore** (option `ignoreFolders`)
+6. **Apply Global Ignore** (option `ignoreFolders`)
    - Removes all segments matching globally ignored folder names
    - Applied regardless of position in path
 
-6. **Generate Namespace**
+7. **Generate Namespace**
    - If segments remain: First segment becomes `namespace`
    - If no segments: Uses `fallbackNamespace` (defaults to `langTagConfig.collect.defaultNamespace`)
 
-7. **Generate Path**
+8. **Generate Path**
    - If multiple segments remain: Remaining segments joined with `.` become `path`
    - If empty: No `path` is set
 
-8. **Apply Case Transformations** (options `lowercaseNamespace`, `namespaceCase`, `pathCase`)
+9. **Apply Case Transformations** (options `lowercaseNamespace`, `namespaceCase`, `pathCase`)
    - `lowercaseNamespace`: Converts namespace to lowercase
    - `namespaceCase`: Applies case transformation to namespace (camel, snake, kebab, etc.)
    - `pathCase`: Applies case transformation to each path segment
 
-9. **Handle Default Namespace** (option `clearOnDefaultNamespace`)
-   - `true` (default): When namespace equals fallback/default, omits it from config
-   - `false`: Always includes namespace even if it's the default
+10. **Handle Default Namespace** (option `clearOnDefaultNamespace`)
+    - `true` (default): When namespace equals fallback/default, omits it from config
+    - `false`: Always includes namespace even if it's the default
 
-10. **Save Configuration**
+11. **Save Configuration**
     - Calls `event.save()` with the generated config
     - If config would be empty and namespace is default: `event.save(undefined)` to clear
 
@@ -53,6 +58,7 @@ Automatically generates `namespace` and `path` configuration from file path stru
 | `includeFileName` | boolean | `false` | Include filename (without extension) as path segment |
 | `removeBracketedFolders` | boolean | `true` | Remove folders in `()` or `[]`, otherwise just remove brackets |
 | `ignoreFolders` | string[] | `[]` | Folder names to ignore globally |
+| `ignoreIncludesRootFolders` | boolean | `false` | Auto-extract and ignore root folders from `includes` patterns |
 | `ignoreStructured` | object | `{}` | Hierarchical ignore rules matching path structure |
 | `lowercaseNamespace` | boolean | `false` | Convert namespace to lowercase |
 | `namespaceCase` | string | - | Case transformation for namespace (camel, snake, kebab, etc.) |
@@ -122,4 +128,22 @@ pathBasedConfigGenerator({
 
 **File:** `src/UserProfile/EditForm.tsx`  
 **Result:** `{ namespace: 'user-profile', path: 'editForm' }`
+
+### Auto-Ignore Root Folders from Includes
+```typescript
+// With config.includes: ['(src|app)/**/*.{js,ts,jsx,tsx}', 'components/**/*.{jsx,tsx}']
+pathBasedConfigGenerator({
+  ignoreIncludesRootFolders: true,  // Auto-ignores: src, app, components
+  lowercaseNamespace: true
+})
+```
+
+**File:** `src/features/auth/Login.tsx`  
+**Result:** `{ namespace: 'features', path: 'auth' }`
+
+**File:** `app/admin/users/List.tsx`  
+**Result:** `{ namespace: 'admin', path: 'users' }`
+
+**File:** `components/ui/Button.tsx`  
+**Result:** `{ namespace: 'ui' }`
 
