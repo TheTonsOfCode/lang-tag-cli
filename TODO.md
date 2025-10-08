@@ -80,3 +80,19 @@ Dodać/przerobić logikę tak, że moge po fakcie sprawdzić czy np. config mia�
 albo zrobić drugi algorytm który jest nakładany na ten i podaje się mu nazwy zmienny które mają być na true aby jak one sa w configu to blokował nadpisywanie ich przez algorytmy
 jakos nazwac go: 'configKeeper' czy jakos tak
 ale nakłada się go PO wykonaniu algorytmu zeby mozna go bylo kombinowac z innymi 
+
+
+```
+const generationAlgorithm = pathBasedConfigGenerator({
+	ignoreIncludesRootDirectories: true,
+	removeBracketedDirectories: true,
+	namespaceCase: 'kebab',
+	pathCase: 'camel',
+	clearOnDefaultNamespace: true,
+	ignoreDirectories: ['core', 'utils', 'helpers'],
+	ignoreStructured: {
+		app: ['dashboard']
+	}
+});
+```
+pod "app/dashboard/dashboard.page.translations.ts" produkuje "dashboard" co jest błędne

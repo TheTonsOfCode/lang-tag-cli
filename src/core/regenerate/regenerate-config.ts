@@ -43,7 +43,7 @@ export async function checkAndRegenerateFileLangTags(
             relativePath: path,
             isImportedLibrary: path.startsWith(libraryImportsDir),
             save: (updatedConfig) => {
-                newConfig = updatedConfig;
+                newConfig = updatedConfig || null;
                 shouldUpdate = true;
             }
         });
