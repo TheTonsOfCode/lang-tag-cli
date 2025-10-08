@@ -264,7 +264,7 @@ describe('libraries import e2e tests', () => {
             greetings: {libraryHello: "Hello from Library"},
             farewells: {libraryBye: "Bye from Library"}
         });
-    }, 8000);
+    });
 
     it('should compile library and main project with flexible translations', () => {
         // --- Setup Main Project ---
@@ -425,6 +425,6 @@ describe('libraries import e2e tests', () => {
 
         // Test main project compilation
         execSync('npm run compile', {cwd: MAIN_PROJECT_DIR, stdio: 'ignore'});
-    }, 8000);
+    });
 
 });

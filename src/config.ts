@@ -119,9 +119,28 @@ export interface LangTagCLIConfig {
      * Allows dynamic modification of the tag's configuration (namespace, path, etc.)
      * based on the file path or other context.
      *
+     * **IMPORTANT:** The `event.config` object is deeply frozen and immutable. Any attempt
+     * to directly modify it will throw an error. To update the configuration, you must
+     * use `event.save(newConfig)` with a new configuration object.
+     *
      * Changes made inside this function are **applied only if you explicitly call**
      * `event.save(configuration)`. Returning a value or modifying the event object
      * without calling `save()` will **not** update the configuration.
+     *
+     * @example
+     * ```ts
+     * onConfigGeneration: async (event) => {
+     *   // ❌ This will throw an error:
+     *   // event.config.namespace = "new-namespace";
+     *   
+     *   // ✅ Correct way to update:
+     *   event.save({
+     *     ...event.config,
+     *     namespace: "new-namespace",
+     *     path: "new.path"
+     *   });
+     * }
+     * ```
      */
     onConfigGeneration: (event: LangTagCLIConfigGenerationEvent) => Promise<void>;
 
@@ -199,18 +218,23 @@ export interface LangTagCLIConflict {
 
 export interface LangTagCLIConfigGenerationEvent {
     /** The absolute path to the source file being processed. */
-    absolutePath: string;
+    readonly absolutePath: string;
 
     /** The path of the source file relative to the project root (where the command was invoked). */
-    relativePath: string;
+    readonly relativePath: string;
 
     /** True if the file being processed is located within the configured library import directory (`config.import.dir`). */
-    isImportedLibrary: boolean;
+    readonly isImportedLibrary: boolean;
 
-    /** The configuration object extracted from the lang tag's options argument (e.g., `{ namespace: 'common', path: 'my.path' }`). */
-    config: LangTagTranslationsConfig | undefined;
+    /** 
+     * The configuration object extracted from the lang tag's options argument (e.g., `{ namespace: 'common', path: 'my.path' }`).
+     * 
+     * **This object is deeply frozen and immutable.** Any attempt to modify it will throw an error in strict mode.
+     * To update the configuration, use the `save()` method with a new configuration object.
+     */
+    readonly config: Readonly<LangTagTranslationsConfig> | undefined;
 
-    langTagConfig: LangTagCLIConfig
+    readonly langTagConfig: LangTagCLIConfig
 
     /**
      * Tells CLI to replace tag configuration

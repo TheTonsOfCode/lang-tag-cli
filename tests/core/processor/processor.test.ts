@@ -1215,11 +1215,40 @@ describe('Error handling and edge cases', () => {
         const content = "const text = lang({ key: 'hello' });";
         const tags = processor.extractTags(content);
 
-        expect(() => {
-            processor.replaceTags(content, [
-                { tag: tags[0], translations: null, config: null }
-            ]);
-        }).toThrow('Replacement data is required!');
+        // expect(() => {
+        //     processor.replaceTags(content, [
+        //         { tag: tags[0], translations: null, config: null }
+        //     ]);
+        // }).toThrow('Replacement data is required!');
+
+        const result = processor.replaceTags(content, [
+            { tag: tags[0], translations: null, config: null }
+        ]);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('text')
+        expect(tag1.parameterTranslations.key).toBe('hello');
+        expect(tag1.parameterConfig).toBeUndefined();
+    });
+
+    it('should handle replaceTags with null translations and config, when config was previously set', () => {
+        const content = "const text = lang({ key: 'hello' }, {namespace: 'admin', path: 'test'});";
+        const tags = processor.extractTags(content);
+
+        const result = processor.replaceTags(content, [
+            { tag: tags[0], translations: null, config: null }
+        ]);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('text')
+        expect(tag1.parameterTranslations.key).toBe('hello');
+        expect(tag1.parameterConfig).toBeUndefined();
     });
 
     it('should handle replaceTags with empty string translations and config', () => {

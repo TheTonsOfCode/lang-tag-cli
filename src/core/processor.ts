@@ -207,7 +207,7 @@ export class $LT_TagProcessor {
         const replaceMap: Map<LangTagCLIProcessedTag, string> = new Map();
 
         replacements.forEach(R => {
-            if (!R.translations && !R.config) {
+            if (!R.translations && !R.config && R.config !== null) {
                 throw new Error('Replacement data is required!')
             }
 
@@ -225,7 +225,7 @@ export class $LT_TagProcessor {
             }
 
             let newConfigString = R.config;
-            if (!newConfigString) newConfigString = tag.parameterConfig;
+            if (!newConfigString && newConfigString !== null) newConfigString = tag.parameterConfig;
             if (newConfigString) {
                 try {
                     if (typeof newConfigString === 'string') JSON5.parse(newConfigString);
