@@ -82,17 +82,10 @@ jakos nazwac go: 'configKeeper' czy jakos tak
 ale nakłada się go PO wykonaniu algorytmu zeby mozna go bylo kombinowac z innymi 
 
 
-```
-const generationAlgorithm = pathBasedConfigGenerator({
-	ignoreIncludesRootDirectories: true,
-	removeBracketedDirectories: true,
-	namespaceCase: 'kebab',
-	pathCase: 'camel',
-	clearOnDefaultNamespace: true,
-	ignoreDirectories: ['core', 'utils', 'helpers'],
-	ignoreStructured: {
-		app: ['dashboard']
-	}
-});
-```
-pod "app/dashboard/dashboard.page.translations.ts" produkuje "dashboard" co jest błędne
+
+~/sr-dev/sr-web   main ±  langtag rt     
+[12:40:21] Lang tag configurations written for file "app/dashboard/dashboard.page.translations.ts"
+~/sr-dev/sr-web   main ±  langtag rt
+[12:40:24] Lang tag configurations written for file "app/dashboard/dashboard.page.translations.ts"
+
+non stop logi mam w miejscu gdzie config jest setowany na null
