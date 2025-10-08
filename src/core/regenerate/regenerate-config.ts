@@ -30,6 +30,8 @@ export async function checkAndRegenerateFileLangTags(
 
     const replacements: $LT_TagReplaceData[] = [];
 
+    let lastUpdatedLine = 0;
+
     for (let tag of tags) {
         let newConfig: any = undefined;
         let shouldUpdate = false;
@@ -45,6 +47,7 @@ export async function checkAndRegenerateFileLangTags(
             save: (updatedConfig) => {
                 newConfig = updatedConfig || null;
                 shouldUpdate = true;
+                logger.debug('Called save for "{path}" with config "{config}"', {path, config: JSON.stringify(updatedConfig)});
             }
         });
 
@@ -52,6 +55,8 @@ export async function checkAndRegenerateFileLangTags(
         if (!shouldUpdate) {
             continue;
         }
+
+        lastUpdatedLine = tag.line;
 
         if (JSON5.stringify(tag.parameterConfig) !== JSON5.stringify(newConfig)) {
             replacements.push({ tag, config: newConfig });
@@ -61,6 +66,7 @@ export async function checkAndRegenerateFileLangTags(
     if (replacements.length) {
         const newContent = processor.replaceTags(fileContent, replacements);
         await writeFile(file, newContent, 'utf-8');
+        logger.info('Lang tag configurations written for file "{path}" (file://{file}:{line})', {path, file, line: lastUpdatedLine})
         return true;
     }
 

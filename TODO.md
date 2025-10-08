@@ -43,20 +43,6 @@ Processor: Consider switching to acorn:
 IMPORTANT: If replace tags was NULL and translation pos is 2 then instead of removing them we need to set them to "{}"
 
 
-- zrobic ze jak save robi undefined to konvertowac to na null
-  - co pozniej funkcja łyka i zeruje config i nie ma:
-    "Replacement data is required!
-
-
-- dodac brakujący test na replaceTags gdzie konfig leci jako null
-
-
-- w logu ze updatowano plik dawać link do pliku
-
-
-
-- w debug, dodać że loguje zawsze jaki plik miał wywołany jaki save
-
 
 - generowac tagi w init-tag z zmienną `keepOnGeneration: 'namespace' | 'path' | 'both'`
 
