@@ -21,9 +21,14 @@ import {
 } from 'react';
 {{/isReact}}
 
+{{#isTypeScript}}
+interface TagConfig extends LangTagTranslationsConfig {
+    keep?: 'namespace' | 'path' | 'both'
+}
+{{/isTypeScript}}
 export function {{tagName}}<T extends LangTagTranslations>(
     baseTranslations: T,
-    config?: LangTagTranslationsConfig,
+    config?: TagConfig,
 ) {
     const createTranslationHelper = (normalized{{#isTypeScript}}: CallableTranslations<T> | null{{/isTypeScript}}) =>
         createCallableTranslations(baseTranslations, config, {

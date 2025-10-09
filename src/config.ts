@@ -253,7 +253,7 @@ export interface LangTagCLIConfigGenerationEvent {
      * Tells CLI to replace tag configuration
      * null = means configuration will be removed
      **/
-    save(config: LangTagTranslationsConfig | null): void;
+    save(config: LangTagTranslationsConfig | null, triggerName?: string): void;
 }
 
 export interface LangTagCLICollectConfigFixEvent {

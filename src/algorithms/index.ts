@@ -6,10 +6,7 @@
  */
 
 // Config Generation Algorithms
-export {
-    pathBasedConfigGenerator,
-    type PathBasedConfigGeneratorOptions
-} from './config-generation/index.ts';
+export * from './config-generation/index.ts';
 
 // Import Algorithms
 // (currently empty - future algorithms will be exported here)

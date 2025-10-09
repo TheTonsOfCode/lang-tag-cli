@@ -47,13 +47,13 @@ export async function checkAndRegenerateFileLangTags(
             isImportedLibrary: path.startsWith(libraryImportsDir),
             isSaved: false,
             savedConfig: undefined as LangTagTranslationsConfig | null | undefined,
-            save: (updatedConfig: LangTagTranslationsConfig | null) => {
+            save: (updatedConfig: LangTagTranslationsConfig | null, triggerName?: string) => {
                 if (!updatedConfig && updatedConfig !== null) throw new Error('Wrong config data');
                 newConfig = updatedConfig;
                 shouldUpdate = true;
                 event.isSaved = true;
                 event.savedConfig = updatedConfig;
-                logger.debug('Called save for "{path}" with config "{config}"', {path, config: JSON.stringify(updatedConfig)});
+                logger.debug('Called save for "{path}" with config "{config}" triggered by: ("{trigger}")', {path, config: JSON.stringify(updatedConfig), trigger: triggerName || '-'});
             }
         };
 

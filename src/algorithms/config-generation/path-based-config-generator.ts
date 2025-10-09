@@ -2,6 +2,8 @@ import { LangTagCLIConfigGenerationEvent } from "@/config.ts";
 import { sep } from "pathe";
 import * as caseLib from "case";
 
+const TRIGGER_NAME = "path-based-config-generator";
+
 export interface PathBasedConfigGeneratorOptions {
     /**
      * Whether to include the filename (without extension) as part of the path segments.
@@ -227,7 +229,7 @@ export function pathBasedConfigGenerator(
                 newConfig.path = path;
             } else {
                 // No namespace, no path - clear entire config
-                event.save(null);
+                event.save(null, TRIGGER_NAME);
                 return;
             }
         } else {
@@ -241,7 +243,7 @@ export function pathBasedConfigGenerator(
 
         // Save configuration if we have any fields
         if (Object.keys(newConfig).length > 0) {
-            event.save(newConfig);
+            event.save(newConfig, TRIGGER_NAME);
         }
     };
 }
