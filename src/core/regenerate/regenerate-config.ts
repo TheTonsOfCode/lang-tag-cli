@@ -39,19 +39,25 @@ export async function checkAndRegenerateFileLangTags(
 
         const frozenConfig = tag.parameterConfig ? deepFreezeObject(tag.parameterConfig) : tag.parameterConfig;
 
-        await config.onConfigGeneration({
+        const event = {
             langTagConfig: config,
             config: frozenConfig,
             absolutePath: file,
             relativePath: path,
             isImportedLibrary: path.startsWith(libraryImportsDir),
-            save: (updatedConfig) => {
+            isSaved: false,
+            savedConfig: undefined as LangTagTranslationsConfig | null | undefined,
+            save: (updatedConfig: LangTagTranslationsConfig | null) => {
                 if (!updatedConfig && updatedConfig !== null) throw new Error('Wrong config data');
                 newConfig = updatedConfig;
                 shouldUpdate = true;
+                event.isSaved = true;
+                event.savedConfig = updatedConfig;
                 logger.debug('Called save for "{path}" with config "{config}"', {path, config: JSON.stringify(updatedConfig)});
             }
-        });
+        };
+
+        await config.onConfigGeneration(event);
 
         // If save was not called, configuration should stay as it was
         if (!shouldUpdate) {
