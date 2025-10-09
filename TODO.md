@@ -1,8 +1,5 @@
 
 
-zmienic onCollectFinnish na cos zwiazane z konfliktem
-
-
 dodac testy na to czy path based generator zachowuj inne zmienne niz namespace i path
 
 
