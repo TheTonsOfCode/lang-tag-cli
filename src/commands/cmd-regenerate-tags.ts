@@ -20,7 +20,6 @@ export async function $LT_CMD_RegenerateTags() {
         const localDirty = await checkAndRegenerateFileLangTags(config, logger, file, path);
 
         if (localDirty) {
-            logger.info('Lang tag configurations written for file "{path}"', {path})
             dirty = true;
         }
     }

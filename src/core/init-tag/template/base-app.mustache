@@ -13,9 +13,14 @@ import { createCallableTranslations } from 'lang-tag';
 import { ReactNode, useMemo } from 'react';
 {{/isReact}}
 
+{{#isTypeScript}}
+interface TagConfig extends LangTagTranslationsConfig {
+    keep?: 'namespace' | 'path' | 'both'
+}
+{{/isTypeScript}}
 export function {{tagName}}{{#isTypeScript}}<T extends LangTagTranslations>{{/isTypeScript}}(
     baseTranslations{{#isTypeScript}}: T{{/isTypeScript}},
-    config{{#isTypeScript}}?: LangTagTranslationsConfig{{/isTypeScript}},
+    config{{#isTypeScript}}?: TagConfig{{/isTypeScript}},
 ) {
     // Example integration with react-i18next:
     // const namespace = config?.namespace || '';

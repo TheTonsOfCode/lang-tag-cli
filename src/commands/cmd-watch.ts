@@ -40,11 +40,7 @@ async function handleFile(config: LangTagCLIConfig, logger: LangTagCLILogger, cw
 
     const absoluteFilePath = path.join(cwd, cwdRelativeFilePath);
 
-    const dirty = await checkAndRegenerateFileLangTags(config, logger, absoluteFilePath, cwdRelativeFilePath);
-
-    if (dirty) {
-        logger.info(`Lang tag configurations written for file "{filePath}"`, {filePath: cwdRelativeFilePath});
-    }
+    await checkAndRegenerateFileLangTags(config, logger, absoluteFilePath, cwdRelativeFilePath);
 
     const files = await $LT_CollectCandidateFilesWithTags({filesToScan: [cwdRelativeFilePath], config, logger});
 

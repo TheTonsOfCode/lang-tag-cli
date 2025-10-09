@@ -43,56 +43,7 @@ Processor: Consider switching to acorn:
 IMPORTANT: If replace tags was NULL and translation pos is 2 then instead of removing them we need to set them to "{}"
 
 
-- zrobic ze jak save robi undefined to konvertowac to na null
-  - co pozniej funkcja łyka i zeruje config i nie ma:
-    "Replacement data is required!
-
-
-- dodac brakujący test na replaceTags gdzie konfig leci jako null
-
-
-- w logu ze updatowano plik dawać link do pliku
 
 
 
-- w debug, dodać że loguje zawsze jaki plik miał wywołany jaki save
-
-
-- generowac tagi w init-tag z zmienną `keepOnGeneration: 'namespace' | 'path' | 'both'`
-
-
-- tutaj może setCancelled też dodać
-, { path: 'testimonials', namespace: 'auth' });
-podmienia na:
-, { namespace: 'auth' });
-przy takim configu: 
-```
-onConfigGeneration: async event => {
-		// We do not modify imported configurations
-		if (event.isImportedLibrary) return;
-
-		if (event.config?.manual) return;
-
-		await generationAlgorithm(event);
-	},
-```
-Dodać/przerobić logikę tak, że moge po fakcie sprawdzić czy np. config miał 'keepPath:true' i wtedy wrócić path na poprzednie, 
-albo zrobić drugi algorytm który jest nakładany na ten i podaje się mu nazwy zmienny które mają być na true aby jak one sa w configu to blokował nadpisywanie ich przez algorytmy
-jakos nazwac go: 'configKeeper' czy jakos tak
-ale nakłada się go PO wykonaniu algorytmu zeby mozna go bylo kombinowac z innymi 
-
-
-```
-const generationAlgorithm = pathBasedConfigGenerator({
-	ignoreIncludesRootDirectories: true,
-	removeBracketedDirectories: true,
-	namespaceCase: 'kebab',
-	pathCase: 'camel',
-	clearOnDefaultNamespace: true,
-	ignoreDirectories: ['core', 'utils', 'helpers'],
-	ignoreStructured: {
-		app: ['dashboard']
-	}
-});
-```
-pod "app/dashboard/dashboard.page.translations.ts" produkuje "dashboard" co jest błędne
+dodac testy na to czy path based generator zachowuj inne zmienne niz namespace i path

@@ -56,7 +56,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should generate only namespace when path has one segment after filtering', async () => {
@@ -71,7 +71,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'components',
                 path: 'Button',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should use fallback namespace when all segments are filtered', async () => {
@@ -83,7 +83,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('src/Component.tsx');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(undefined);
+            expect(event.save).toHaveBeenCalledWith(null, "path-based-config-generator");
         });
 
         it('should handle deep nested paths', async () => {
@@ -97,7 +97,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'admin.users.list.components',
-            });
+            }, "path-based-config-generator");
         });
     });
 
@@ -113,7 +113,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should auto-ignore multiple root directories from group pattern with parentheses', async () => {
@@ -127,7 +127,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event1.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            });
+            }, "path-based-config-generator");
 
             const event2 = createMockEvent('app/admin/users/List.tsx', ['(src|app)/**/*.{js,ts,jsx,tsx}']);
             await generator(event2);
@@ -135,7 +135,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event2.save).toHaveBeenCalledWith({
                 namespace: 'admin',
                 path: 'users',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should auto-ignore multiple root directories from group pattern with brackets', async () => {
@@ -148,14 +148,14 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event1.save).toHaveBeenCalledWith({
                 namespace: 'pages',
-            });
+            }, "path-based-config-generator");
 
             const event2 = createMockEvent('backend/api/users.ts', ['[frontend|backend]/**/*.ts']);
             await generator(event2);
             
             expect(event2.save).toHaveBeenCalledWith({
                 namespace: 'api',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should auto-ignore directories from multiple include patterns', async () => {
@@ -172,7 +172,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event1.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            });
+            }, "path-based-config-generator");
 
             const event2 = createMockEvent(
                 'components/ui/Button.tsx',
@@ -182,7 +182,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event2.save).toHaveBeenCalledWith({
                 namespace: 'ui',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should combine ignoreIncludesRootDirectories with manual ignoreDirectories', async () => {
@@ -200,7 +200,7 @@ describe('pathBasedConfigGenerator', () => {
             // Both 'src' and 'features' should be ignored
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'auth',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should not duplicate directories when they appear in both ignoreDirectories and includes', async () => {
@@ -218,7 +218,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should work with leading ./ in patterns', async () => {
@@ -234,7 +234,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'components',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should be disabled by default', async () => {
@@ -249,7 +249,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'features.auth',
-            });
+            }, "path-based-config-generator");
         });
     });
 
@@ -266,7 +266,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'components',
                 path: 'Button',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should exclude filename by default', async () => {
@@ -279,7 +279,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'components',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should strip file extension when including filename', async () => {
@@ -293,7 +293,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'UserProfile',
-            });
+            }, "path-based-config-generator");
         });
     });
 
@@ -308,7 +308,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'users',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should remove directories in square brackets by default', async () => {
@@ -321,7 +321,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'about',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should keep directory name without brackets when disabled', async () => {
@@ -336,7 +336,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'admin',
                 path: 'users',
-            });
+            }, "path-based-config-generator");
         });
     });
 
@@ -356,7 +356,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'components',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should ignore array of directories at specific level', async () => {
@@ -374,7 +374,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event1.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'features',
-            });
+            }, "path-based-config-generator");
 
             const event2 = createMockEvent('src/features/orders/List.tsx');
             await generator(event2);
@@ -382,7 +382,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event2.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'features.orders',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should handle nested ignore structures', async () => {
@@ -402,7 +402,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'app.admin',
-            });
+            }, "path-based-config-generator");
         });
     });
 
@@ -418,7 +418,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'userprofile',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should apply namespaceCase transformation', async () => {
@@ -432,7 +432,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'user-profile',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should apply pathCase transformation', async () => {
@@ -447,7 +447,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'editUserForm',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should apply both namespace and path case transformations', async () => {
@@ -463,7 +463,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'user_profile',
                 path: 'edit-form',
-            });
+            }, "path-based-config-generator");
         });
     });
 
@@ -481,7 +481,7 @@ describe('pathBasedConfigGenerator', () => {
             // Should use 'ui' as namespace (fallback is different from default 'common')
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'ui',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should use config default namespace when fallback not provided', async () => {
@@ -493,7 +493,7 @@ describe('pathBasedConfigGenerator', () => {
             await generator(event);
             
             // clearOnDefaultNamespace is true by default, so should clear
-            expect(event.save).toHaveBeenCalledWith(undefined);
+            expect(event.save).toHaveBeenCalledWith(null, "path-based-config-generator");
         });
     });
 
@@ -507,7 +507,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('src/common/Button.tsx', ['src/**/*.tsx'], 'common');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(undefined);
+            expect(event.save).toHaveBeenCalledWith(null, "path-based-config-generator");
         });
 
         it('should keep namespace even if equals default when disabled', async () => {
@@ -521,7 +521,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'common',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should keep path when namespace equals default but path exists', async () => {
@@ -535,7 +535,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 path: 'auth',
-            });
+            }, "path-based-config-generator");
         });
     });
 
@@ -568,7 +568,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'admin',
                 path: 'users.user-profile',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should handle empty path after all filtering', async () => {
@@ -579,7 +579,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('src/components/ui/Button.tsx');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(undefined);
+            expect(event.save).toHaveBeenCalledWith(null, "path-based-config-generator");
         });
 
         it('should handle single segment paths', async () => {
@@ -588,7 +588,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('Component.tsx');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(undefined);
+            expect(event.save).toHaveBeenCalledWith(null, "path-based-config-generator");
         });
 
         it('should work with monorepo-style paths', async () => {
@@ -606,7 +606,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'ui',
                 path: 'components',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should handle Next.js app directory structure', async () => {
@@ -625,7 +625,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'dashboard',
                 path: 'users',
-            });
+            }, "path-based-config-generator");
         });
     });
 
@@ -641,7 +641,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'my-feature',
                 path: 'sub_directory',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should handle empty includes array gracefully', async () => {
@@ -655,7 +655,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'components',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should handle patterns without /** wildcard', async () => {
@@ -668,7 +668,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'components',
-            });
+            }, "path-based-config-generator");
         });
 
         it('should handle deeply nested group patterns', async () => {
@@ -685,7 +685,7 @@ describe('pathBasedConfigGenerator', () => {
             // Should only extract first segment root directories
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'pages',
-            });
+            }, "path-based-config-generator");
         });
     });
 });

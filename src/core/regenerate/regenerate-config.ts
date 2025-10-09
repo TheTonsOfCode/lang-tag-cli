@@ -7,6 +7,7 @@ import {$LT_TagProcessor, $LT_TagReplaceData} from "@/core/processor.ts";
 import {$LT_FilterInvalidTags} from "@/core/collect/fillters.ts";
 import {LangTagCLILogger} from "@/logger.ts";
 import {deepFreezeObject} from "@/core/utils.ts";
+import {LangTagTranslationsConfig} from "lang-tag";
 
 export async function checkAndRegenerateFileLangTags(
     config: LangTagCLIConfig,
@@ -30,30 +31,42 @@ export async function checkAndRegenerateFileLangTags(
 
     const replacements: $LT_TagReplaceData[] = [];
 
+    let lastUpdatedLine = 0;
+
     for (let tag of tags) {
         let newConfig: any = undefined;
         let shouldUpdate = false;
 
         const frozenConfig = tag.parameterConfig ? deepFreezeObject(tag.parameterConfig) : tag.parameterConfig;
 
-        await config.onConfigGeneration({
+        const event = {
             langTagConfig: config,
             config: frozenConfig,
             absolutePath: file,
             relativePath: path,
             isImportedLibrary: path.startsWith(libraryImportsDir),
-            save: (updatedConfig) => {
-                newConfig = updatedConfig || null;
+            isSaved: false,
+            savedConfig: undefined as LangTagTranslationsConfig | null | undefined,
+            save: (updatedConfig: LangTagTranslationsConfig | null, triggerName?: string) => {
+                if (!updatedConfig && updatedConfig !== null) throw new Error('Wrong config data');
+                newConfig = updatedConfig;
                 shouldUpdate = true;
+                event.isSaved = true;
+                event.savedConfig = updatedConfig;
+                logger.debug('Called save for "{path}" with config "{config}" triggered by: ("{trigger}")', {path, config: JSON.stringify(updatedConfig), trigger: triggerName || '-'});
             }
-        });
+        };
+
+        await config.onConfigGeneration(event);
 
         // If save was not called, configuration should stay as it was
         if (!shouldUpdate) {
             continue;
         }
 
-        if (JSON5.stringify(tag.parameterConfig) !== JSON5.stringify(newConfig)) {
+        lastUpdatedLine = tag.line;
+
+        if (!isConfigSame(tag.parameterConfig, newConfig)) {
             replacements.push({ tag, config: newConfig });
         }
     }
@@ -61,8 +74,15 @@ export async function checkAndRegenerateFileLangTags(
     if (replacements.length) {
         const newContent = processor.replaceTags(fileContent, replacements);
         await writeFile(file, newContent, 'utf-8');
+        logger.info('Lang tag configurations written for file "{path}" (file://{file}:{line})', {path, file, line: lastUpdatedLine})
         return true;
     }
 
+    return false;
+}
+
+function isConfigSame(c1: LangTagTranslationsConfig | any, c2: LangTagTranslationsConfig | any) {
+    if (!c1 && !c2) return true;
+    if (c1 && typeof c1 === "object" && c2 && typeof c2 === "object" && JSON5.stringify(c1) === JSON5.stringify(c2)) return true;
     return false;
 }

@@ -33,8 +33,8 @@ async function detectModuleSystem(): Promise<'esm' | 'cjs'> {
 async function generateDefaultConfig(): Promise<string> {
     const moduleSystem = await detectModuleSystem();
     const importStatement = moduleSystem === 'esm'
-        ? `import { pathBasedConfigGenerator } from '@lang-tag/cli/algorithms';`
-        : `const { pathBasedConfigGenerator } = require('@lang-tag/cli/algorithms');`;
+        ? `import { pathBasedConfigGenerator, configKeeper } from '@lang-tag/cli/algorithms';`
+        : `const { pathBasedConfigGenerator, configKeeper } = require('@lang-tag/cli/algorithms');`;
     const exportStatement = moduleSystem === 'esm' 
         ? 'export default config;' 
         : 'module.exports = config;';
@@ -49,6 +49,7 @@ const generationAlgorithm = pathBasedConfigGenerator({
     clearOnDefaultNamespace: true,
     ignoreDirectories: ['core', 'utils', 'helpers']
 });
+const keeper = configKeeper();
 
 /** @type {import('@lang-tag/cli/config').LangTagCLIConfig} */
 const config = {
@@ -61,9 +62,11 @@ const config = {
         // We do not modify imported configurations
         if (event.isImportedLibrary) return;
 
-        if (event.config?.manual) return;
+        if (event.config?.keep === 'both') return;
         
         await generationAlgorithm(event);
+        
+        await keeper(event);
     },
     collect: {
         defaultNamespace: 'common',

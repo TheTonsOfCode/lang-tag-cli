@@ -237,10 +237,23 @@ export interface LangTagCLIConfigGenerationEvent {
     readonly langTagConfig: LangTagCLIConfig
 
     /**
+     * Indicates whether the `save()` method has been called during this event.
+     */
+    readonly isSaved: boolean;
+
+    /**
+     * The updated configuration that was passed to the `save()` method.
+     * - `undefined` if `save()` has not been called yet
+     * - `null` if `save(null)` was called to remove the configuration
+     * - `LangTagTranslationsConfig` object if a new configuration was saved
+     */
+    readonly savedConfig: LangTagTranslationsConfig | null | undefined;
+
+    /**
      * Tells CLI to replace tag configuration
-     * undefined = means configuration will be removed
+     * null = means configuration will be removed
      **/
-    save(config: LangTagTranslationsConfig | undefined): void;
+    save(config: LangTagTranslationsConfig | null, triggerName?: string): void;
 }
 
 export interface LangTagCLICollectConfigFixEvent {

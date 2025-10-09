@@ -1,6 +1,6 @@
 {
   "name": "@lang-tag/cli",
-  "version": "0.11.2",
+  "version": "0.12.0",
   "type": "module",
   "private": true,
   "publishConfig": {
@@ -35,7 +35,8 @@
     "build": "./build.sh",
     "publish": "./publish.sh",
     "pack-test-build": "./pack-test-build.sh",
-    "test": "./pack-test-build.sh && TESTS_BY_COMMAND=true vitest --run"
+    "test": "vitest --run --exclude '**/e2e/**'",
+    "test-full": "./pack-test-build.sh && TESTS_BY_COMMAND=true vitest --run"
   },
   "peerDependencies": {
     "lang-tag": "*"
