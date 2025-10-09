@@ -1,0 +1,16 @@
+taka sciezka: "components/dashboard/views/facilities/facilities.translations.ts"
+
+const generationAlgorithm = pathBasedConfigGenerator({
+	ignoreIncludesRootDirectories: true,
+	removeBracketedDirectories: true,
+	namespaceCase: 'kebab',
+	pathCase: 'camel',
+	clearOnDefaultNamespace: true,
+	ignoreDirectories: [
+		'dashboard',
+		'views'
+	],
+	ignoreStructured: {
+		app: ['dashboard']
+	}
+});
