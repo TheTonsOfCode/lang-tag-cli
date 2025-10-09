@@ -67,11 +67,3 @@ albo zrobić drugi algorytm który jest nakładany na ten i podaje się mu nazwy
 jakos nazwac go: 'configKeeper' czy jakos tak
 ale nakłada się go PO wykonaniu algorytmu zeby mozna go bylo kombinowac z innymi 
 
-
-
-~/sr-dev/sr-web   main ±  langtag rt     
-[12:40:21] Lang tag configurations written for file "app/dashboard/dashboard.page.translations.ts"
-~/sr-dev/sr-web   main ±  langtag rt
-[12:40:24] Lang tag configurations written for file "app/dashboard/dashboard.page.translations.ts"
-
-non stop logi mam w miejscu gdzie config jest setowany na null

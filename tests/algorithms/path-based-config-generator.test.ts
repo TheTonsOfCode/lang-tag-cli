@@ -83,7 +83,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('src/Component.tsx');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(undefined);
+            expect(event.save).toHaveBeenCalledWith(null);
         });
 
         it('should handle deep nested paths', async () => {
@@ -493,7 +493,7 @@ describe('pathBasedConfigGenerator', () => {
             await generator(event);
             
             // clearOnDefaultNamespace is true by default, so should clear
-            expect(event.save).toHaveBeenCalledWith(undefined);
+            expect(event.save).toHaveBeenCalledWith(null);
         });
     });
 
@@ -507,7 +507,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('src/common/Button.tsx', ['src/**/*.tsx'], 'common');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(undefined);
+            expect(event.save).toHaveBeenCalledWith(null);
         });
 
         it('should keep namespace even if equals default when disabled', async () => {
@@ -579,7 +579,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('src/components/ui/Button.tsx');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(undefined);
+            expect(event.save).toHaveBeenCalledWith(null);
         });
 
         it('should handle single segment paths', async () => {
@@ -588,7 +588,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('Component.tsx');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(undefined);
+            expect(event.save).toHaveBeenCalledWith(null);
         });
 
         it('should work with monorepo-style paths', async () => {

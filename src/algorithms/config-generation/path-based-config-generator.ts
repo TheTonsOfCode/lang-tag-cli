@@ -227,7 +227,7 @@ export function pathBasedConfigGenerator(
                 newConfig.path = path;
             } else {
                 // No namespace, no path - clear entire config
-                event.save(undefined);
+                event.save(null);
                 return;
             }
         } else {

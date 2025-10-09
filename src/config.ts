@@ -238,9 +238,9 @@ export interface LangTagCLIConfigGenerationEvent {
 
     /**
      * Tells CLI to replace tag configuration
-     * undefined = means configuration will be removed
+     * null = means configuration will be removed
      **/
-    save(config: LangTagTranslationsConfig | undefined): void;
+    save(config: LangTagTranslationsConfig | null): void;
 }
 
 export interface LangTagCLICollectConfigFixEvent {
