@@ -47,3 +47,6 @@ IMPORTANT: If replace tags was NULL and translation pos is 2 then instead of rem
 
 
 dodac testy na to czy path based generator zachowuj inne zmienne niz namespace i path
+
+
+zrobic ze jest event na agregowanie i podstawowy agreguje na namespace'y a mozna w nim nadpisac ze np. zbiera wszystko do en.json i wykrywa tam konflikty itd. (path-based dodac opcje ze skipuje namespace) itd.
