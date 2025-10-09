@@ -46,7 +46,8 @@ export async function checkAndRegenerateFileLangTags(
             relativePath: path,
             isImportedLibrary: path.startsWith(libraryImportsDir),
             save: (updatedConfig) => {
-                newConfig = updatedConfig || null;
+                if (!updatedConfig && updatedConfig !== null) throw new Error('Wrong config data');
+                newConfig = updatedConfig;
                 shouldUpdate = true;
                 logger.debug('Called save for "{path}" with config "{config}"', {path, config: JSON.stringify(updatedConfig)});
             }
