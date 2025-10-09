@@ -219,18 +219,31 @@ export function pathBasedConfigGenerator(
             path = transformedParts.join('.');
         }
 
-        // Build the configuration object
-        const newConfig: any = {};
+        // Build the configuration object, preserving existing properties
+        const newConfig: any = event.config ? { ...event.config } : {};
 
         // Handle default namespace clearing
         if (clearOnDefaultNamespace && namespace === actualFallbackNamespace) {
             // Omit namespace when it equals the default
             if (path) {
                 newConfig.path = path;
+                // Remove namespace since it equals default
+                delete newConfig.namespace;
             } else {
-                // No namespace, no path - clear entire config
-                event.save(null, TRIGGER_NAME);
-                return;
+                // No namespace, no path - check if there are any other custom properties
+                const hasOtherProperties = event.config && Object.keys(event.config).some(
+                    key => key !== 'namespace' && key !== 'path'
+                );
+                
+                if (!hasOtherProperties) {
+                    // No other properties - clear entire config
+                    event.save(null, TRIGGER_NAME);
+                    return;
+                } else {
+                    // Preserve other properties but remove namespace and path
+                    delete newConfig.namespace;
+                    delete newConfig.path;
+                }
             }
         } else {
             if (namespace) {
