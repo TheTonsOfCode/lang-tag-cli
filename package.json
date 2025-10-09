@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/TheTonsOfCode/lang-tag"
+    "url": "https://github.com/TheTonsOfCode/lang-tag-cli"
   },
   "author": "TheTonsOfCode",
   "license": "MIT",
