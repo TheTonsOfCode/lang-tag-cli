@@ -7,6 +7,7 @@ import {$LT_TagProcessor, $LT_TagReplaceData} from "@/core/processor.ts";
 import {$LT_FilterInvalidTags} from "@/core/collect/fillters.ts";
 import {LangTagCLILogger} from "@/logger.ts";
 import {deepFreezeObject} from "@/core/utils.ts";
+import {LangTagTranslationsConfig} from "lang-tag";
 
 export async function checkAndRegenerateFileLangTags(
     config: LangTagCLIConfig,
@@ -58,7 +59,7 @@ export async function checkAndRegenerateFileLangTags(
 
         lastUpdatedLine = tag.line;
 
-        if (JSON5.stringify(tag.parameterConfig) !== JSON5.stringify(newConfig)) {
+        if (!isConfigSame(tag.parameterConfig, newConfig)) {
             replacements.push({ tag, config: newConfig });
         }
     }
@@ -70,5 +71,11 @@ export async function checkAndRegenerateFileLangTags(
         return true;
     }
 
+    return false;
+}
+
+function isConfigSame(c1: LangTagTranslationsConfig | any, c2: LangTagTranslationsConfig | any) {
+    if (!c1 && !c2) return true;
+    if (c1 && typeof c1 === "object" && c2 && typeof c2 === "object" && JSON5.stringify(c1) === JSON5.stringify(c2)) return true;
     return false;
 }
