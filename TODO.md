@@ -41,3 +41,9 @@ Processor: Consider switching to acorn:
 
 
 IMPORTANT: If replace tags was NULL and translation pos is 2 then instead of removing them we need to set them to "{}"
+
+
+
+
+
+dodac testy na to czy path based generator zachowuj inne zmienne niz namespace i path
