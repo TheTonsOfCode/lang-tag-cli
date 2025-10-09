@@ -1571,3 +1571,142 @@ describe('replaceLangMatches with different config', () => {
     });
 
 });
+
+describe('Replace tags with NULL config and translationArgPosition 2', () => {
+    const config: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
+        tagName: 't',
+        translationArgPosition: 2
+    };
+    const processor = new $LT_TagProcessor(config);
+
+    it('should replace config with empty object "{}" when config is null and translationArgPosition is 2', () => {
+        const content = "const text = t({ namespace: 'common', path: 'test' }, { key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { tag: tags[0], config: null }
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('text');
+        expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
+        expect(tag1.parameterConfig).toEqual({}); // empty config object
+    });
+
+    it('should replace config with empty object "{}" when config is null and translationArgPosition is 2 (without variable)', () => {
+        const content = "t({ namespace: 'common', path: 'test' }, { key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { tag: tags[0], config: null }
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBeUndefined();
+        expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
+        expect(tag1.parameterConfig).toEqual({}); // empty config object
+    });
+
+    it('should replace config with empty object "{}" for multiple tags when config is null and translationArgPosition is 2', () => {
+        const content = "const t1 = t({ namespace: 'app' }, { key: 'hello' }); const t2 = t({ namespace: 'ui', debug: true }, { key: 'hi', message: 'world' });";
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { tag: tags[0], config: null },
+            { tag: tags[1], config: null }
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+        expect(finalTags).toHaveLength(2);
+        
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('t1');
+        expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
+        expect(tag1.parameterConfig).toEqual({}); // empty config object
+        
+        const tag2 = finalTags[1];
+        expect(tag2.variableName).toBe('t2');
+        expect(tag2.parameterTranslations.key).toBe('hi'); // unchanged
+        expect(tag2.parameterTranslations.message).toBe('world'); // unchanged
+        expect(tag2.parameterConfig).toEqual({}); // empty config object
+    });
+
+    it('should replace config with empty object "{}" when config is null, even when tag originally had no config', () => {
+        const content = "const text = t({ namespace: 'admin' });";
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { tag: tags[0], config: null }
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('text');
+        expect(tag1.parameterConfig).toEqual({});
+        expect(tag1.parameterTranslations).toEqual({});
+    });
+
+    it('should work correctly when replacing both translations and setting config to null with translationArgPosition 2', () => {
+        const content = "const text = t({ namespace: 'common' }, { key: 'hello' });";
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { 
+                tag: tags[0], 
+                translations: { key: 'greeting', message: 'Hello World' },
+                config: null
+            }
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        // Should generate: t({}, { key: 'greeting', message: 'Hello World' })
+        const finalTags = processor.extractTags(result);
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        expect(tag1.variableName).toBe('text');
+        expect(tag1.parameterTranslations.key).toBe('greeting');
+        expect(tag1.parameterTranslations.message).toBe('Hello World');
+        expect(tag1.parameterConfig).toEqual({});
+    });
+
+    it('should preserve comments in translations when replacing config to null with translationArgPosition 2', () => {
+        const content = `const text = t({ namespace: 'common' }, {
+            // Important comment
+            key: 'hello',
+            // Another comment
+            message: 'world'
+        });`;
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            { tag: tags[0], config: null }
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+        expect(finalTags).toHaveLength(1);
+        const tag1 = finalTags[0];
+        // Comments should be preserved in translations
+        expect(tag1.parameter2Text).toContain('// Important comment');
+        expect(tag1.parameter2Text).toContain('// Another comment');
+        expect(tag1.variableName).toBe('text');
+        expect(tag1.parameterTranslations.key).toBe('hello');
+        expect(tag1.parameterTranslations.message).toBe('world');
+        expect(tag1.parameterConfig).toEqual({});
+    });
+});
