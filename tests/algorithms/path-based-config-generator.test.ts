@@ -688,5 +688,146 @@ describe('pathBasedConfigGenerator', () => {
             }, "path-based-config-generator");
         });
     });
+
+    describe('Preserving other config properties', () => {
+        it('should preserve custom properties from existing config when generating namespace and path', async () => {
+            const generator = pathBasedConfigGenerator({
+                ignoreDirectories: ['src'],
+            });
+            
+            const event = createMockEvent('src/features/auth/Login.tsx');
+            // Add custom properties to the config
+            (event as any).config = {
+                namespace: 'old-namespace',
+                path: 'old.path',
+                debugMode: true,
+                manual: false,
+                customFlag: 'test-value',
+            };
+            
+            await generator(event);
+            
+            // Should preserve custom properties while updating namespace and path
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'features',
+                path: 'auth',
+                debugMode: true,
+                manual: false,
+                customFlag: 'test-value',
+            }, "path-based-config-generator");
+        });
+
+        it('should preserve custom properties when only namespace is generated', async () => {
+            const generator = pathBasedConfigGenerator({
+                ignoreDirectories: ['src'],
+            });
+            
+            const event = createMockEvent('src/components/Button.tsx');
+            (event as any).config = {
+                manual: true,
+                extra: { nested: { data: 'value' } },
+            };
+            
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'components',
+                manual: true,
+                extra: { nested: { data: 'value' } },
+            }, "path-based-config-generator");
+        });
+
+        it('should preserve custom properties even when clearing namespace on default', async () => {
+            const generator = pathBasedConfigGenerator({
+                clearOnDefaultNamespace: true,
+                ignoreDirectories: ['src'],
+            });
+            
+            const event = createMockEvent('src/common/auth/Login.tsx', ['src/**/*.tsx'], 'common');
+            (event as any).config = {
+                namespace: 'common',
+                path: 'old.path',
+                debugMode: true,
+                customProperty: 'should-be-preserved',
+            };
+            
+            await generator(event);
+            
+            // namespace should be omitted because it equals default, but path and custom properties should remain
+            expect(event.save).toHaveBeenCalledWith({
+                path: 'auth',
+                debugMode: true,
+                customProperty: 'should-be-preserved',
+            }, "path-based-config-generator");
+        });
+
+        it('should work correctly when config is undefined', async () => {
+            const generator = pathBasedConfigGenerator({
+                ignoreDirectories: ['src'],
+            });
+            
+            const event = createMockEvent('src/features/auth/Login.tsx');
+            // config is undefined
+            
+            await generator(event);
+            
+            // Should generate only namespace and path
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'features',
+                path: 'auth',
+            }, "path-based-config-generator");
+        });
+
+        it('should preserve custom properties with complex case transformations', async () => {
+            const generator = pathBasedConfigGenerator({
+                namespaceCase: 'kebab',
+                pathCase: 'snake',
+                ignoreDirectories: ['src'],
+            });
+            
+            const event = createMockEvent('src/UserProfile/EditForm/Components.tsx');
+            (event as any).config = {
+                debugMode: true,
+                customSettings: {
+                    featureFlag: 'enabled',
+                    metadata: ['tag1', 'tag2'],
+                },
+            };
+            
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'user-profile',
+                path: 'edit_form',
+                debugMode: true,
+                customSettings: {
+                    featureFlag: 'enabled',
+                    metadata: ['tag1', 'tag2'],
+                },
+            }, "path-based-config-generator");
+        });
+
+        it('should preserve custom properties when using fallback namespace', async () => {
+            const generator = pathBasedConfigGenerator({
+                ignoreDirectories: ['src'],
+                fallbackNamespace: 'ui',
+                clearOnDefaultNamespace: false,
+            });
+            
+            const event = createMockEvent('src/Button.tsx', ['src/**/*.tsx'], 'common');
+            (event as any).config = {
+                manual: true,
+                externalRef: 'some-ref',
+            };
+            
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'ui',
+                manual: true,
+                externalRef: 'some-ref',
+            }, "path-based-config-generator");
+        });
+    });
 });
 

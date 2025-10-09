@@ -215,7 +215,7 @@ export class $LT_TagProcessor {
 
             let newTranslationsString = R.translations;
             // We do not use "tag.parameterTranslations" in order to preserve translations object comments, etc.
-            if (!newTranslationsString) newTranslationsString = this.config.translationArgPosition === 1 ? tag.parameter1Text : tag.parameter2Text;
+            if (!newTranslationsString) newTranslationsString = this.config.translationArgPosition === 1 ? tag.parameter1Text : (tag.parameter2Text || "{}");
             else if (typeof newTranslationsString !== 'string') newTranslationsString = JSON5.stringify(newTranslationsString);
             if (!newTranslationsString) throw new Error('Tag must have translations provided!');
             try {
@@ -233,6 +233,12 @@ export class $LT_TagProcessor {
                 } catch (error) {
                     throw new Error(`Tag config is invalid object! Config: ${newConfigString}`)
                 }
+            }
+
+            // IMPORTANT: If config is NULL and translations are on position 2, we need to set config to "{}"
+            // to ensure the function call has the correct argument structure: t({}, translations)
+            if (newConfigString === null && this.config.translationArgPosition === 2) {
+                newConfigString = "{}";
             }
 
             // TODO:   HERE:  Cała logika formatowania wcięć itd w przyszłości

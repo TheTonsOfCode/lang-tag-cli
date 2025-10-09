@@ -26,7 +26,7 @@ const mockConfig: LangTagCLIConfig = {
     onConfigGeneration: async () => {},
     collect: {
         ...LANG_TAG_DEFAULT_CONFIG.collect,
-        onCollectFinish: event => {}
+        onCollectFinish: () => {}
     },
     import: {
         dir: 'src/lang-libraries',
