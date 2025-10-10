@@ -107,9 +107,30 @@ export function configKeeper(
         }
 
         // Track if any changes are needed
-        // If 'keep' property didn't exist before, we need to save to add it
+        let needsSave = false;
+
+        // Helper function to check and restore a property if needed
+        const restorePropertyIfNeeded = (propertyKey: 'namespace' | 'path') => {
+            if (!event.config) return;
+            
+            const shouldRestore = (keepMode === propertyKey || keepMode === 'both') && 
+                                  event.config[propertyKey] !== undefined;
+            
+            if (shouldRestore && restoredConfig[propertyKey] !== event.config[propertyKey]) {
+                restoredConfig[propertyKey] = event.config[propertyKey];
+                needsSave = true;
+            }
+        };
+
+        // Restore namespace and path if needed
+        restorePropertyIfNeeded('namespace');
+        restorePropertyIfNeeded('path');
+
+        // Check if 'keep' property didn't exist before - we need to save to add it
         const keepPropertyExistedBefore = event.savedConfig && (event.savedConfig as any)[propertyName] !== undefined;
-        let needsSave = !keepPropertyExistedBefore;
+        if (!keepPropertyExistedBefore) {
+            needsSave = true;
+        }
 
         // Check if keep property needs to be moved to the end
         if (keepPropertyAtEnd && event.savedConfig && !needsSave) {
@@ -123,45 +144,24 @@ export function configKeeper(
             }
         }
 
-        // Restore namespace if needed (only if it's different from what's already there)
-        if ((keepMode === 'namespace' || keepMode === 'both') && event.config.namespace !== undefined) {
-            if (restoredConfig.namespace !== event.config.namespace) {
-                restoredConfig.namespace = event.config.namespace;
-                needsSave = true;
-            }
-        }
-
-        // Restore path if needed (only if it's different from what's already there)
-        if ((keepMode === 'path' || keepMode === 'both') && event.config.path !== undefined) {
-            if (restoredConfig.path !== event.config.path) {
-                restoredConfig.path = event.config.path;
-                needsSave = true;
-            }
-        }
-
         // Only save if something actually changed
         if (!needsSave) {
             return;
         }
 
-        // Preserve the keep property itself and optionally move it to the end
+        // Copy all properties from restored config
+        const finalConfig: any = { ...restoredConfig };
+        
+        // If keepPropertyAtEnd is enabled, remove the keep property first
         if (keepPropertyAtEnd) {
-            // Reconstruct object with keep property at the end
-            const finalConfig: any = {};
-            for (const key in restoredConfig) {
-                if (key !== propertyName) {
-                    finalConfig[key] = restoredConfig[key];
-                }
-            }
-            finalConfig[propertyName] = keepMode;
-            
-            // Save the restored config with keep at the end
-            event.save(finalConfig, TRIGGER_NAME);
-        } else {
-            // Just add the keep property without reordering
-            restoredConfig[propertyName] = keepMode;
-            event.save(restoredConfig, TRIGGER_NAME);
+            delete finalConfig[propertyName];
         }
+        
+        // Add keep property (will be at the end if we deleted it first)
+        finalConfig[propertyName] = keepMode;
+        
+        // Save the restored config
+        event.save(finalConfig, TRIGGER_NAME);
     };
 }
 
