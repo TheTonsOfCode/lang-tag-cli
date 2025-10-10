@@ -260,6 +260,9 @@ export function pathBasedConfigGenerator(
             }
             if (path) {
                 newConfig.path = path;
+            } else {
+                // If no new path was generated, remove any existing path
+                delete newConfig.path;
             }
         }
 

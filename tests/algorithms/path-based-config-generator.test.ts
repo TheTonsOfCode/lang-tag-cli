@@ -833,6 +833,45 @@ describe('pathBasedConfigGenerator', () => {
     });
 
     describe('Real-world scenarios', () => {
+        it('should preserve namespace and remove path when config already exists (TODO example)', async () => {
+            // Test from TODO: Tag has existing config with namespace and path
+            // After regeneration, should keep only namespace
+            const generator = pathBasedConfigGenerator({
+                ignoreIncludesRootDirectories: true,
+                removeBracketedDirectories: true,
+                namespaceCase: 'kebab' as const,
+                pathCase: 'camel' as const,
+                clearOnDefaultNamespace: true,
+                ignoreDirectories: [
+                    'dashboard',
+                    'views'
+                ],
+                ignoreStructured: {
+                    app: ['dashboard']
+                }
+            });
+
+            const includes = ['app/**/*.{js,ts,jsx,tsx}', 'components/**/*.{js,ts,jsx,tsx}'];
+            const event = createMockEvent(
+                'components/dashboard/views/facilities/facilities.translations.ts',
+                includes,
+                'common'
+            );
+            
+            // Set existing config
+            (event as any).config = {
+                namespace: 'facilities',
+                path: 'views.facilities'
+            };
+
+            await generator(event);
+
+            // Should preserve namespace and remove path
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'facilities',
+            }, TRIGGER_NAME);
+        });
+
         it('should handle TODO example configuration with various paths', async () => {
             // Setup generator with exact configuration from TODO file
             const generatorConfig = {
