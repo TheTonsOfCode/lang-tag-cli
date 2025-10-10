@@ -366,6 +366,165 @@ describe('configKeeper', () => {
         });
     });
 
+    describe('optimization - skip save when values are already correct', () => {
+        it('should save when keep property did not exist before (adding new property)', async () => {
+            const keeper = configKeeper();
+            let finalConfig: any = null;
+
+            const event = createMockEvent(
+                { namespace: 'original', path: 'old.path', keep: 'namespace' },
+                true,
+                { namespace: 'original', path: 'new.path' } // namespace already matches, but 'keep' doesn't exist
+            );
+
+            event.save = (config) => { finalConfig = config; };
+
+            await keeper(event);
+
+            // Should save because we're adding the 'keep' property
+            expect(finalConfig).toEqual({
+                namespace: 'original',
+                path: 'new.path',
+                keep: 'namespace'
+            });
+        });
+
+        it('should NOT save when keep="namespace" and namespace is already correct', async () => {
+            const keeper = configKeeper();
+            let saveCalled = false;
+
+            const event = createMockEvent(
+                { namespace: 'original', path: 'old.path', keep: 'namespace' },
+                true,
+                { namespace: 'original', path: 'new.path', keep: 'namespace' } // namespace already matches and keep exists!
+            );
+
+            event.save = () => { saveCalled = true; };
+
+            await keeper(event);
+
+            expect(saveCalled).toBe(false);
+        });
+
+        it('should NOT save when keep="path" and path is already correct', async () => {
+            const keeper = configKeeper();
+            let saveCalled = false;
+
+            const event = createMockEvent(
+                { namespace: 'original', path: 'old.path', keep: 'path' },
+                true,
+                { namespace: 'modified', path: 'old.path', keep: 'path' } // path already matches and keep exists!
+            );
+
+            event.save = () => { saveCalled = true; };
+
+            await keeper(event);
+
+            expect(saveCalled).toBe(false);
+        });
+
+        it('should NOT save when keep="both" and both namespace and path are already correct', async () => {
+            const keeper = configKeeper();
+            let saveCalled = false;
+
+            const event = createMockEvent(
+                { namespace: 'original', path: 'old.path', keep: 'both' },
+                true,
+                { namespace: 'original', path: 'old.path', keep: 'both' } // both already match and keep exists!
+            );
+
+            event.save = () => { saveCalled = true; };
+
+            await keeper(event);
+
+            expect(saveCalled).toBe(false);
+        });
+
+        it('should save when keep="both" and only namespace matches (path different)', async () => {
+            const keeper = configKeeper();
+            let finalConfig: any = null;
+
+            const event = createMockEvent(
+                { namespace: 'original', path: 'old.path', keep: 'both' },
+                true,
+                { namespace: 'original', path: 'new.path' } // namespace matches, path doesn't
+            );
+
+            event.save = (config) => { finalConfig = config; };
+
+            await keeper(event);
+
+            expect(finalConfig).toEqual({
+                namespace: 'original',
+                path: 'old.path',
+                keep: 'both'
+            });
+        });
+
+        it('should save when keep="both" and only path matches (namespace different)', async () => {
+            const keeper = configKeeper();
+            let finalConfig: any = null;
+
+            const event = createMockEvent(
+                { namespace: 'original', path: 'old.path', keep: 'both' },
+                true,
+                { namespace: 'modified', path: 'old.path' } // path matches, namespace doesn't
+            );
+
+            event.save = (config) => { finalConfig = config; };
+
+            await keeper(event);
+
+            expect(finalConfig).toEqual({
+                namespace: 'original',
+                path: 'old.path',
+                keep: 'both'
+            });
+        });
+
+        it('should save when keep="namespace" and savedConfig has different namespace', async () => {
+            const keeper = configKeeper();
+            let finalConfig: any = null;
+
+            const event = createMockEvent(
+                { namespace: 'original', path: 'old.path', keep: 'namespace' },
+                true,
+                { namespace: 'modified', path: 'new.path' } // namespace different
+            );
+
+            event.save = (config) => { finalConfig = config; };
+
+            await keeper(event);
+
+            expect(finalConfig).toEqual({
+                namespace: 'original',
+                path: 'new.path',
+                keep: 'namespace'
+            });
+        });
+
+        it('should save when keep="path" and savedConfig has different path', async () => {
+            const keeper = configKeeper();
+            let finalConfig: any = null;
+
+            const event = createMockEvent(
+                { namespace: 'original', path: 'old.path', keep: 'path' },
+                true,
+                { namespace: 'modified', path: 'new.path' } // path different
+            );
+
+            event.save = (config) => { finalConfig = config; };
+
+            await keeper(event);
+
+            expect(finalConfig).toEqual({
+                namespace: 'modified',
+                path: 'old.path',
+                keep: 'path'
+            });
+        });
+    });
+
     describe('edge cases', () => {
         it('should handle invalid keep values gracefully', async () => {
             const keeper = configKeeper();

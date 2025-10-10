@@ -90,14 +90,30 @@ export function configKeeper(
             restoredConfig = { ...event.savedConfig };
         }
 
-        // Restore namespace if needed
+        // Track if any changes are needed
+        // If 'keep' property didn't exist before, we need to save to add it
+        const keepPropertyExistedBefore = event.savedConfig && (event.savedConfig as any)[propertyName] !== undefined;
+        let needsSave = !keepPropertyExistedBefore;
+
+        // Restore namespace if needed (only if it's different from what's already there)
         if ((keepMode === 'namespace' || keepMode === 'both') && event.config.namespace !== undefined) {
-            restoredConfig.namespace = event.config.namespace;
+            if (restoredConfig.namespace !== event.config.namespace) {
+                restoredConfig.namespace = event.config.namespace;
+                needsSave = true;
+            }
         }
 
-        // Restore path if needed
+        // Restore path if needed (only if it's different from what's already there)
         if ((keepMode === 'path' || keepMode === 'both') && event.config.path !== undefined) {
-            restoredConfig.path = event.config.path;
+            if (restoredConfig.path !== event.config.path) {
+                restoredConfig.path = event.config.path;
+                needsSave = true;
+            }
+        }
+
+        // Only save if something actually changed
+        if (!needsSave) {
+            return;
         }
 
         // Preserve the keep property itself
