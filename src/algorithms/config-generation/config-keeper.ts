@@ -14,6 +14,21 @@ export interface ConfigKeeperOptions {
      * ```
      */
     propertyName?: string;
+
+    /**
+     * When true, ensures the keep property is always placed at the end of the configuration object.
+     * This improves readability by keeping metadata properties separate from core config.
+     * @default true
+     * @example
+     * ```tsx
+     * // With keepPropertyAtEnd: true
+     * { namespace: 'common', path: 'button', keep: 'namespace' }
+     * 
+     * // With keepPropertyAtEnd: false
+     * // Order is not guaranteed
+     * ```
+     */
+    keepPropertyAtEnd?: boolean;
 }
 
 /**
@@ -53,6 +68,7 @@ export function configKeeper(
     options: ConfigKeeperOptions = {}
 ): (event: LangTagCLIConfigGenerationEvent) => Promise<void> {
     const propertyName = options.propertyName ?? 'keep';
+    const keepPropertyAtEnd = options.keepPropertyAtEnd ?? true;
 
     return async (event: LangTagCLIConfigGenerationEvent) => {
         // Only proceed if save() was called by a previous algorithm
@@ -95,6 +111,18 @@ export function configKeeper(
         const keepPropertyExistedBefore = event.savedConfig && (event.savedConfig as any)[propertyName] !== undefined;
         let needsSave = !keepPropertyExistedBefore;
 
+        // Check if keep property needs to be moved to the end
+        if (keepPropertyAtEnd && event.savedConfig && !needsSave) {
+            const savedKeys = Object.keys(event.savedConfig);
+            const keepIndex = savedKeys.indexOf(propertyName);
+            const isKeepAtEnd = keepIndex === savedKeys.length - 1;
+            
+            if (!isKeepAtEnd && keepIndex !== -1) {
+                // Keep property exists but is not at the end
+                needsSave = true;
+            }
+        }
+
         // Restore namespace if needed (only if it's different from what's already there)
         if ((keepMode === 'namespace' || keepMode === 'both') && event.config.namespace !== undefined) {
             if (restoredConfig.namespace !== event.config.namespace) {
@@ -116,11 +144,24 @@ export function configKeeper(
             return;
         }
 
-        // Preserve the keep property itself
-        restoredConfig[propertyName] = keepMode;
-
-        // Save the restored config
-        event.save(restoredConfig, TRIGGER_NAME);
+        // Preserve the keep property itself and optionally move it to the end
+        if (keepPropertyAtEnd) {
+            // Reconstruct object with keep property at the end
+            const finalConfig: any = {};
+            for (const key in restoredConfig) {
+                if (key !== propertyName) {
+                    finalConfig[key] = restoredConfig[key];
+                }
+            }
+            finalConfig[propertyName] = keepMode;
+            
+            // Save the restored config with keep at the end
+            event.save(finalConfig, TRIGGER_NAME);
+        } else {
+            // Just add the keep property without reordering
+            restoredConfig[propertyName] = keepMode;
+            event.save(restoredConfig, TRIGGER_NAME);
+        }
     };
 }
 
