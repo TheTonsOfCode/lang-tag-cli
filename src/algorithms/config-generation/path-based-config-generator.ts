@@ -32,17 +32,24 @@ export interface PathBasedConfigGeneratorOptions {
     ignoreDirectories?: string[];
 
     /**
-     * When true, automatically extracts root directory names from the config.includes patterns
-     * and adds them to the ignoreDirectories list.
+     * When true, automatically removes the root directory from the path if it matches
+     * one of the root directories extracted from config.includes patterns.
+     * Unlike ignoreDirectories, this only removes the FIRST occurrence if the path starts with it.
      * 
      * @default false
      * 
      * @example
      * // With includes: ['src/**\/*.{js,ts,jsx,tsx}']
-     * // Automatically ignores: ['src']
+     * // Path: 'src/components/Button.tsx' → removes root 'src' → 'components/Button.tsx'
      * 
-     * // With includes: ['(src|app)/**\/*.{js,ts,jsx,tsx}', 'components/**\/*.{jsx,tsx}']
-     * // Automatically ignores: ['src', 'app', 'components']
+     * // With includes: ['app/**\/*.{js,ts,jsx,tsx}', 'components/**\/*.{jsx,tsx}']
+     * // Path: 'app/dashboard/components/utils.tsx' → removes root 'app' → 'dashboard/components/utils.tsx'
+     * // Note: 'components' in the middle is NOT removed (only root occurrences)
+     * 
+     * // With includes: ['(src|app)/**\/*.{js,ts,jsx,tsx}']
+     * // Extracts root directories: ['src', 'app']
+     * // Path: 'src/features/auth.tsx' → removes root 'src' → 'features/auth.tsx'
+     * // Path: 'app/pages/home.tsx' → removes root 'app' → 'pages/home.tsx'
      */
     ignoreIncludesRootDirectories?: boolean;
 
@@ -144,13 +151,6 @@ export function pathBasedConfigGenerator(
         // Determine the actual fallback namespace from options or config default
         const actualFallbackNamespace = fallbackNamespace ?? langTagConfig.collect?.defaultNamespace;
 
-        // Build the final ignoreDirectories list
-        let finalIgnoreDirectories = [...ignoreDirectories];
-        if (ignoreIncludesRootDirectories && langTagConfig.includes) {
-            const extractedDirectories = extractRootDirectoriesFromIncludes(langTagConfig.includes);
-            finalIgnoreDirectories = [...new Set([...finalIgnoreDirectories, ...extractedDirectories])];
-        }
-
         // Extract path segments from relative path using path library for cross-platform compatibility
         let pathSegments = relativePath.split(sep).filter(Boolean);
 
@@ -180,11 +180,20 @@ export function pathBasedConfigGenerator(
             return segment;
         }).filter((seg): seg is string => seg !== null);
 
+        // Remove root directories from includes (only first occurrence)
+        if (ignoreIncludesRootDirectories && langTagConfig.includes && pathSegments.length > 0) {
+            const extractedDirectories = extractRootDirectoriesFromIncludes(langTagConfig.includes);
+            // Only remove if the first segment matches one of the root directories
+            if (extractedDirectories.includes(pathSegments[0])) {
+                pathSegments = pathSegments.slice(1);
+            }
+        }
+
         // Apply hierarchical ignore rules
         pathSegments = applyStructuredIgnore(pathSegments, ignoreStructured);
 
         // Apply global ignore rules
-        pathSegments = pathSegments.filter(seg => !finalIgnoreDirectories.includes(seg));
+        pathSegments = pathSegments.filter(seg => !ignoreDirectories.includes(seg));
 
         // Generate namespace and path from remaining segments
         let namespace: string | undefined;
