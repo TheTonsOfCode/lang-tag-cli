@@ -180,6 +180,10 @@ export function pathBasedConfigGenerator(
             return segment;
         }).filter((seg): seg is string => seg !== null);
 
+        // Apply hierarchical ignore rules BEFORE removing root directories
+        // This allows ignoreStructured to work with the full path structure
+        pathSegments = applyStructuredIgnore(pathSegments, ignoreStructured);
+
         // Remove root directories from includes (only first occurrence)
         if (ignoreIncludesRootDirectories && langTagConfig.includes && pathSegments.length > 0) {
             const extractedDirectories = extractRootDirectoriesFromIncludes(langTagConfig.includes);
@@ -188,9 +192,6 @@ export function pathBasedConfigGenerator(
                 pathSegments = pathSegments.slice(1);
             }
         }
-
-        // Apply hierarchical ignore rules
-        pathSegments = applyStructuredIgnore(pathSegments, ignoreStructured);
 
         // Apply global ignore rules
         pathSegments = pathSegments.filter(seg => !ignoreDirectories.includes(seg));
