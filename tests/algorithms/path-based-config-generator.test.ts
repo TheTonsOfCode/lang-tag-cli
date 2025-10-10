@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { pathBasedConfigGenerator } from '../../src/algorithms/config-generation/path-based-config-generator';
 import { LangTagCLIConfigGenerationEvent } from '../../src/config';
 
+const TRIGGER_NAME = "path-based-config-generator"
+
 // Helper function to create a mock event
 function createMockEvent(
     relativePath: string,
@@ -56,7 +58,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should generate only namespace when path has one segment after filtering', async () => {
@@ -71,7 +73,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'components',
                 path: 'Button',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should use fallback namespace when all segments are filtered', async () => {
@@ -83,7 +85,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('src/Component.tsx');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(null, "path-based-config-generator");
+            expect(event.save).toHaveBeenCalledWith(null, TRIGGER_NAME);
         });
 
         it('should handle deep nested paths', async () => {
@@ -97,7 +99,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'admin.users.list.components',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
     });
 
@@ -113,7 +115,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should auto-ignore multiple root directories from group pattern with parentheses', async () => {
@@ -127,7 +129,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event1.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
 
             const event2 = createMockEvent('app/admin/users/List.tsx', ['(src|app)/**/*.{js,ts,jsx,tsx}']);
             await generator(event2);
@@ -135,7 +137,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event2.save).toHaveBeenCalledWith({
                 namespace: 'admin',
                 path: 'users',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should auto-ignore multiple root directories from group pattern with brackets', async () => {
@@ -148,14 +150,14 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event1.save).toHaveBeenCalledWith({
                 namespace: 'pages',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
 
             const event2 = createMockEvent('backend/api/users.ts', ['[frontend|backend]/**/*.ts']);
             await generator(event2);
             
             expect(event2.save).toHaveBeenCalledWith({
                 namespace: 'api',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should auto-ignore directories from multiple include patterns', async () => {
@@ -172,7 +174,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event1.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
 
             const event2 = createMockEvent(
                 'components/ui/Button.tsx',
@@ -182,7 +184,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event2.save).toHaveBeenCalledWith({
                 namespace: 'ui',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should combine ignoreIncludesRootDirectories with manual ignoreDirectories', async () => {
@@ -200,7 +202,7 @@ describe('pathBasedConfigGenerator', () => {
             // Both 'src' and 'features' should be ignored
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'auth',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should not duplicate directories when they appear in both ignoreDirectories and includes', async () => {
@@ -218,7 +220,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should work with leading ./ in patterns', async () => {
@@ -234,7 +236,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'components',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should be disabled by default', async () => {
@@ -249,7 +251,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'features.auth',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
     });
 
@@ -266,7 +268,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'components',
                 path: 'Button',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should exclude filename by default', async () => {
@@ -279,7 +281,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'components',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should strip file extension when including filename', async () => {
@@ -293,7 +295,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'UserProfile',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
     });
 
@@ -308,7 +310,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'users',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should remove directories in square brackets by default', async () => {
@@ -321,7 +323,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'about',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should keep directory name without brackets when disabled', async () => {
@@ -336,7 +338,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'admin',
                 path: 'users',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
     });
 
@@ -356,7 +358,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'components',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should ignore array of directories at specific level', async () => {
@@ -374,7 +376,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event1.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'features',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
 
             const event2 = createMockEvent('src/features/orders/List.tsx');
             await generator(event2);
@@ -382,7 +384,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event2.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'features.orders',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should handle nested ignore structures', async () => {
@@ -402,7 +404,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'app.admin',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
     });
 
@@ -418,7 +420,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'userprofile',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should apply namespaceCase transformation', async () => {
@@ -432,7 +434,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'user-profile',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should apply pathCase transformation', async () => {
@@ -447,7 +449,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'editUserForm',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should apply both namespace and path case transformations', async () => {
@@ -463,7 +465,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'user_profile',
                 path: 'edit-form',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
     });
 
@@ -481,7 +483,7 @@ describe('pathBasedConfigGenerator', () => {
             // Should use 'ui' as namespace (fallback is different from default 'common')
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'ui',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should use config default namespace when fallback not provided', async () => {
@@ -493,7 +495,7 @@ describe('pathBasedConfigGenerator', () => {
             await generator(event);
             
             // clearOnDefaultNamespace is true by default, so should clear
-            expect(event.save).toHaveBeenCalledWith(null, "path-based-config-generator");
+            expect(event.save).toHaveBeenCalledWith(null, TRIGGER_NAME);
         });
     });
 
@@ -507,7 +509,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('src/common/Button.tsx', ['src/**/*.tsx'], 'common');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(null, "path-based-config-generator");
+            expect(event.save).toHaveBeenCalledWith(null, TRIGGER_NAME);
         });
 
         it('should keep namespace even if equals default when disabled', async () => {
@@ -521,7 +523,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'common',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should keep path when namespace equals default but path exists', async () => {
@@ -535,7 +537,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 path: 'auth',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
     });
 
@@ -568,7 +570,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'admin',
                 path: 'users.user-profile',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should handle empty path after all filtering', async () => {
@@ -579,7 +581,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('src/components/ui/Button.tsx');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(null, "path-based-config-generator");
+            expect(event.save).toHaveBeenCalledWith(null, TRIGGER_NAME);
         });
 
         it('should handle single segment paths', async () => {
@@ -588,7 +590,7 @@ describe('pathBasedConfigGenerator', () => {
             const event = createMockEvent('Component.tsx');
             await generator(event);
             
-            expect(event.save).toHaveBeenCalledWith(null, "path-based-config-generator");
+            expect(event.save).toHaveBeenCalledWith(null, TRIGGER_NAME);
         });
 
         it('should work with monorepo-style paths', async () => {
@@ -606,7 +608,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'ui',
                 path: 'components',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should handle Next.js app directory structure', async () => {
@@ -625,7 +627,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'dashboard',
                 path: 'users',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
     });
 
@@ -641,7 +643,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'my-feature',
                 path: 'sub_directory',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should handle empty includes array gracefully', async () => {
@@ -655,7 +657,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'src',
                 path: 'components',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should handle patterns without /** wildcard', async () => {
@@ -668,7 +670,7 @@ describe('pathBasedConfigGenerator', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'components',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should handle deeply nested group patterns', async () => {
@@ -685,7 +687,7 @@ describe('pathBasedConfigGenerator', () => {
             // Should only extract first segment root directories
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'pages',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
     });
 
@@ -714,7 +716,7 @@ describe('pathBasedConfigGenerator', () => {
                 debugMode: true,
                 manual: false,
                 customFlag: 'test-value',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should preserve custom properties when only namespace is generated', async () => {
@@ -734,7 +736,7 @@ describe('pathBasedConfigGenerator', () => {
                 namespace: 'components',
                 manual: true,
                 extra: { nested: { data: 'value' } },
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should preserve custom properties even when clearing namespace on default', async () => {
@@ -758,7 +760,7 @@ describe('pathBasedConfigGenerator', () => {
                 path: 'auth',
                 debugMode: true,
                 customProperty: 'should-be-preserved',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should work correctly when config is undefined', async () => {
@@ -775,7 +777,7 @@ describe('pathBasedConfigGenerator', () => {
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'features',
                 path: 'auth',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should preserve custom properties with complex case transformations', async () => {
@@ -804,7 +806,7 @@ describe('pathBasedConfigGenerator', () => {
                     featureFlag: 'enabled',
                     metadata: ['tag1', 'tag2'],
                 },
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
         });
 
         it('should preserve custom properties when using fallback namespace', async () => {
@@ -826,7 +828,143 @@ describe('pathBasedConfigGenerator', () => {
                 namespace: 'ui',
                 manual: true,
                 externalRef: 'some-ref',
-            }, "path-based-config-generator");
+            }, TRIGGER_NAME);
+        });
+    });
+
+    describe('Real-world scenarios', () => {
+        it('should preserve namespace and remove path when config already exists (TODO example)', async () => {
+            // Test from TODO: Tag has existing config with namespace and path
+            // After regeneration, should keep only namespace
+            const generator = pathBasedConfigGenerator({
+                ignoreIncludesRootDirectories: true,
+                removeBracketedDirectories: true,
+                namespaceCase: 'kebab' as const,
+                pathCase: 'camel' as const,
+                clearOnDefaultNamespace: true,
+                ignoreDirectories: [
+                    'dashboard',
+                    'views'
+                ],
+                ignoreStructured: {
+                    app: ['dashboard']
+                }
+            });
+
+            const includes = ['app/**/*.{js,ts,jsx,tsx}', 'components/**/*.{js,ts,jsx,tsx}'];
+            const event = createMockEvent(
+                'components/dashboard/views/facilities/facilities.translations.ts',
+                includes,
+                'common'
+            );
+            
+            // Set existing config
+            (event as any).config = {
+                namespace: 'facilities',
+                path: 'views.facilities'
+            };
+
+            await generator(event);
+
+            // Should preserve namespace and remove path
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'facilities',
+            }, TRIGGER_NAME);
+        });
+
+        it('should handle TODO example configuration with various paths', async () => {
+            // Setup generator with exact configuration from TODO file
+            const generatorConfig = {
+                ignoreIncludesRootDirectories: true,
+                removeBracketedDirectories: true,
+                namespaceCase: 'kebab' as const,
+                pathCase: 'camel' as const,
+                clearOnDefaultNamespace: true,
+                ignoreDirectories: [
+                    'dashboard',
+                    'views'
+                ],
+                ignoreStructured: {
+                    app: ['dashboard']
+                }
+            };
+
+            const includes = ['app/**/*.{js,ts,jsx,tsx}', 'components/**/*.{js,ts,jsx,tsx}'];
+
+            // Test case 1:
+            // components/dashboard/views/facilities/facilities.translations.ts
+            const generator1 = pathBasedConfigGenerator(generatorConfig);
+            const event1 = createMockEvent(
+                'components/dashboard/views/facilities/facilities.translations.ts',
+                includes,
+                'common'
+            );
+            await generator1(event1);
+            expect(event1.save).toHaveBeenCalledWith({
+                namespace: 'facilities',
+            }, TRIGGER_NAME);
+
+            // Test case 2: With includeFileName option
+            const generator2 = pathBasedConfigGenerator({
+                ...generatorConfig,
+                includeFileName: true
+            });
+            const event2 = createMockEvent(
+                'components/dashboard/views/facilities/facilities.translations.ts',
+                includes,
+                'common'
+            );
+            await generator2(event2);
+            expect(event2.save).toHaveBeenCalledWith({
+                namespace: 'facilities',
+                path: 'facilities.translations',
+            }, TRIGGER_NAME);
+
+            // Test case 3: App structure with ignoreStructured
+            // Path: app/dashboard/components/views/facilities
+            // ignoreIncludesRootDirectories removes 'app' and 'components' (from includes)
+            // ignoreDirectories removes 'dashboard' and 'views'
+            // Result: facilities only
+            const generator3 = pathBasedConfigGenerator(generatorConfig);
+            const event3 = createMockEvent(
+                'app/dashboard/components/views/facilities/list.tsx',
+                includes,
+                'common'
+            );
+            await generator3(event3);
+            expect(event3.save).toHaveBeenCalledWith({
+                namespace: 'components',
+                path: 'facilities',
+            }, TRIGGER_NAME);
+
+            // Test case 4: PascalCase with kebab-case namespace transformation
+            // Path: components/dashboard/views/UserManagement
+            // ignoreIncludesRootDirectories removes 'components'
+            // ignoreDirectories removes 'dashboard' and 'views'
+            // Result: UserManagement -> namespaceCase: 'kebab' -> 'user-management'
+            const generator4 = pathBasedConfigGenerator(generatorConfig);
+            const event4 = createMockEvent(
+                'components/dashboard/views/UserManagement/EditUserForm.tsx',
+                includes,
+                'common'
+            );
+            await generator4(event4);
+            expect(event4.save).toHaveBeenCalledWith({
+                namespace: 'user-management',
+            }, TRIGGER_NAME);
+
+            // Test case 5: Multiple segments with case transformations
+            const generator5 = pathBasedConfigGenerator(generatorConfig);
+            const event5 = createMockEvent(
+                'components/dashboard/views/facilities/ReportGeneration/GenerateMonthlyReport.tsx',
+                includes,
+                'common'
+            );
+            await generator5(event5);
+            expect(event5.save).toHaveBeenCalledWith({
+                namespace: 'facilities',
+                path: 'reportGeneration',
+            }, TRIGGER_NAME);
         });
     });
 });
