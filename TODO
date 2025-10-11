@@ -1,0 +1,11 @@
+
+ jest tylko localesDir jako public/locales
+
+ potem mamy baseLanguage
+
+ i COLLECTORY:
+
+ - podstawowy namespaceCollector - ktory baseLanguage tworzy katalog pod locales i umieszcza w namespaceach
+ - xyzCollector (wymyslic nazwe) ktory tworzy np. "en.json" pod baseLanguage i tam wszystko wrzuca.
+
+ Napisać to jako klase aby dało się to nadpisywać z zewnątrz
