@@ -74,7 +74,8 @@ export async function checkAndRegenerateFileLangTags(
     if (replacements.length) {
         const newContent = processor.replaceTags(fileContent, replacements);
         await writeFile(file, newContent, 'utf-8');
-        logger.info('Lang tag configurations written for file "{path}" (file://{file}:{line})', {path, file, line: lastUpdatedLine})
+        const encodedFile = encodeURI(file);
+        logger.info('Lang tag configurations written for file "{path}" (file://{file}:{line})', {path, file: encodedFile, line: lastUpdatedLine})
         return true;
     }
 

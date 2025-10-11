@@ -108,18 +108,18 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
     // Report all conflicts found
     if (allConflicts.length > 0) {
         logger.warn(`Found ${allConflicts.length} conflicts.`);
+    }
 
-        // Call onCollectFinish with all conflicts
-        if (config.collect?.onCollectFinish) {
-            let shouldContinue = true;
-            config.collect.onCollectFinish({
-                conflicts: allConflicts, logger, exit() {
-                    shouldContinue = false;
-                }
-            });
-            if (!shouldContinue) {
-                throw new Error(`LangTagConflictResolution:Processing stopped due to collect finish handler`);
+    // Call onCollectFinish
+    if (config.collect?.onCollectFinish) {
+        let shouldContinue = true;
+        config.collect.onCollectFinish({
+            conflicts: allConflicts, logger, exit() {
+                shouldContinue = false;
             }
+        });
+        if (!shouldContinue) {
+            throw new Error(`LangTagConflictResolution:Processing stopped due to collect finish handler`);
         }
     }
 

@@ -76,7 +76,7 @@ const config = {
             // Call event.exit(); to terminate the process upon the first conflict
         },
         onCollectFinish: event => {
-            event.exit(); // Stop the process to avoid merging on conflict
+            if (event.conflicts.length) event.exit(); // Stop the process to avoid merging on conflict
         }
     },
     translationArgPosition: 1,
