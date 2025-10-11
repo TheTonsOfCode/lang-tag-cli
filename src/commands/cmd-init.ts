@@ -62,7 +62,7 @@ const generationAlgorithm = pathBasedConfigGenerator({
     //     }
     // }
 });
-const keeper = configKeeper();
+const keeper = configKeeper({ propertyName: 'keep' });
 
 /** @type {import('@lang-tag/cli/config').LangTagCLIConfig} */
 const config = {
