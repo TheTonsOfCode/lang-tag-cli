@@ -56,12 +56,17 @@ export interface PathBasedConfigGeneratorOptions {
     /**
      * Hierarchical structure for ignoring specific directory patterns.
      * Keys represent path segments to match, values indicate what to ignore at that level.
+     * Supports special key `_` when set to `true` to ignore current segment but continue hierarchy.
      * 
      * @example
      * {
      *   'src': {
      *     'app': true,  // ignore 'app' when under 'src'
-     *     'features': ['auth', 'admin']  // ignore 'auth' and 'admin' under 'src/features'
+     *     'features': ['auth', 'admin'],  // ignore 'auth' and 'admin' under 'src/features'
+     *     'dashboard': {
+     *       _: true,  // ignore 'dashboard' but continue with nested rules
+     *       modules: true  // also ignore 'modules' under 'dashboard'
+     *     }
      *   }
      * }
      */
@@ -83,7 +88,7 @@ export interface PathBasedConfigGeneratorOptions {
      *     },
      *     admin: {
      *       '>': 'management', // rename "admin" to "management"
-     *       users: true        // keep "users" as is
+     *       users: true        // keep "users" as is (does nothing)
      *     }
      *   }
      * }
@@ -316,6 +321,7 @@ export function pathBasedConfigGenerator(
 /**
  * Applies hierarchical structured ignore rules to path segments.
  * Processes segments depth-first, removing matches according to the structure.
+ * Supports special key `_` when set to `true` to ignore current segment but continue hierarchy.
  */
 function applyStructuredIgnore(
     segments: string[],
@@ -349,10 +355,19 @@ function applyStructuredIgnore(
                 currentStructure = structure;
                 continue;
             } else if (typeof rule === 'object' && rule !== null) {
-                // Add current segment and go deeper into structure
-                result.push(segment);
-                currentStructure = rule;
-                continue;
+                // Check for special _ key to ignore current segment but continue
+                const ignoreSelf = rule['_'] === true;
+                
+                if (ignoreSelf) {
+                    // Skip this segment but continue with nested structure
+                    currentStructure = rule;
+                    continue;
+                } else {
+                    // Add current segment and go deeper into structure
+                    result.push(segment);
+                    currentStructure = rule;
+                    continue;
+                }
             }
         }
         
