@@ -9,3 +9,6 @@
  - xyzCollector (wymyslic nazwe) ktory tworzy np. "en.json" pod baseLanguage i tam wszystko wrzuca.
 
  Napisać to jako klase aby dało się to nadpisywać z zewnątrz
+
+ ###
+ - zmienic jsdocs localesDir jak wyjdzie w praniu jak te collectory zaimplementowałem

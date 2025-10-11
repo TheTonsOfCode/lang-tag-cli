@@ -93,7 +93,7 @@ describe('readConfig', () => {
 
         expect(config.baseLanguageCode).toBe('fr');
         expect(config.tagName).toBe(defaultConfig.tagName);
-        expect(config.outputDir).toBe(defaultConfig.outputDir);
+        expect(config.localesDirectory).toBe(defaultConfig.localesDirectory);
         expect(config.import.dir).toBe(defaultConfig.import.dir);
     });
 
