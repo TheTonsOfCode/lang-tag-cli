@@ -21,10 +21,17 @@ Automatically generates `namespace` and `path` configuration from file path stru
    - Adds extracted directories to the ignore list
    - Handles group patterns like `(src|app)` and `[frontend|backend]`
 
-5. **Apply Hierarchical Ignore** (option `ignoreStructured`)
-   - Matches path structure against hierarchical ignore rules
-   - Removes segments that match the structured pattern
-   - Supports nested structures for precise path matching
+5. **Apply Path Transformation Rules** (option `pathRules` or `ignoreStructured`)
+   - **`pathRules`** (recommended): Advanced hierarchical rules with ignore and rename
+     - `_: false` - Ignores current segment but continues with nested rules
+     - `>: 'name'` - Renames current segment to specified value
+     - String value - Shorthand for rename (e.g., `segment: 'newName'`)
+     - Boolean value - Shorthand for ignore (e.g., `segment: false`)
+   - **`ignoreStructured`** (legacy): Hierarchical ignore-only rules
+     - `_: true` - Ignores current segment but continues with nested rules
+     - `true` - Ignores segment and stops hierarchy
+     - Array - Ignores specific child segments
+   - **Note:** Cannot use both `pathRules` and `ignoreStructured` simultaneously
 
 6. **Apply Global Ignore** (option `ignoreDirectories`)
    - Removes all segments matching globally ignored directory names
@@ -59,7 +66,8 @@ Automatically generates `namespace` and `path` configuration from file path stru
 | `removeBracketedDirectories` | boolean | `true` | Remove directories in `()` or `[]`, otherwise just remove brackets |
 | `ignoreDirectories` | string[] | `[]` | Directory names to ignore globally |
 | `ignoreIncludesRootDirectories` | boolean | `false` | Auto-extract and ignore root directories from `includes` patterns |
-| `ignoreStructured` | object | `{}` | Hierarchical ignore rules matching path structure |
+| `ignoreStructured` | object | `{}` | Hierarchical ignore rules matching path structure. Supports `_: true` to ignore segment but continue |
+| `pathRules` | object | `{}` | Advanced hierarchical rules with ignore and rename. Supports `_: false` (ignore), `>` (rename) |
 | `lowercaseNamespace` | boolean | `false` | Convert namespace to lowercase |
 | `namespaceCase` | string | - | Case transformation for namespace (camel, snake, kebab, etc.) |
 | `pathCase` | string | - | Case transformation for path segments |
@@ -101,7 +109,7 @@ pathBasedConfigGenerator({
 **File:** `app/(admin)/users/UserList.tsx`  
 **Result:** `{ namespace: 'users' }`
 
-### Hierarchical Ignore
+### Hierarchical Ignore (Legacy)
 ```typescript
 pathBasedConfigGenerator({
   ignoreStructured: {
@@ -113,9 +121,53 @@ pathBasedConfigGenerator({
 })
 ```
 
-**File:** `src/app/components/Button.tsx` → `{ namespace: 'components' }`  
-**File:** `src/features/auth/Login.tsx` → `{ namespace: 'features' }`  
-**File:** `src/features/orders/List.tsx` → `{ namespace: 'features', path: 'orders' }`
+**File:** `src/app/components/Button.tsx` → `{ namespace: 'src', path: 'components' }`  
+**File:** `src/features/auth/Login.tsx` → `{ namespace: 'src', path: 'features' }`  
+**File:** `src/features/orders/List.tsx` → `{ namespace: 'src', path: 'features.orders' }`
+
+### Hierarchical Ignore with Continue
+```typescript
+pathBasedConfigGenerator({
+  ignoreStructured: {
+    'app': {
+      'dashboard': {
+        _: true,        // ignore "dashboard" but continue with nested rules
+        'modules': true // also ignore "modules"
+      }
+    }
+  }
+})
+```
+
+**File:** `app/dashboard/modules/advanced/facility/page.tsx`  
+**Result:** `{ namespace: 'app', path: 'advanced.facility' }`
+
+### Path Rules with Ignore and Rename
+```typescript
+pathBasedConfigGenerator({
+  pathRules: {
+    'app': {
+      'dashboard': {
+        _: false,          // ignore "dashboard" but continue
+        'modules': false   // also ignore "modules"
+      },
+      'admin': {
+        '>': 'management', // rename "admin" to "management"
+        'users': false     // ignore "users"
+      }
+    }
+  }
+})
+```
+
+**File:** `app/dashboard/modules/advanced/facility/page.tsx`  
+**Result:** `{ namespace: 'app', path: 'advanced.facility' }`
+
+**File:** `app/admin/settings/edit.tsx`  
+**Result:** `{ namespace: 'app', path: 'management.settings' }`
+
+**File:** `app/admin/users/list.tsx`  
+**Result:** `{ namespace: 'app', path: 'management' }`
 
 ### Case Transformations
 ```typescript
@@ -146,4 +198,34 @@ pathBasedConfigGenerator({
 
 **File:** `components/ui/Button.tsx`  
 **Result:** `{ namespace: 'ui' }`
+
+### Complete Example with pathRules
+```typescript
+pathBasedConfigGenerator({
+  ignoreIncludesRootDirectories: true,
+  removeBracketedDirectories: true,
+  namespaceCase: 'kebab',
+  pathCase: 'camel',
+  clearOnDefaultNamespace: true,
+  ignoreDirectories: ['views'],
+  pathRules: {
+    app: {
+      dashboard: {
+        _: false,          // ignore "dashboard"
+        modules: false     // ignore "modules"
+      },
+      admin: {
+        '>': 'management'  // rename "admin" to "management"
+      }
+    }
+  }
+})
+```
+
+**File:** `app/dashboard/modules/advanced/facility/[id]/edit/page.tsx`  
+**Includes:** `['app/**/*.{js,ts,jsx,tsx}']`  
+**Result:** `{ namespace: 'advanced', path: 'facility.edit' }`
+
+**File:** `app/admin/users/UserProfile/edit.tsx`  
+**Result:** `{ namespace: 'management', path: 'users.userProfile' }`
 

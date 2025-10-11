@@ -56,16 +56,44 @@ export interface PathBasedConfigGeneratorOptions {
     /**
      * Hierarchical structure for ignoring specific directory patterns.
      * Keys represent path segments to match, values indicate what to ignore at that level.
+     * Supports special key `_` when set to `true` to ignore current segment but continue hierarchy.
      * 
      * @example
      * {
      *   'src': {
      *     'app': true,  // ignore 'app' when under 'src'
-     *     'features': ['auth', 'admin']  // ignore 'auth' and 'admin' under 'src/features'
+     *     'features': ['auth', 'admin'],  // ignore 'auth' and 'admin' under 'src/features'
+     *     'dashboard': {
+     *       _: true,  // ignore 'dashboard' but continue with nested rules
+     *       modules: true  // also ignore 'modules' under 'dashboard'
+     *     }
      *   }
      * }
      */
     ignoreStructured?: Record<string, any>;
+
+    /**
+     * Advanced hierarchical rules for transforming path segments.
+     * Supports ignoring and renaming segments with special keys:
+     * - `_`: when `false`, ignores the current segment but continues hierarchy
+     * - `>`: renames the current segment to the specified value
+     * - Regular keys: nested rules or boolean/string for child segments
+     * 
+     * @example
+     * {
+     *   app: {
+     *     dashboard: {
+     *       _: false,          // ignore "dashboard" segment
+     *       modules: false     // ignore "modules" when under "dashboard"
+     *     },
+     *     admin: {
+     *       '>': 'management', // rename "admin" to "management"
+     *       users: true        // keep "users" as is (does nothing)
+     *     }
+     *   }
+     * }
+     */
+    pathRules?: Record<string, any>;
 
     /**
      * Convert the final namespace to lowercase.
@@ -138,12 +166,24 @@ export function pathBasedConfigGenerator(
         ignoreDirectories = [],
         ignoreIncludesRootDirectories = false,
         ignoreStructured = {},
+        pathRules = {},
         lowercaseNamespace = false,
         namespaceCase,
         pathCase,
         fallbackNamespace,
         clearOnDefaultNamespace = true
     } = options;
+
+    // Validate that both pathRules and ignoreStructured are not used together
+    const hasPathRules = Object.keys(pathRules).length > 0;
+    const hasIgnoreStructured = Object.keys(ignoreStructured).length > 0;
+    
+    if (hasPathRules && hasIgnoreStructured) {
+        throw new Error(
+            'pathBasedConfigGenerator: Cannot use both "pathRules" and "ignoreStructured" options simultaneously. ' +
+            'Please use "pathRules" (recommended) or "ignoreStructured" (legacy), but not both.'
+        );
+    }
 
     return async (event: LangTagCLIConfigGenerationEvent) => {
         const { relativePath, langTagConfig } = event;
@@ -180,9 +220,13 @@ export function pathBasedConfigGenerator(
             return segment;
         }).filter((seg): seg is string => seg !== null);
 
-        // Apply hierarchical ignore rules BEFORE removing root directories
-        // This allows ignoreStructured to work with the full path structure
-        pathSegments = applyStructuredIgnore(pathSegments, ignoreStructured);
+        // Apply hierarchical path rules BEFORE removing root directories
+        // This allows rules to work with the full path structure
+        if (hasPathRules) {
+            pathSegments = applyPathRules(pathSegments, pathRules);
+        } else {
+            pathSegments = applyStructuredIgnore(pathSegments, ignoreStructured);
+        }
 
         // Remove root directories from includes (only first occurrence)
         if (ignoreIncludesRootDirectories && langTagConfig.includes && pathSegments.length > 0) {
@@ -277,6 +321,7 @@ export function pathBasedConfigGenerator(
 /**
  * Applies hierarchical structured ignore rules to path segments.
  * Processes segments depth-first, removing matches according to the structure.
+ * Supports special key `_` when set to `true` to ignore current segment but continue hierarchy.
  */
 function applyStructuredIgnore(
     segments: string[],
@@ -310,8 +355,90 @@ function applyStructuredIgnore(
                 currentStructure = structure;
                 continue;
             } else if (typeof rule === 'object' && rule !== null) {
-                // Add current segment and go deeper into structure
+                // Check for special _ key to ignore current segment but continue
+                const ignoreSelf = rule['_'] === true;
+                
+                if (ignoreSelf) {
+                    // Skip this segment but continue with nested structure
+                    currentStructure = rule;
+                    continue;
+                } else {
+                    // Add current segment and go deeper into structure
+                    result.push(segment);
+                    currentStructure = rule;
+                    continue;
+                }
+            }
+        }
+        
+        // No match - add segment and reset structure
+        result.push(segment);
+        currentStructure = structure;
+    }
+    
+    return result;
+}
+
+/**
+ * Applies hierarchical path transformation rules to path segments.
+ * Supports ignoring and renaming segments with special keys:
+ * - `_`: when `false`, ignores the current segment but continues hierarchy
+ * - `>`: renames the current segment to the specified value
+ */
+function applyPathRules(
+    segments: string[],
+    structure: Record<string, any>
+): string[] {
+    const result: string[] = [];
+    let currentStructure = structure;
+    
+    for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i];
+        
+        // Check if current segment matches any key in current structure level
+        if (segment in currentStructure) {
+            const rule = currentStructure[segment];
+            
+            // Handle simple boolean/string values
+            if (rule === true) {
+                // Skip this segment (don't add to result)
+                currentStructure = structure;
+                continue;
+            } else if (rule === false) {
+                // false means ignore, same as true
+                currentStructure = structure;
+                continue;
+            } else if (typeof rule === 'string') {
+                // String means rename
+                result.push(rule);
+                currentStructure = structure;
+                continue;
+            } else if (Array.isArray(rule)) {
+                // Add current segment to result
                 result.push(segment);
+                
+                // Check if next segment should be removed
+                if (i + 1 < segments.length && rule.includes(segments[i + 1])) {
+                    // Skip next segment
+                    i++;
+                }
+                currentStructure = structure;
+                continue;
+            } else if (typeof rule === 'object' && rule !== null) {
+                // Object with special keys _ and >
+                const ignoreSelf = rule['_'] === false;
+                const renameTo = rule['>'];
+                
+                // Add or rename current segment (unless _ is false)
+                if (!ignoreSelf) {
+                    if (typeof renameTo === 'string') {
+                        result.push(renameTo);
+                    } else {
+                        result.push(segment);
+                    }
+                }
+                
+                // Continue with the nested structure
                 currentStructure = rule;
                 continue;
             }

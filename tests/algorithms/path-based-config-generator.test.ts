@@ -406,6 +406,91 @@ describe('pathBasedConfigGenerator', () => {
                 path: 'app.admin',
             }, TRIGGER_NAME);
         });
+
+        it('should support _ key to ignore segment but continue hierarchy', async () => {
+            const generator = pathBasedConfigGenerator({
+                ignoreStructured: {
+                    'app': {
+                        'dashboard': {
+                            _: true,
+                            'modules': true
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('app/dashboard/modules/advanced/facility/page.tsx');
+            await generator(event);
+            
+            // dashboard ignored by _, modules ignored by true
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'app',
+                path: 'advanced.facility',
+            }, TRIGGER_NAME);
+        });
+
+        it('should support _ key with multiple nested rules', async () => {
+            const generator = pathBasedConfigGenerator({
+                ignoreStructured: {
+                    'src': {
+                        'features': {
+                            _: true,  // ignore 'features'
+                            'auth': true,  // ignore 'auth'
+                            'admin': ['users', 'roles']  // ignore users and roles under admin
+                        }
+                    }
+                }
+            });
+            
+            // Test 1: features and auth ignored
+            const event1 = createMockEvent('src/features/auth/login.tsx');
+            await generator(event1);
+            expect(event1.save).toHaveBeenCalledWith({
+                namespace: 'src',
+            }, TRIGGER_NAME);
+
+            // Test 2: features ignored, admin and users ignored
+            const event2 = createMockEvent('src/features/admin/users/list.tsx');
+            await generator(event2);
+            expect(event2.save).toHaveBeenCalledWith({
+                namespace: 'src',
+                path: 'admin',
+            }, TRIGGER_NAME);
+
+            // Test 3: features ignored, admin kept, orders kept
+            const event3 = createMockEvent('src/features/admin/orders/list.tsx');
+            await generator(event3);
+            expect(event3.save).toHaveBeenCalledWith({
+                namespace: 'src',
+                path: 'admin.orders',
+            }, TRIGGER_NAME);
+        });
+
+        it('should work with _ and ignoreIncludesRootDirectories', async () => {
+            const generator = pathBasedConfigGenerator({
+                ignoreIncludesRootDirectories: true,
+                ignoreStructured: {
+                    'app': {
+                        'dashboard': {
+                            _: true,
+                            'modules': true
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent(
+                'app/dashboard/modules/advanced/facility/page.tsx',
+                ['app/**/*.tsx']
+            );
+            await generator(event);
+            
+            // app removed by ignoreIncludesRootDirectories, dashboard and modules ignored
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'advanced',
+                path: 'facility',
+            }, TRIGGER_NAME);
+        });
     });
 
     describe('Case transformations', () => {
