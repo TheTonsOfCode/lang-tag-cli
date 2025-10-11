@@ -21,7 +21,7 @@ const createBaseConfig = (): LangTagCLIConfig => ({
     includes: ['**/*.ts', '**/*.tsx'],
     excludes: ['node_modules/**'],
     outputDir: 'dist',
-    language: 'en',
+    baseLanguageCode: 'en',
     isLibrary: false,
     onConfigGeneration: async () => {},
     collect: {

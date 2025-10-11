@@ -91,7 +91,7 @@ describe('readConfig', () => {
 
         const config = await $LT_ReadConfig(projectPath);
 
-        expect(config.language).toBe('fr');
+        expect(config.baseLanguageCode).toBe('fr');
         expect(config.tagName).toBe(defaultConfig.tagName);
         expect(config.outputDir).toBe(defaultConfig.outputDir);
         expect(config.import.dir).toBe(defaultConfig.import.dir);
