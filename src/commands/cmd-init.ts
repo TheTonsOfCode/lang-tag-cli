@@ -47,7 +47,20 @@ const generationAlgorithm = pathBasedConfigGenerator({
     namespaceCase: 'kebab',
     pathCase: 'camel',
     clearOnDefaultNamespace: true,
-    ignoreDirectories: ['core', 'utils', 'helpers']
+    ignoreDirectories: ['core', 'utils', 'helpers'],
+    // Advanced: Use pathRules for hierarchical transformations with ignore and rename
+    // pathRules: {
+    //     app: {
+    //         dashboard: {
+    //             _: false,          // ignore "dashboard" but continue with nested rules
+    //             modules: false     // also ignore "modules"
+    //         },
+    //         admin: {
+    //             '>': 'management', // rename "admin" to "management"
+    //             users: false       // ignore "users"
+    //         }
+    //     }
+    // }
 });
 const keeper = configKeeper();
 
