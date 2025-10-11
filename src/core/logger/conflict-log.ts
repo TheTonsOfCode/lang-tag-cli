@@ -228,8 +228,9 @@ async function logTagConflictInfo(tagInfo: LangTagCLITagConflictInfo, prefix: st
             }
         }
 
-        // Print file path with the updated line number
-        console.log(`${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}file://${filePath}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`);
+        // Print file path with the updated line number (encode URI to handle special characters like [])
+        const encodedPath = encodeURI(filePath);
+        console.log(`${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}file://${encodedPath}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`);
         
         printLines(colorizedWhole.split('\n'), startLine, errorLines, condense);
     } catch (error) {

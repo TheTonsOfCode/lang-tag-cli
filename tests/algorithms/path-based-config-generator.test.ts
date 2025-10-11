@@ -833,6 +833,42 @@ describe('pathBasedConfigGenerator', () => {
     });
 
     describe('Real-world scenarios', () => {
+        it('should handle complex Next.js dashboard path with bracketed directories', async () => {
+            // Test for path: app/dashboard/modules/advanced/facility/[id]/edit/page.tsx
+            const generatorConfig = {
+                ignoreIncludesRootDirectories: true,
+                removeBracketedDirectories: true,
+                namespaceCase: 'kebab' as const,
+                pathCase: 'camel' as const,
+                clearOnDefaultNamespace: true,
+                ignoreDirectories: [
+                    'dashboard',
+                    'views'
+                ],
+                ignoreStructured: {
+                    app: {
+                        dashboard: {
+                            modules: true
+                        }
+                    }
+                }
+            };
+
+            const generator = pathBasedConfigGenerator(generatorConfig);
+            const event = createMockEvent(
+                'app/dashboard/modules/advanced/facility/[id]/edit/page.tsx',
+                ['app/**/*.{js,ts,jsx,tsx}'],
+                'common'
+            );
+            
+            await generator(event);
+
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'advanced',
+                path: 'facility.edit',
+            }, TRIGGER_NAME);
+        });
+
         it('should preserve namespace and remove path when config already exists (TODO example)', async () => {
             // Test from TODO: Tag has existing config with namespace and path
             // After regeneration, should keep only namespace
