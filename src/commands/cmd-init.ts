@@ -70,7 +70,8 @@ const config = {
     isLibrary: false,
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
-    outputDir: 'public/locales/en',
+    localesDirectory: 'public/locales',
+    baseLanguageCode: 'en',
     onConfigGeneration: async event => {
         // We do not modify imported configurations
         if (event.isImportedLibrary) return;

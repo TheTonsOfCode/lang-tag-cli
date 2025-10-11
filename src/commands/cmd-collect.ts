@@ -40,7 +40,7 @@ export async function $LT_CMD_Collect(options?: { clean?: boolean }) {
             .join(", ");
 
         logger.success('Updated namespaces {outputDir} ({namespaces})', {
-            outputDir: config.outputDir,
+            outputDir: config.localesDirectory,
             namespaces: n,
         });
     } catch (e: any) {
