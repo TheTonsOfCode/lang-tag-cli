@@ -16,10 +16,10 @@ export async function $LT_WriteToNamespaces({config, namespaces, logger, clean}:
 
     if (clean) {
         logger.info('Cleaning output directory...')
-        await $LT_RemoveDirectory(config.outputDir);
+        await $LT_RemoveDirectory(config.localesDirectory);
     }
 
-    await $LT_EnsureDirectoryExists(config.outputDir);
+    await $LT_EnsureDirectoryExists(config.localesDirectory);
 
     for (let namespace of Object.keys(namespaces)) {
         if (!namespace) {
@@ -28,7 +28,7 @@ export async function $LT_WriteToNamespaces({config, namespaces, logger, clean}:
 
         const filePath = resolve(
             process.cwd(),
-            config.outputDir,
+            config.localesDirectory,
             namespace + '.json'
         );
 

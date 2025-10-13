@@ -54,7 +54,7 @@ async function handleFile(config: LangTagCLIConfig, logger: LangTagCLILogger, cw
             .join(", ");
 
         logger.success('Updated namespaces {outputDir} ({namespaces})', {
-            outputDir: config.outputDir,
+            outputDir: config.localesDirectory,
             namespaces: n,
         });
     }

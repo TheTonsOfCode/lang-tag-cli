@@ -22,10 +22,25 @@ export interface LangTagCLIConfig {
     excludes: string[];
 
     /**
-     * Output directory for generated translation namespace files (e.g., common.json, errors.json).
-     * @default 'locales/en'
+     * Root directory for translation files. 
+     * Files are saved in baseLanguageCode subdirectory (e.g., locales/en/, locales/pl/).
+     * The actual file structure depends on the collector implementation used.
+     * @default 'locales'
+     * @example With baseLanguageCode='en' and localesDir='locales':
+     *   - Default collector: locales/en/common.json, locales/en/errors.json
+     *   - Custom collector: locales/en.json (all translations in one file)
+     * @example localesDir='public/locales' + baseLanguageCode='pl' → public/locales/pl/
      */
-    outputDir: string;
+    localesDirectory: string;
+
+    /**
+     * The language in which translation values/messages are written in the codebase.
+     * This determines the source language for your translations.
+     * @default 'en'
+     * @example 'en' - Translation values are in English: lang({ helloWorld: 'Hello World' })
+     * @example 'pl' - Translation values are in Polish: lang({ helloWorld: 'Witaj Świecie' })
+     */
+    baseLanguageCode: string;
 
     collect?: {
         /**
@@ -93,13 +108,6 @@ export interface LangTagCLIConfig {
      * @default 1
      */
     translationArgPosition: 1 | 2;
-
-    /**
-     * Primary language used for the library's translations.
-     * Affects default language settings when used in library mode.
-     * @default 'en'
-     */
-    language: string;
 
     /**
      * Indicates whether this configuration is for a translation library.
@@ -277,9 +285,11 @@ export interface LangTagCLICollectFinishEvent {
 
 export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     tagName: 'lang',
+    isLibrary: false,
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build'],
-    outputDir: 'locales/en',
+    localesDirectory: 'locales',
+    baseLanguageCode: 'en',
     collect: {
         defaultNamespace: 'common',
         ignoreConflictsWithMatchingValues: true,
@@ -311,8 +321,6 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
             actions.setExportName(`translations${exportIndex}`);
         }
     },
-    isLibrary: false,
-    language: 'en',
     translationArgPosition: 1,
     onConfigGeneration: async event => {},
 };
