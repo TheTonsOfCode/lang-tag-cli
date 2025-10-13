@@ -23,24 +23,29 @@ export function {{tagName}}{{#isTypeScript}}<T extends LangTagTranslations>{{/is
     config{{#isTypeScript}}?: TagConfig{{/isTypeScript}},
 ) {
     // Example integration with react-i18next:
-    // const namespace = config?.namespace || '';
+    // const namespace = config?.namespace || 'common';
     // 
     // // Client
-    // const useT = () => {
-    //     const { t } = useTranslation(namespace);
-    // 
-    //     return createCallableTranslations(translations, config, {
-    //         transform: ({ path, params }) => t(path, params),
-    //     });
+    // const useTranslations = () => {
+    // 	const { useTranslation } = require('react-i18next') as typeof import('react-i18next');
+    // 	const { t } = useTranslation(namespace);
+    //
+    // 	return createCallableTranslations(baseTranslations, config, {
+    // 		transform: ({ path, params }) => {
+    // 			const result = t(path);
+    // 			if (result == path) return `#${result}#`;
+    // 			return processPlaceholders(result, params);
+    // 		},
+    // 	});
     // };
-    // 
-    // // SSR
-    // const initT = async (language?: string) => {
-    //     const { t } = await initTranslations({ language, namespaces: [namespace] });
-    // 
-    //     return createCallableTranslations(translations, config, {
-    //         transform: ({ path, params }) => t(path, params),
-    //     });
+    //
+    // SSR
+    // const initTranslations = async (language?: string) => {
+    // 	const { t } = await initT(language || 'en', [namespace]);
+    //
+    // 	return createCallableTranslations(baseTranslations, config, {
+    // 		transform: ({ path, params }) => processPlaceholders(t(path), params),
+    // 	});
     // };
 
     const createTranslations = () => {

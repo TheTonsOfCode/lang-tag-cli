@@ -7,8 +7,15 @@
 
  - podstawowy namespaceCollector - ktory baseLanguage tworzy katalog pod locales i umieszcza w namespaceach
  - xyzCollector (wymyslic nazwe) ktory tworzy np. "en.json" pod baseLanguage i tam wszystko wrzuca.
+    - tam w opcjach dać że np. namespace pomija, lub łączy go do path jako prefix "namespace.{path}"
 
  Napisać to jako klase aby dało się to nadpisywać z zewnątrz
 
  ###
  - zmienic jsdocs localesDir jak wyjdzie w praniu jak te collectory zaimplementowałem
+
+
+ Biblioteka do przetestowania:
+ https://next-intl.dev/docs/getting-started/app-router
+ en.json
+ pl.json
