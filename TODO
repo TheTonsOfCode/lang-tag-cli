@@ -1,16 +1,6 @@
+wiecej testow na obiekt i null
+ lub poprostu >>: '' pusty string
 
-components: {
-    dashboard: {
-        _: false,
-        views: false,
-        layout: {
-            '*': 'dashboard'
+test na >> i potem w nim znowu >> i co sie dzieje (powinno byc to ostatnie brane pod uwage
 
-            lub
-            '*': 'dashboard'
-            '*-prefix': 'layout.'
-        }
-    }
-}
-* jako przypisanie wszystkiego od w dół
-
+opisac mozliwe hacki z tym
