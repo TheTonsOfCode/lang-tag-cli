@@ -24,8 +24,9 @@ export async function $LT_ReadConfig(projectPath: string): Promise<LangTagCLICon
             .toLowerCase()
             .replace(/[-_\s]/g, '');
 
-        if (tn.includes('langtag')) {
-            throw new Error('Custom tagName cannot include "langtag"! (It is not recommended for use with libraries)\n');
+        // Block exact matches for "lang-tag" and "langtag"
+        if (tn === 'langtag' || tn === 'lang-tag') {
+            throw new Error('Custom tagName cannot be "lang-tag" or "langtag"! (It is not recommended for use with libraries)\n');
         }
 
         return {
