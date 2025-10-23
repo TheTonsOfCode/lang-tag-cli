@@ -77,6 +77,12 @@ export interface PathBasedConfigGeneratorOptions {
      * Supports ignoring and renaming segments with special keys:
      * - `_`: when `false`, ignores the current segment but continues hierarchy
      * - `>`: renames the current segment to the specified value
+     * - `>>`: namespace redirect - jumps to a different namespace and continues processing remaining path segments
+     *   - String: `>>: 'namespace'` - redirects to specified namespace, remaining segments become path
+     *   - Object: `>>: { namespace: 'name', pathPrefix: 'prefix.' }` - redirects with optional path prefix
+     *   - Empty: `>>: ''` or `>>: null/undefined` - uses current segment as namespace
+     *   - Missing namespace: `>>: { pathPrefix: 'prefix.' }` - uses current segment as namespace with prefix
+     *   - Nested: deepest `>>` in hierarchy takes precedence
      * - Regular keys: nested rules or boolean/string for child segments
      * 
      * @example
@@ -89,6 +95,25 @@ export interface PathBasedConfigGeneratorOptions {
      *     admin: {
      *       '>': 'management', // rename "admin" to "management"
      *       users: true        // keep "users" as is (does nothing)
+     *     },
+     *     layout: {
+     *       '>>': 'dashboard'  // redirect: everything below layout jumps to "dashboard" namespace
+     *     },
+     *     components: {
+     *       '>>': {           // redirect: jump to "ui" namespace with "components." path prefix
+     *         namespace: 'ui',
+     *         pathPrefix: 'components'
+     *       }
+     *     },
+     *     features: {
+     *       '>>': {           // redirect: use current segment as namespace with "feature." prefix
+     *         pathPrefix: 'feature.'
+     *       }
+     *     },
+     *     auth: {
+     *       '>>': '',         // redirect: use current segment as namespace
+     *       '>>': null,       // same as empty string
+     *       '>>': undefined   // same as empty string
      *     }
      *   }
      * }
@@ -251,6 +276,9 @@ export function pathBasedConfigGenerator(
             // Remaining segments form the path
             if (pathSegments.length > 1) {
                 path = pathSegments.slice(1).join('.');
+            } else {
+                // No remaining segments, path is empty
+                path = '';
             }
         } else {
             // No segments remain, use fallback
@@ -380,10 +408,107 @@ function applyStructuredIgnore(
 }
 
 /**
+ * Helper function to add pathPrefix and remaining segments to result array.
+ * Handles pathPrefix normalization (removes trailing dot if present).
+ */
+function addPathPrefixAndSegments(
+    result: string[],
+    pathPrefix: string,
+    remainingSegments: string[]
+): void {
+    if (pathPrefix && remainingSegments.length > 0) {
+        const cleanPrefix = pathPrefix.endsWith('.') ? pathPrefix.slice(0, -1) : pathPrefix;
+        result.push(cleanPrefix, ...remainingSegments);
+    } else if (pathPrefix && remainingSegments.length === 0) {
+        const cleanPrefix = pathPrefix.endsWith('.') ? pathPrefix.slice(0, -1) : pathPrefix;
+        result.push(cleanPrefix);
+    } else if (remainingSegments.length > 0) {
+        result.push(...remainingSegments);
+    }
+}
+
+/**
+ * Processes >> namespace redirect operator and returns the result array.
+ * The redirect operator jumps to a different namespace and continues processing remaining path segments.
+ * 
+ * @param redirectRule - The redirect configuration (string or object)
+ * @param remainingSegments - Path segments that come after the redirect point
+ * @param options - Optional context when redirect is inside a segment rule
+ * @returns Array of processed segments (first element becomes namespace, rest become path)
+ */
+function processNamespaceRedirect(
+    redirectRule: any,
+    remainingSegments: string[],
+    options?: {
+        currentSegment?: string;
+        renameTo?: string;
+        ignoreSelf?: boolean;
+    }
+): string[] {
+    const result: string[] = [];
+    
+    // Handle null/undefined redirect - treat as empty string redirect
+    if (redirectRule === null || redirectRule === undefined) {
+        // Treat as empty string redirect - use current segment as namespace
+        if (options?.currentSegment !== undefined) {
+            // Add current segment (if not ignored)
+            if (!options.ignoreSelf) {
+                result.push(options.renameTo || options.currentSegment);
+            }
+        }
+        // Add remaining segments
+        result.push(...remainingSegments);
+    } else if (typeof redirectRule === 'string') {
+        // Simple redirect: >>: 'namespace'
+        if (redirectRule === '') {
+            // Empty string - special handling
+            if (options?.currentSegment !== undefined) {
+                // We're inside a segment rule - use current segment as namespace
+                if (!options.ignoreSelf) {
+                    result.push(options.renameTo || options.currentSegment);
+                }
+            }
+            // Add remaining segments
+            result.push(...remainingSegments);
+        } else {
+            result.push(redirectRule);
+            result.push(...remainingSegments);
+        }
+    } else if (typeof redirectRule === 'object' && redirectRule !== null) {
+        // Complex redirect: >>: { namespace: 'name', pathPrefix: 'prefix.' }
+        const namespace = redirectRule.namespace;
+        const pathPrefix = redirectRule.pathPrefix || '';
+        
+        // If namespace is missing, null, or empty, use current segment (if available)
+        if (namespace === undefined || namespace === null || namespace === '') {
+            if (options?.currentSegment !== undefined) {
+                // Add current segment (if not ignored)
+                if (!options.ignoreSelf) {
+                    result.push(options.renameTo || options.currentSegment);
+                }
+            }
+            addPathPrefixAndSegments(result, pathPrefix, remainingSegments);
+        } else {
+            // Use provided namespace
+            result.push(namespace);
+            addPathPrefixAndSegments(result, pathPrefix, remainingSegments);
+        }
+    }
+    
+    return result;
+}
+
+/**
  * Applies hierarchical path transformation rules to path segments.
  * Supports ignoring and renaming segments with special keys:
  * - `_`: when `false`, ignores the current segment but continues hierarchy
  * - `>`: renames the current segment to the specified value
+ * - `>>`: namespace redirect - jumps to a different namespace and continues processing remaining segments
+ *   - String: `>>: 'namespace'` - redirects to specified namespace, remaining segments become path
+ *   - Object: `>>: { namespace: 'name', pathPrefix: 'prefix.' }` - redirects with optional path prefix
+ *   - Empty: `>>: ''` or `>>: null/undefined` - uses current segment as namespace
+ *   - Missing namespace: `>>: { pathPrefix: 'prefix.' }` - uses current segment as namespace with prefix
+ *   - Nested: deepest `>>` in hierarchy takes precedence
  */
 function applyPathRules(
     segments: string[],
@@ -391,9 +516,22 @@ function applyPathRules(
 ): string[] {
     const result: string[] = [];
     let currentStructure = structure;
+    let deepestRedirect: { rule: any; remainingSegments: string[]; context?: any } | null = null;
     
     for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
+        
+        // Check for >> namespace redirect at current structure level
+        // Skip if we already have a redirect with context (from nested object)
+        if ('>>' in currentStructure && (!deepestRedirect || !deepestRedirect.context)) {
+            const redirectRule = currentStructure['>>'];
+            const remainingSegments = segments.slice(i);
+            // Store this as the deepest redirect found so far
+            deepestRedirect = {
+                rule: redirectRule,
+                remainingSegments: remainingSegments
+            };
+        }
         
         // Check if current segment matches any key in current structure level
         if (segment in currentStructure) {
@@ -425,9 +563,29 @@ function applyPathRules(
                 currentStructure = structure;
                 continue;
             } else if (typeof rule === 'object' && rule !== null) {
-                // Object with special keys _ and >
+                // Object with special keys _, >, and >>
                 const ignoreSelf = rule['_'] === false;
                 const renameTo = rule['>'];
+                const redirectRule = rule['>>'];
+                
+                // Check for >> namespace redirect in nested object
+                if ('>>' in rule) {
+                    const remainingSegments = segments.slice(i + 1); // Segments after current one
+                    // Process remaining segments through nested rules (without >>)
+                    const ruleWithoutRedirect = { ...rule };
+                    delete ruleWithoutRedirect['>>'];
+                    const processedRemaining = applyPathRules(remainingSegments, ruleWithoutRedirect);
+                    // Store this as the deepest redirect found so far
+                    deepestRedirect = {
+                        rule: redirectRule,
+                        remainingSegments: processedRemaining,
+                        context: {
+                            currentSegment: segment,
+                            renameTo: renameTo,
+                            ignoreSelf: ignoreSelf
+                        }
+                    };
+                }
                 
                 // Add or rename current segment (unless _ is false)
                 if (!ignoreSelf) {
@@ -447,6 +605,15 @@ function applyPathRules(
         // No match - add segment and reset structure
         result.push(segment);
         currentStructure = structure;
+    }
+    
+    // If we found a redirect, use the deepest one
+    if (deepestRedirect) {
+        return processNamespaceRedirect(
+            deepestRedirect.rule,
+            deepestRedirect.remainingSegments,
+            deepestRedirect.context
+        );
     }
     
     return result;
