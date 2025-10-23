@@ -486,17 +486,21 @@ function applyPathRules(
 ): string[] {
     const result: string[] = [];
     let currentStructure = structure;
+    let deepestRedirect: { rule: any; remainingSegments: string[]; context?: any } | null = null;
     
     for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
         
-        // Check for >> namespace redirect at current structure level FIRST
-        if ('>>' in currentStructure) {
+        // Check for >> namespace redirect at current structure level
+        // Skip if we already have a redirect with context (from nested object)
+        if ('>>' in currentStructure && (!deepestRedirect || !deepestRedirect.context)) {
             const redirectRule = currentStructure['>>'];
             const remainingSegments = segments.slice(i);
-            const redirectResult = processNamespaceRedirect(redirectRule, remainingSegments);
-            result.push(...redirectResult);
-            return result;
+            // Store this as the deepest redirect found so far
+            deepestRedirect = {
+                rule: redirectRule,
+                remainingSegments: remainingSegments
+            };
         }
         
         // Check if current segment matches any key in current structure level
@@ -534,15 +538,23 @@ function applyPathRules(
                 const renameTo = rule['>'];
                 const redirectRule = rule['>>'];
                 
-                // Handle >> namespace redirect (applies to all remaining segments)
-                // Important: Check redirect FIRST before adding segment
+                // Check for >> namespace redirect in nested object
                 if (redirectRule !== undefined) {
                     const remainingSegments = segments.slice(i + 1); // Segments after current one
-                    return processNamespaceRedirect(redirectRule, remainingSegments, {
-                        currentSegment: segment,
-                        renameTo: renameTo,
-                        ignoreSelf: ignoreSelf
-                    });
+                    // Process remaining segments through nested rules (without >>)
+                    const ruleWithoutRedirect = { ...rule };
+                    delete ruleWithoutRedirect['>>'];
+                    const processedRemaining = applyPathRules(remainingSegments, ruleWithoutRedirect);
+                    // Store this as the deepest redirect found so far
+                    deepestRedirect = {
+                        rule: redirectRule,
+                        remainingSegments: processedRemaining,
+                        context: {
+                            currentSegment: segment,
+                            renameTo: renameTo,
+                            ignoreSelf: ignoreSelf
+                        }
+                    };
                 }
                 
                 // Add or rename current segment (unless _ is false)
@@ -563,6 +575,15 @@ function applyPathRules(
         // No match - add segment and reset structure
         result.push(segment);
         currentStructure = structure;
+    }
+    
+    // If we found a redirect, use the deepest one
+    if (deepestRedirect) {
+        return processNamespaceRedirect(
+            deepestRedirect.rule,
+            deepestRedirect.remainingSegments,
+            deepestRedirect.context
+        );
     }
     
     return result;
