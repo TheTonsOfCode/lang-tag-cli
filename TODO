@@ -18,13 +18,6 @@ components: {
 ===========================
 
 
-- wywalic ten blok z lang-tag i zrobic to na 95% podobienstwa i na te same literki albo samo "lang-tag" i "langtag"
-
-
-
-===========================
-
-
 niech podstawowy lang-tag ma generowane metody w taki sposób że lądują one odrazu w returnie
 
 
