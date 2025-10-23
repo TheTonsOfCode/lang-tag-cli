@@ -543,7 +543,10 @@ describe('pathRules >> wildcard', () => {
                         features: {
                             '>>': 'pages',
                             auth: {
-                                '>>': 'security'
+                                '>>': 'security',
+                                login: {
+                                    '>': 'auth'
+                                }
                             }
                         }
                     }
@@ -555,7 +558,7 @@ describe('pathRules >> wildcard', () => {
             
             expect(event.save).toHaveBeenCalledWith({
                 namespace: 'security',
-                path: 'login',
+                path: 'auth',
             }, TRIGGER_NAME);
         });
 
