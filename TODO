@@ -1,0 +1,80 @@
+ jak jest:
+const translations = lang(
+	{
+		title: 'Add new zone',
+		facility: 'Facility',
+	},
+);
+
+to ten przecinek w 6 linii robi to że lantag nie jest wykrywany
+
+
+===========================
+
+components: {
+    dashboard: {
+        _: false,
+        views: false,
+        layout: {
+            '*': 'dashboard'
+
+            lub
+            '*': 'dashboard'
+            '*-prefix': 'layout.'
+        }
+    }
+}
+* jako przypisanie wszystkiego od w dół
+
+
+===========================
+
+
+- wywalic ten blok z lang-tag i zrobic to na 95% podobienstwa i na te same literki albo samo "lang-tag" i "langtag"
+
+
+
+===========================
+
+
+niech podstawowy lang-tag ma generowane metody w taki sposób że lądują one odrazu w returnie
+
+
+
+export function lang<T extends LangTagTranslations>(
+	baseTranslations: T,
+	config?: TagConfig,
+) {
+	const namespace = config?.namespace || 'common';
+
+	return {
+		// Client
+		useTranslations: () => {
+			const { useTranslation } = require('react-i18next') as typeof import('react-i18next');
+			const { t } = useTranslation(namespace);
+
+			return createCallableTranslations(baseTranslations, config, {
+				transform: ({ path, params }) => {
+					const result = t(path);
+					if (result == path) return `#${result}#`;
+					return processPlaceholders(result, params);
+				},
+			});
+		},
+		// SSR
+		initTranslations: async (language?: string) => {
+
+			const { t } = await initT(language || 'en', [namespace]);
+
+			return createCallableTranslations(baseTranslations, config, {
+				transform: ({ path, params }) => {
+					console.log(12, path, params, namespace);
+					const result = t(path);
+					if (result == path) return `#${result}#`;
+					return processPlaceholders(result, params);
+				},
+			});
+		},
+		Type: {} as CallableTranslations<T>,
+	};
+}
