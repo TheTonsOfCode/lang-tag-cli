@@ -277,6 +277,8 @@ export interface LangTagCLIConflictResolutionEvent {
 }
 
 export interface LangTagCLICollectFinishEvent {
+    totalTags: number;
+    namespaces: Record<string, Record<string, any>>
     conflicts: LangTagCLIConflict[]
     logger: LangTagCLILogger
     /** Breaks translation collection process */

@@ -23,29 +23,23 @@ export function {{tagName}}{{#isTypeScript}}<T extends LangTagTranslations>{{/is
     config{{#isTypeScript}}?: TagConfig{{/isTypeScript}},
 ) {
     // Example integration with react-i18next:
-    // const namespace = config?.namespace || 'common';
+    // const namespace = config?.namespace || '';
     // 
     // // Client
-    // const useTranslations = () => {
-    // 	const { useTranslation } = require('react-i18next') as typeof import('react-i18next');
-    // 	const { t } = useTranslation(namespace);
-    //
-    // 	return createCallableTranslations(baseTranslations, config, {
-    // 		transform: ({ path, params }) => {
-    // 			const result = t(path);
-    // 			if (result == path) return `#${result}#`;
-    // 			return processPlaceholders(result, params);
-    // 		},
-    // 	});
+    // const useT = () => {
+    //     const { t } = useTranslation(namespace);
+    // 
+    //     return createCallableTranslations(translations, config, {
+    //         transform: ({ path, params }) => t(path, params),
+    //     });
     // };
-    //
-    // SSR
-    // const initTranslations = async (language?: string) => {
-    // 	const { t } = await initT(language || 'en', [namespace]);
-    //
-    // 	return createCallableTranslations(baseTranslations, config, {
-    // 		transform: ({ path, params }) => processPlaceholders(t(path), params),
-    // 	});
+    // // SSR
+    // const initT = async (language?: string) => {
+    //     const { t } = await initTranslations({ language, namespaces: [namespace] });
+    // 
+    //     return createCallableTranslations(translations, config, {
+    //         transform: ({ path, params }) => t(path, params),
+    //     });
     // };
 
     const createTranslations = () => {
@@ -56,22 +50,18 @@ export function {{tagName}}{{#isTypeScript}}<T extends LangTagTranslations>{{/is
         });
     };
 
-    const client = () => {
-        {{#isReact}}
-        return useMemo(() => createTranslations(), []);
-        {{/isReact}}
-        {{^isReact}}
-        return createTranslations();
-        {{/isReact}}
-    };
-
-    const server = () => {
-        return createTranslations();
-    };
-
     return {
-        client,
-        server,
+        client: () => {
+            {{#isReact}}
+            return useMemo(() => createTranslations(), []);
+            {{/isReact}}
+            {{^isReact}}
+            return createTranslations();
+            {{/isReact}}
+        },
+        server: () => {
+            return createTranslations();
+        },
         {{#isTypeScript}}
         Type: {} as CallableTranslations<T>,
         {{/isTypeScript}}

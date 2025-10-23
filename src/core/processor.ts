@@ -81,44 +81,48 @@ export class $LT_TagProcessor {
                     i++;
                 }
 
-                // Now we must see the start of the second object
-                if (i >= fileContent.length || fileContent[i] !== '{') {
-                    // Malformed: comma not followed by an object
-                    currentIndex = matchStartIndex + 1;
-                    continue;
-                }
-
-                // Parse second object
-                braceCount = 1;
-                const secondParamStart = i;
-                i++;
-
-                while (i < fileContent.length && braceCount > 0) {
-                    if (fileContent[i] === '{') braceCount++;
-                    if (fileContent[i] === '}') braceCount--;
+                // Check if this is a trailing comma after first parameter (single parameter case)
+                if (i >= fileContent.length || fileContent[i] === ')') {
+                    // This is a trailing comma after the first parameter only - valid case
+                    // We'll handle this in the closing parenthesis check below
+                } else if (fileContent[i] === '{') {
+                    // This is the start of a second parameter
+                    // Parse second object
+                    braceCount = 1;
+                    const secondParamStart = i;
                     i++;
-                }
 
-                if (braceCount !== 0) {
-                    // Unbalanced braces - skip this match
-                    currentIndex = matchStartIndex + 1;
-                    continue;
-                }
+                    while (i < fileContent.length && braceCount > 0) {
+                        if (fileContent[i] === '{') braceCount++;
+                        if (fileContent[i] === '}') braceCount--;
+                        i++;
+                    }
 
-                parameter2Text = fileContent.substring(secondParamStart, i);
+                    if (braceCount !== 0) {
+                        // Unbalanced braces - skip this match
+                        currentIndex = matchStartIndex + 1;
+                        continue;
+                    }
 
-                // After second object, skip whitespace
-                while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
-                    i++;
-                }
+                    parameter2Text = fileContent.substring(secondParamStart, i);
 
-                // Handle trailing comma after second parameter (Prettier formatting)
-                if (i < fileContent.length && fileContent[i] === ',') {
-                    i++; // consume the comma
-                    // Skip whitespace after comma
+                    // After second object, skip whitespace
                     while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
                         i++;
                     }
+
+                    // Handle trailing comma after second parameter (Prettier formatting)
+                    if (i < fileContent.length && fileContent[i] === ',') {
+                        i++; // consume the comma
+                        // Skip whitespace after comma
+                        while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
+                            i++;
+                        }
+                    }
+                } else {
+                    // Malformed: comma not followed by an object or closing paren
+                    currentIndex = matchStartIndex + 1;
+                    continue;
                 }
             } else if (fileContent[i] !== ')') {
                 // No comma and not a closing parenthesis -> malformed (e.g., missing comma before second object)

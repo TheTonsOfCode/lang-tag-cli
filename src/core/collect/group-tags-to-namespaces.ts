@@ -114,6 +114,8 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
     if (config.collect?.onCollectFinish) {
         let shouldContinue = true;
         config.collect.onCollectFinish({
+            totalTags,
+            namespaces,
             conflicts: allConflicts, logger, exit() {
                 shouldContinue = false;
             }
