@@ -511,7 +511,8 @@ describe('pathRules >> wildcard', () => {
             await generator(event);
             
             expect(event.save).toHaveBeenCalledWith({
-                namespace: 'views',
+                namespace: 'dashboard',
+                path: 'views',
             }, TRIGGER_NAME);
         });
 

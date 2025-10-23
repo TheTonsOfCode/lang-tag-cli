@@ -80,6 +80,9 @@ export interface PathBasedConfigGeneratorOptions {
      * - `>>`: namespace redirect - jumps to a different namespace and continues processing remaining path segments
      *   - String: `>>: 'namespace'` - redirects to specified namespace, remaining segments become path
      *   - Object: `>>: { namespace: 'name', pathPrefix: 'prefix.' }` - redirects with optional path prefix
+     *   - Empty: `>>: ''` or `>>: null/undefined` - uses current segment as namespace
+     *   - Missing namespace: `>>: { pathPrefix: 'prefix.' }` - uses current segment as namespace with prefix
+     *   - Nested: deepest `>>` in hierarchy takes precedence
      * - Regular keys: nested rules or boolean/string for child segments
      * 
      * @example
@@ -101,6 +104,16 @@ export interface PathBasedConfigGeneratorOptions {
      *         namespace: 'ui',
      *         pathPrefix: 'components'
      *       }
+     *     },
+     *     features: {
+     *       '>>': {           // redirect: use current segment as namespace with "feature." prefix
+     *         pathPrefix: 'feature.'
+     *       }
+     *     },
+     *     auth: {
+     *       '>>': '',         // redirect: use current segment as namespace
+     *       '>>': null,       // same as empty string
+     *       '>>': undefined   // same as empty string
      *     }
      *   }
      * }
@@ -493,6 +506,9 @@ function processNamespaceRedirect(
  * - `>>`: namespace redirect - jumps to a different namespace and continues processing remaining segments
  *   - String: `>>: 'namespace'` - redirects to specified namespace, remaining segments become path
  *   - Object: `>>: { namespace: 'name', pathPrefix: 'prefix.' }` - redirects with optional path prefix
+ *   - Empty: `>>: ''` or `>>: null/undefined` - uses current segment as namespace
+ *   - Missing namespace: `>>: { pathPrefix: 'prefix.' }` - uses current segment as namespace with prefix
+ *   - Nested: deepest `>>` in hierarchy takes precedence
  */
 function applyPathRules(
     segments: string[],
