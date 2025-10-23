@@ -158,6 +158,33 @@ describe('findLangMatches', () => {
         expect(tags[0].parameterTranslations.common.signIn).toBe('Sign In');
         expect(tags[0].parameterConfig.namespace).toBe('auth');
     });
+
+    it('should find lang match with trailing comma after first argument (translations only)', () => {
+        const content = `const translations = lang(
+    {
+        title: 'Add new zone',
+        facility: 'Facility',
+    },
+);`;
+        
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(1);
+        expect(tags[0].fullMatch).toBe(` translations = lang(
+    {
+        title: 'Add new zone',
+        facility: 'Facility',
+    },
+)`);
+        expect(tags[0].variableName).toBe("translations");
+        expect(tags[0].parameter1Text).toBe(`{
+        title: 'Add new zone',
+        facility: 'Facility',
+    }`);
+        expect(tags[0].parameter2Text).toBeUndefined();
+        expect(tags[0].parameterTranslations.title).toBe('Add new zone');
+        expect(tags[0].parameterTranslations.facility).toBe('Facility');
+    });
 });
 
 describe('replaceLangMatches', () => {

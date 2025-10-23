@@ -1,15 +1,3 @@
- jak jest:
-const translations = lang(
-	{
-		title: 'Add new zone',
-		facility: 'Facility',
-	},
-);
-
-to ten przecinek w 6 linii robi to że lantag nie jest wykrywany
-
-
-===========================
 
 components: {
     dashboard: {
