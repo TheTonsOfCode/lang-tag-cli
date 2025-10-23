@@ -451,5 +451,87 @@ describe('pathRules >> wildcard', () => {
             }, TRIGGER_NAME);
         });
     });
+
+    describe('>> directly in directory before component', () => {
+        it('should work without pathPrefix', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    components: {
+                        '>>': 'ui'
+                    }
+                }
+            });
+            
+            const event = createMockEvent('components/Button.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'ui',
+            }, TRIGGER_NAME);
+        });
+
+        it('should work with pathPrefix without dot at the end', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    features: {
+                        '>>': {
+                            namespace: 'pages',
+                            pathPrefix: 'feature'
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('features/Dashboard.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'pages',
+                path: 'feature',
+            }, TRIGGER_NAME);
+        });
+
+        it('should work with pathPrefix with dot at the end', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    modules: {
+                        '>>': {
+                            namespace: 'core',
+                            pathPrefix: 'module.'
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('modules/Analytics.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'core',
+                path: 'module',
+            }, TRIGGER_NAME);
+        });
+
+        it('should work with multi-level pathPrefix with dots', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    views: {
+                        '>>': {
+                            namespace: 'app',
+                            pathPrefix: 'app.views.'
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('views/Profile.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'app',
+                path: 'app.views',
+            }, TRIGGER_NAME);
+        });
+    });
 });
 
