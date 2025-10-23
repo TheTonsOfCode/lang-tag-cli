@@ -33,7 +33,6 @@ export function {{tagName}}{{#isTypeScript}}<T extends LangTagTranslations>{{/is
     //         transform: ({ path, params }) => t(path, params),
     //     });
     // };
-    // 
     // // SSR
     // const initT = async (language?: string) => {
     //     const { t } = await initTranslations({ language, namespaces: [namespace] });
@@ -51,22 +50,18 @@ export function {{tagName}}{{#isTypeScript}}<T extends LangTagTranslations>{{/is
         });
     };
 
-    const client = () => {
-        {{#isReact}}
-        return useMemo(() => createTranslations(), []);
-        {{/isReact}}
-        {{^isReact}}
-        return createTranslations();
-        {{/isReact}}
-    };
-
-    const server = () => {
-        return createTranslations();
-    };
-
     return {
-        client,
-        server,
+        client: () => {
+            {{#isReact}}
+            return useMemo(() => createTranslations(), []);
+            {{/isReact}}
+            {{^isReact}}
+            return createTranslations();
+            {{/isReact}}
+        },
+        server: () => {
+            return createTranslations();
+        },
         {{#isTypeScript}}
         Type: {} as CallableTranslations<T>,
         {{/isTypeScript}}
