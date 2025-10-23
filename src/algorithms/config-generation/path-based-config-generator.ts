@@ -569,7 +569,7 @@ function applyPathRules(
                 const redirectRule = rule['>>'];
                 
                 // Check for >> namespace redirect in nested object
-                if (redirectRule !== undefined) {
+                if ('>>' in rule) {
                     const remainingSegments = segments.slice(i + 1); // Segments after current one
                     // Process remaining segments through nested rules (without >>)
                     const ruleWithoutRedirect = { ...rule };
