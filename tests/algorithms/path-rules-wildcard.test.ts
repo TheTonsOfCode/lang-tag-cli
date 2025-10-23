@@ -533,5 +533,85 @@ describe('pathRules >> wildcard', () => {
             }, TRIGGER_NAME);
         });
     });
+
+    describe('Nested >> redirects', () => {
+        it('should use the deepest >> redirect when nested', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    app: {
+                        '>>': 'fallback',
+                        features: {
+                            '>>': 'pages',
+                            auth: {
+                                '>>': 'security'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('app/features/auth/login/form.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'security',
+                path: 'login',
+            }, TRIGGER_NAME);
+        });
+
+        it('should use the deepest >> redirect with pathPrefix when nested', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    src: {
+                        '>>': 'fallback',
+                        modules: {
+                            '>>': {
+                                namespace: 'core',
+                                pathPrefix: 'modules.'
+                            },
+                            admin: {
+                                '>>': {
+                                    namespace: 'management',
+                                    pathPrefix: 'admin.'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('src/modules/admin/users/roles.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'management',
+                path: 'admin.users',
+            }, TRIGGER_NAME);
+        });
+
+        it('should use the deepest >> redirect even when parent has string redirect', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    components: {
+                        '>>': 'ui',
+                        forms: {
+                            '>>': {
+                                namespace: 'validation',
+                                pathPrefix: 'forms.'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('components/forms/inputs/email.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'validation',
+                path: 'forms.inputs',
+            }, TRIGGER_NAME);
+        });
+    });
 });
 
