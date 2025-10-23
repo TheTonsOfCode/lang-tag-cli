@@ -407,6 +407,177 @@ describe('pathRules >> wildcard', () => {
                 path: "views",
             }, TRIGGER_NAME);
         });
+
+        it('should handle >> with empty string object', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    components: {
+                        dashboard: {
+                            '>>': {
+                                namespace: '',
+                                pathPrefix: 'ui.'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('components/dashboard/views/list.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'dashboard',
+                path: "ui.views",
+            }, TRIGGER_NAME);
+        });
+
+        it('should handle >> with null namespace object', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    components: {
+                        dashboard: {
+                            '>>': {
+                                namespace: null,
+                                pathPrefix: 'ui.'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('components/dashboard/views/list.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'dashboard',
+                path: "ui.views",
+            }, TRIGGER_NAME);
+        });
+
+        it('should handle >> with undefined namespace object', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    components: {
+                        dashboard: {
+                            '>>': {
+                                pathPrefix: 'ui.'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('components/dashboard/views/list.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'dashboard',
+                path: "ui.views",
+            }, TRIGGER_NAME);
+        });
+
+        it('should handle >> with null object', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    components: {
+                        dashboard: {
+                            '>>': null
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('components/dashboard/views/list.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'dashboard',
+                path: "views",
+            }, TRIGGER_NAME);
+        });
+
+        it('should handle >> with undefined object', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    components: {
+                        dashboard: {
+                            '>>': undefined
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('components/dashboard/views/list.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'views',
+            }, TRIGGER_NAME);
+        });
+
+        it('should handle >> with empty object', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    components: {
+                        dashboard: {
+                            '>>': {}
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('components/dashboard/views/list.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'dashboard',
+                path: "views",
+            }, TRIGGER_NAME);
+        });
+
+        it('should handle >> with object containing only pathPrefix', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    components: {
+                        dashboard: {
+                            '>>': {
+                                pathPrefix: 'ui.'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('components/dashboard/views/list.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'dashboard',
+                path: "ui.views",
+            }, TRIGGER_NAME);
+        });
+
+        it('should handle >> with object containing only namespace', async () => {
+            const generator = pathBasedConfigGenerator({
+                pathRules: {
+                    components: {
+                        dashboard: {
+                            '>>': {
+                                namespace: 'custom'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const event = createMockEvent('components/dashboard/views/list.tsx');
+            await generator(event);
+            
+            expect(event.save).toHaveBeenCalledWith({
+                namespace: 'custom',
+                path: "views",
+            }, TRIGGER_NAME);
+        });
     });
 
     describe('Integration with other options', () => {

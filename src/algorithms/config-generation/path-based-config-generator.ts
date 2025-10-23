@@ -263,6 +263,9 @@ export function pathBasedConfigGenerator(
             // Remaining segments form the path
             if (pathSegments.length > 1) {
                 path = pathSegments.slice(1).join('.');
+            } else {
+                // No remaining segments, path is empty
+                path = '';
             }
         } else {
             // No segments remain, use fallback
@@ -431,7 +434,18 @@ function processNamespaceRedirect(
 ): string[] {
     const result: string[] = [];
     
-    if (typeof redirectRule === 'string') {
+    // Handle null/undefined redirect - treat as empty string redirect
+    if (redirectRule === null || redirectRule === undefined) {
+        // Treat as empty string redirect - use current segment as namespace
+        if (options?.currentSegment !== undefined) {
+            // Add current segment (if not ignored)
+            if (!options.ignoreSelf) {
+                result.push(options.renameTo || options.currentSegment);
+            }
+        }
+        // Add remaining segments
+        result.push(...remainingSegments);
+    } else if (typeof redirectRule === 'string') {
         // Simple redirect: >>: 'namespace'
         if (redirectRule === '') {
             // Empty string - special handling
