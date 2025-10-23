@@ -1,4 +1,4 @@
 wiecej testow na obiekt i null
  lub poprostu >>: '' pusty string
 
-opisac mozliwe hacki z tym
+opisac mozliwe hacki z tym, opisac ze jak sie da na pusty to wlasciwie breakuje poprzednie segmenty i zaczyna od tego katalogu jak od namespacea z tą nazwa i parsuje dalej
