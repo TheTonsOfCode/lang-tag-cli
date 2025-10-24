@@ -19,3 +19,20 @@
  https://next-intl.dev/docs/getting-started/app-router
  en.json
  pl.json
+
+
+
+
+
+// TODO: dorobic ze ktos moze dac w globalnym configu 'treatNamespaceAsPathPrefix' aby bylo ladniej i nie polegamy wtedy na
+//      appendNamespaceToPath w dictionary collectorze i jest ladniej (ale tą opcję też zostawić)
+
+// w filters to trzeba bedzie wywalic:
+/*
+  if (!tag.parameterConfig.namespace) {
+            logger.warn('Skipping tag "{fullMatch}". Tag configuration namespace not defined. (Check lang-tag config at collect.onCollectConfigFix)', {
+                fullMatch: tag.fullMatch.trim()
+            });
+            return false;
+        }
+ */
