@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { $LT_GroupTagsToNamespaces } from '@/core/collect/group-tags-to-namespaces.ts';
+import { $LT_GroupTagsToCollections } from '@/core/collect/group-tags-to-collections.ts';
 import { $LT_TagCandidateFile } from '@/core/collect/collect-tags.ts';
 import {LangTagCLIProcessedTag, LangTagCLIConfig, LANG_TAG_DEFAULT_CONFIG} from '@/config.ts';
 import { LangTagCLILogger } from '@/logger.ts';
@@ -109,7 +109,7 @@ describe('$LT_GroupTagsToNamespaces - Nested Conflict Detection', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should call onConflictResolution with correct path
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
@@ -174,7 +174,7 @@ describe('$LT_GroupTagsToNamespaces - Nested Conflict Detection', () => {
             ]),
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should call onConflictResolution with correct path
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);

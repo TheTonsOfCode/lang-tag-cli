@@ -29,7 +29,7 @@ export async function $LT_ReadConfig(projectPath: string): Promise<LangTagCLICon
             throw new Error('Custom tagName cannot be "lang-tag" or "langtag"! (It is not recommended for use with libraries)\n');
         }
 
-        return {
+        const config = {
             ...LANG_TAG_DEFAULT_CONFIG,
             ...userConfig,
             import: {
@@ -40,7 +40,13 @@ export async function $LT_ReadConfig(projectPath: string): Promise<LangTagCLICon
                 ...LANG_TAG_DEFAULT_CONFIG.collect,
                 ...userConfig.collect,
             }
-        };
+        }
+
+        if (!config.collect.collector) {
+            throw new Error('Collector not found! (config.collect.collector)');
+        }
+
+        return config;
     } catch (error) {
         throw error;
     }

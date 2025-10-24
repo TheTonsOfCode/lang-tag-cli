@@ -1,6 +1,8 @@
 import {LangTagTranslationsConfig} from "lang-tag";
 import path from "pathe";
 import {LangTagCLILogger} from "./logger.ts";
+import {TranslationsCollector} from "./algorithms/collector/type.ts";
+import {NamespaceCollector} from "@/algorithms/collector/namespace-collector.ts";
 
 export interface LangTagCLIConfig {
     /**
@@ -43,6 +45,9 @@ export interface LangTagCLIConfig {
     baseLanguageCode: string;
 
     collect?: {
+        // TODO: docs
+        collector?: TranslationsCollector;
+
         /**
          * @default 'common'
          */
@@ -293,6 +298,7 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     localesDirectory: 'locales',
     baseLanguageCode: 'en',
     collect: {
+        collector: new NamespaceCollector(),
         defaultNamespace: 'common',
         ignoreConflictsWithMatchingValues: true,
         onCollectConfigFix: ({config, langTagConfig}) => {

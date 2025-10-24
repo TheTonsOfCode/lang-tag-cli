@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { $LT_GroupTagsToNamespaces } from '@/core/collect/group-tags-to-namespaces.ts';
+import { $LT_GroupTagsToCollections } from '@/core/collect/group-tags-to-collections.ts';
 import { $LT_TagCandidateFile } from '@/core/collect/collect-tags.ts';
 import {LangTagCLIProcessedTag, LangTagCLIConfig, LANG_TAG_DEFAULT_CONFIG} from '@/config.ts';
 import { LangTagCLILogger } from '@/logger.ts';
@@ -82,7 +82,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -117,7 +117,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         // Should keep first value due to conflict (second is skipped)
         expect(result.common.buttons.primary.text).toBe('Click me');
@@ -151,7 +151,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         // Should create nested structure successfully
         expect(result.common.buttons.primary).toEqual({ 
@@ -179,7 +179,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -218,7 +218,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -254,7 +254,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -283,7 +283,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         // Should keep first value due to conflict
         expect(result.common.settings.count).toEqual({ value: 42 });
@@ -302,7 +302,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
     });
 
     it('should handle empty files array', async () => {
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files: [], config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files: [], config: mockConfig });
 
         expect(result).toEqual({});
         expect(mockLogger.warn).not.toHaveBeenCalled();
@@ -318,7 +318,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -337,7 +337,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -356,7 +356,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -381,7 +381,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         // Should keep first value due to conflict
         expect(result.common.text).toBe('First root');
@@ -416,7 +416,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        const result = await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
 
         expect(result).toEqual({
             common: {
@@ -457,7 +457,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: configWithHandler });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: configWithHandler });
 
         expect(onConflictResolution).toHaveBeenCalledTimes(1);
         expect(onConflictResolution).toHaveBeenCalledWith(
@@ -496,7 +496,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: configWithHandler });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: configWithHandler });
 
         expect(onCollectFinish).toHaveBeenCalledTimes(1);
         expect(onCollectFinish).toHaveBeenCalledWith(
@@ -540,7 +540,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
         ];
 
         await expect(
-            $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: configWithHandler })
+            $LT_GroupTagsToCollections({ logger: mockLogger, files, config: configWithHandler })
         ).rejects.toThrow('Processing stopped due to conflict resolution: common|buttons.primary.text');
     });
 
@@ -572,7 +572,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
         ];
 
         await expect(
-            $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: configWithHandler })
+            $LT_GroupTagsToCollections({ logger: mockLogger, files, config: configWithHandler })
         ).rejects.toThrow('Processing stopped due to collect finish handler');
     });
 });

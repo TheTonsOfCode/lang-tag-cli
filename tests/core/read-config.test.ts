@@ -80,7 +80,7 @@ describe('readConfig', () => {
 
     it('should correctly merge partial user config', async () => {
         const partialUserConfig = {
-            language: 'fr',
+            baseLanguageCode: 'fr',
             // Missing other fields like tagName, includes, excludes, outputDir, etc.
         };
         vi.mocked(fs.existsSync).mockReturnValue(true);

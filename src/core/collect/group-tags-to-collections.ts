@@ -9,20 +9,22 @@ type ValueTracker = {
 
 type AddConflictFunction = (path: string, tagA: LangTagCLITagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => Promise<void>;
 
-export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
+export async function $LT_GroupTagsToCollections({logger, files, config}: {
     logger: LangTagCLILogger,
     files: $LT_TagCandidateFile[],
     config: LangTagCLIConfig
 }) {
     let totalTags = 0;
-    const namespaces: Record<string, Record<string, any>> = {};
+    const collections: Record<string, Record<string, any>> = {};
 
-    function getTranslations(namespace: string): Record<string, any> {
-        const namespaceTranslations: Record<string, any> = namespaces[namespace] || {};
-        if (!(namespace in namespaces)) {
-            namespaces[namespace] = namespaceTranslations;
+    function getTranslationsCollection(namespace: string): Record<string, any> {
+        const collectionName = config.collect!.collector!.aggregateCollection(namespace, config);
+
+        const collection: Record<string, any> = collections[collectionName] || {};
+        if (!(collectionName in collections)) {
+            collections[collectionName] = collection;
         }
-        return namespaceTranslations;
+        return collection;
     }
 
     // Track conflicts across all files
@@ -34,9 +36,11 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
     for (const file of files) {
         totalTags += file.tags.length;
 
-        for (const tag of file.tags) {
+        for (const _tag of file.tags) {
+            const tag = config.collect!.collector!.transformTag(_tag);
+
             const tagConfig = tag.parameterConfig;
-            const namespaceTranslations = getTranslations(tagConfig.namespace);
+            const collection = getTranslationsCollection(tagConfig.namespace);
 
             // Get or create existing values map for this namespace
             let existingValues = existingValuesByNamespace.get(tagConfig.namespace);
@@ -90,7 +94,7 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
 
             const target = await ensureNestedObject(
                 tagConfig.path,
-                namespaceTranslations,
+                collection,
                 valueTracker,
                 addConflict
             );
@@ -115,7 +119,7 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
         let shouldContinue = true;
         config.collect.onCollectFinish({
             totalTags,
-            namespaces,
+            namespaces: collections,
             conflicts: allConflicts, logger, exit() {
                 shouldContinue = false;
             }
@@ -125,7 +129,7 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
         }
     }
 
-    return namespaces;
+    return collections;
 }
 
 
@@ -135,13 +139,13 @@ export async function $LT_GroupTagsToNamespaces({logger, files, config}: {
  */
 async function ensureNestedObject(
     path: string | undefined,
-    root: Record<string, any>,
+    rootCollection: Record<string, any>,
     valueTracker: ValueTracker,
     addConflict: AddConflictFunction
 ): Promise<Record<string, any>> {
-    if (!path || !path.trim()) return root;
+    if (!path || !path.trim()) return rootCollection;
 
-    let current = root;
+    let current = rootCollection;
     let currentPath = '';
 
     for (const key of path.split('.')) {
