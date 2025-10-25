@@ -1,7 +1,7 @@
 import {LangTagTranslationsConfig} from "lang-tag";
 import path from "pathe";
 import {LangTagCLILogger} from "./logger.ts";
-import {TranslationsCollector} from "./algorithms/collector/type.ts";
+import {TranslationsCollector} from "@/algorithms/collector/type.ts";
 import {NamespaceCollector} from "@/algorithms/collector/namespace-collector.ts";
 
 export interface LangTagCLIConfig {
@@ -41,6 +41,13 @@ export interface LangTagCLIConfig {
      * @example 'pl' - Translation values are in Polish: lang({ helloWorld: 'Witaj Świecie' })
      */
     baseLanguageCode: string;
+
+    /**
+     * Indicates whether this configuration is for a translation library.
+     * If true, generates an exports file (`.lang-tag.exports.json`) instead of locale files.
+     * @default false
+     */
+    isLibrary: boolean;
 
     collect?: {
         /**
@@ -85,6 +92,36 @@ export interface LangTagCLIConfig {
         onCollectFinish?: (event: LangTagCLICollectFinishEvent) => void;
     }
 
+    /**
+     * A function called for each found lang tag before processing.
+     * Allows dynamic modification of the tag's configuration (namespace, path, etc.)
+     * based on the file path or other context.
+     *
+     * **IMPORTANT:** The `event.config` object is deeply frozen and immutable. Any attempt
+     * to directly modify it will throw an error. To update the configuration, you must
+     * use `event.save(newConfig)` with a new configuration object.
+     *
+     * Changes made inside this function are **applied only if you explicitly call**
+     * `event.save(configuration)`. Returning a value or modifying the event object
+     * without calling `save()` will **not** update the configuration.
+     *
+     * @example
+     * ```ts
+     * onConfigGeneration: async (event) => {
+     *   // ❌ This will throw an error:
+     *   // event.config.namespace = "new-namespace";
+     *
+     *   // ✅ Correct way to update:
+     *   event.save({
+     *     ...event.config,
+     *     namespace: "new-namespace",
+     *     path: "new.path"
+     *   });
+     * }
+     * ```
+     */
+    onConfigGeneration: (event: LangTagCLIConfigGenerationEvent) => Promise<void>;
+
     import: {
         /**
          * Output directory for generated files containing imported library tags.
@@ -118,48 +155,11 @@ export interface LangTagCLIConfig {
      */
     translationArgPosition: 1 | 2;
 
-    /**
-     * Indicates whether this configuration is for a translation library.
-     * If true, generates an exports file (`.lang-tag.exports.json`) instead of locale files.
-     * @default false
-     */
-    isLibrary: boolean;
-
-    /**
-     * Whether to flatten the translation keys. (Currently unused)
-     * @default false
-     */
+    // /**
+    //  * Whether to flatten the translation keys. (Currently unused)
+    //  * @default false
+    //  */
     // flattenKeys: boolean;
-
-    /**
-     * A function called for each found lang tag before processing.
-     * Allows dynamic modification of the tag's configuration (namespace, path, etc.)
-     * based on the file path or other context.
-     *
-     * **IMPORTANT:** The `event.config` object is deeply frozen and immutable. Any attempt
-     * to directly modify it will throw an error. To update the configuration, you must
-     * use `event.save(newConfig)` with a new configuration object.
-     *
-     * Changes made inside this function are **applied only if you explicitly call**
-     * `event.save(configuration)`. Returning a value or modifying the event object
-     * without calling `save()` will **not** update the configuration.
-     *
-     * @example
-     * ```ts
-     * onConfigGeneration: async (event) => {
-     *   // ❌ This will throw an error:
-     *   // event.config.namespace = "new-namespace";
-     *   
-     *   // ✅ Correct way to update:
-     *   event.save({
-     *     ...event.config,
-     *     namespace: "new-namespace",
-     *     path: "new.path"
-     *   });
-     * }
-     * ```
-     */
-    onConfigGeneration: (event: LangTagCLIConfigGenerationEvent) => Promise<void>;
 
     debug?: boolean;
 }
