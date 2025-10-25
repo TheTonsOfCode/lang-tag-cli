@@ -1,9 +1,15 @@
 /**
- * Predefined algorithms for lang-tag-cli configuration.
+ * Algorithm modules for lang-tag-cli.
  * 
- * These algorithms can be used in your lang-tag-cli config file
- * to customize how tags are processed during collection and regeneration.
+ * This module provides access to all available algorithms organized by category:
+ * - Collectors: Define how translation tags are organized into output files
+ * - Config Generation: Customize tag configuration generation
+ * - Import: Handle importing translation libraries (future)
  */
+
+
+// Collectors Algorithms
+export * from './collector/index.ts';
 
 // Config Generation Algorithms
 export * from './config-generation/index.ts';

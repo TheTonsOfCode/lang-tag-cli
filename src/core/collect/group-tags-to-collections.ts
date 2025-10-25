@@ -18,7 +18,7 @@ export async function $LT_GroupTagsToCollections({logger, files, config}: {
     const collections: Record<string, Record<string, any>> = {};
 
     function getTranslationsCollection(namespace: string): Record<string, any> {
-        const collectionName = config.collect!.collector!.aggregateCollection(namespace, config);
+        const collectionName = config.collect!.collector!.aggregateCollection(namespace);
 
         const collection: Record<string, any> = collections[collectionName] || {};
         if (!(collectionName in collections)) {
