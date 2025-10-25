@@ -57,7 +57,13 @@ const generationAlgorithm = pathBasedConfigGenerator({
     //         },
     //         admin: {
     //             '>': 'management', // rename "admin" to "management"
-    //             users: false       // ignore "users"
+    //             users: false       // ignore "users",
+    //             ui: {
+    //                 '>>': {        // 'redirect' - ignore everything, jump to 'ui' namespace and prefix all paths with 'admin'
+    //                     namespace: 'ui',
+    //                     pathPrefix: 'admin'
+    //                 }
+    //             }
     //         }
     //     }
     // }
