@@ -7,4 +7,5 @@
 
 export { pathBasedConfigGenerator, type PathBasedConfigGeneratorOptions } from './path-based-config-generator.ts';
 export { configKeeper, type ConfigKeeperOptions, type ConfigKeeperMode } from './config-keeper.ts';
+export { prependNamespaceToPath, type PrependNamespaceToPathOptions } from './prepend-namespace-to-path.ts';
 

@@ -1,6 +1,8 @@
 import {LangTagTranslationsConfig} from "lang-tag";
 import path from "pathe";
 import {LangTagCLILogger} from "./logger.ts";
+import {TranslationsCollector} from "@/algorithms/collector/type.ts";
+import {NamespaceCollector} from "@/algorithms/collector/namespace-collector.ts";
 
 export interface LangTagCLIConfig {
     /**
@@ -22,12 +24,41 @@ export interface LangTagCLIConfig {
     excludes: string[];
 
     /**
-     * Output directory for generated translation namespace files (e.g., common.json, errors.json).
-     * @default 'locales/en'
+     * Root directory for translation files. 
+     * The actual file structure depends on the collector implementation used.
+     * @default 'locales'
+     * @example With baseLanguageCode='en' and localesDirectory='locales':
+     *   - NamespaceCollector (default): locales/en/common.json, locales/en/errors.json
+     *   - DictionaryCollector: locales/en.json (all translations in one file)
      */
-    outputDir: string;
+    localesDirectory: string;
+
+    /**
+     * The language in which translation values/messages are written in the codebase.
+     * This determines the source language for your translations.
+     * @default 'en'
+     * @example 'en' - Translation values are in English: lang({ helloWorld: 'Hello World' })
+     * @example 'pl' - Translation values are in Polish: lang({ helloWorld: 'Witaj Świecie' })
+     */
+    baseLanguageCode: string;
+
+    /**
+     * Indicates whether this configuration is for a translation library.
+     * If true, generates an exports file (`.lang-tag.exports.json`) instead of locale files.
+     * @default false
+     */
+    isLibrary: boolean;
 
     collect?: {
+        /**
+         * Translation collector that defines how translation tags are organized into output files.
+         * If not specified, NamespaceCollector is used by default.
+         * @default NamespaceCollector
+         * @example DictionaryCollector - All translations in single file per language
+         * @example NamespaceCollector - Separate files per namespace within language directory
+         */
+        collector?: TranslationsCollector;
+
         /**
          * @default 'common'
          */
@@ -60,6 +91,36 @@ export interface LangTagCLIConfig {
          */
         onCollectFinish?: (event: LangTagCLICollectFinishEvent) => void;
     }
+
+    /**
+     * A function called for each found lang tag before processing.
+     * Allows dynamic modification of the tag's configuration (namespace, path, etc.)
+     * based on the file path or other context.
+     *
+     * **IMPORTANT:** The `event.config` object is deeply frozen and immutable. Any attempt
+     * to directly modify it will throw an error. To update the configuration, you must
+     * use `event.save(newConfig)` with a new configuration object.
+     *
+     * Changes made inside this function are **applied only if you explicitly call**
+     * `event.save(configuration)`. Returning a value or modifying the event object
+     * without calling `save()` will **not** update the configuration.
+     *
+     * @example
+     * ```ts
+     * onConfigGeneration: async (event) => {
+     *   // ❌ This will throw an error:
+     *   // event.config.namespace = "new-namespace";
+     *
+     *   // ✅ Correct way to update:
+     *   event.save({
+     *     ...event.config,
+     *     namespace: "new-namespace",
+     *     path: "new.path"
+     *   });
+     * }
+     * ```
+     */
+    onConfigGeneration: (event: LangTagCLIConfigGenerationEvent) => Promise<void>;
 
     import: {
         /**
@@ -94,55 +155,11 @@ export interface LangTagCLIConfig {
      */
     translationArgPosition: 1 | 2;
 
-    /**
-     * Primary language used for the library's translations.
-     * Affects default language settings when used in library mode.
-     * @default 'en'
-     */
-    language: string;
-
-    /**
-     * Indicates whether this configuration is for a translation library.
-     * If true, generates an exports file (`.lang-tag.exports.json`) instead of locale files.
-     * @default false
-     */
-    isLibrary: boolean;
-
-    /**
-     * Whether to flatten the translation keys. (Currently unused)
-     * @default false
-     */
+    // /**
+    //  * Whether to flatten the translation keys. (Currently unused)
+    //  * @default false
+    //  */
     // flattenKeys: boolean;
-
-    /**
-     * A function called for each found lang tag before processing.
-     * Allows dynamic modification of the tag's configuration (namespace, path, etc.)
-     * based on the file path or other context.
-     *
-     * **IMPORTANT:** The `event.config` object is deeply frozen and immutable. Any attempt
-     * to directly modify it will throw an error. To update the configuration, you must
-     * use `event.save(newConfig)` with a new configuration object.
-     *
-     * Changes made inside this function are **applied only if you explicitly call**
-     * `event.save(configuration)`. Returning a value or modifying the event object
-     * without calling `save()` will **not** update the configuration.
-     *
-     * @example
-     * ```ts
-     * onConfigGeneration: async (event) => {
-     *   // ❌ This will throw an error:
-     *   // event.config.namespace = "new-namespace";
-     *   
-     *   // ✅ Correct way to update:
-     *   event.save({
-     *     ...event.config,
-     *     namespace: "new-namespace",
-     *     path: "new.path"
-     *   });
-     * }
-     * ```
-     */
-    onConfigGeneration: (event: LangTagCLIConfigGenerationEvent) => Promise<void>;
 
     debug?: boolean;
 }
@@ -279,10 +296,13 @@ export interface LangTagCLICollectFinishEvent {
 
 export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     tagName: 'lang',
+    isLibrary: false,
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build'],
-    outputDir: 'locales/en',
+    localesDirectory: 'locales',
+    baseLanguageCode: 'en',
     collect: {
+        collector: new NamespaceCollector(),
         defaultNamespace: 'common',
         ignoreConflictsWithMatchingValues: true,
         onCollectConfigFix: ({config, langTagConfig}) => {
@@ -313,8 +333,6 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
             actions.setExportName(`translations${exportIndex}`);
         }
     },
-    isLibrary: false,
-    language: 'en',
     translationArgPosition: 1,
     onConfigGeneration: async event => {},
 };

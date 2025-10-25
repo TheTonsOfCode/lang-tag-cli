@@ -39,7 +39,7 @@ export async function $LT_WriteAsExportFile({config, logger, files}: {
     }
 
     const data: LangTagExportData = {
-        language: config.language,
+        language: config.baseLanguageCode,
         packageName: packageJson.name || '',
         files: langTagFiles
     };

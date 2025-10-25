@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { $LT_GroupTagsToNamespaces } from '@/core/collect/group-tags-to-namespaces.ts';
+import { $LT_GroupTagsToCollections } from '@/core/collect/group-tags-to-collections.ts';
 import { $LT_TagCandidateFile } from '@/core/collect/collect-tags.ts';
 import {LangTagCLIProcessedTag, LangTagCLIConfig, LANG_TAG_DEFAULT_CONFIG} from '@/config.ts';
 import { LangTagCLILogger } from '@/logger.ts';
@@ -20,8 +20,8 @@ const mockConfig: LangTagCLIConfig = {
     translationArgPosition: 1,
     includes: ['**/*.ts', '**/*.tsx'],
     excludes: ['node_modules/**'],
-    outputDir: 'dist',
-    language: 'en',
+    localesDirectory: 'dist',
+    baseLanguageCode: 'en',
     isLibrary: false,
     onConfigGeneration: async () => {},
     collect: {
@@ -110,7 +110,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should call onConflictResolution with correct path
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
@@ -157,7 +157,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should call onConflictResolution with correct path
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
@@ -204,7 +204,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should NOT call onConflictResolution - different namespaces
         expect(mockOnConflictResolution).not.toHaveBeenCalled();
@@ -248,7 +248,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should call onConflictResolution with correct path
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
@@ -294,7 +294,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should detect conflicts for each different type
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(2);
@@ -349,7 +349,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should detect multiple conflicts
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(3);
@@ -387,7 +387,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
@@ -432,7 +432,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(2);
     });
@@ -468,7 +468,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(2);
         
@@ -531,7 +531,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(2);
         
@@ -580,7 +580,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should detect conflicts even when no explicit namespace in tags
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
@@ -617,7 +617,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
         expect(mockOnConflictResolution).toHaveBeenCalledWith(
@@ -653,7 +653,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should detect conflicts between default and explicit namespace usage
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
@@ -690,7 +690,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should NOT detect conflicts between different namespaces
         expect(mockOnConflictResolution).not.toHaveBeenCalled();
@@ -732,7 +732,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
             ])
         ];
 
-        await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
         // Should detect both types of conflicts
         expect(mockOnConflictResolution).toHaveBeenCalledTimes(2);
@@ -784,7 +784,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });
@@ -811,7 +811,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });
@@ -838,7 +838,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });
@@ -865,7 +865,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });
@@ -892,7 +892,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });
@@ -919,7 +919,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });
@@ -946,7 +946,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });
@@ -973,7 +973,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });
@@ -1000,7 +1000,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });
@@ -1027,7 +1027,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });
@@ -1063,7 +1063,7 @@ describe('$LT_GroupTagsToNamespaces - Conflict Detection', () => {
                 ])
             ];
 
-            await $LT_GroupTagsToNamespaces({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
+            await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: createConfigWithConflictResolution() });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
         });

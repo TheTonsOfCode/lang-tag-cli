@@ -13,6 +13,14 @@ export async function $LT_RemoveDirectory(dirPath: string): Promise<void> {
     }
 }
 
+export async function $LT_RemoveFile(filePath: string): Promise<void> {
+    try {
+        await rm(filePath, {force: true});
+    } catch (error) {
+        // Ignore errors if file doesn't exist
+    }
+}
+
 export async function $LT_WriteJSON(filePath: string, data: unknown): Promise<void> {
     await writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
 }

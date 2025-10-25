@@ -57,7 +57,13 @@ const generationAlgorithm = pathBasedConfigGenerator({
     //         },
     //         admin: {
     //             '>': 'management', // rename "admin" to "management"
-    //             users: false       // ignore "users"
+    //             users: false       // ignore "users",
+    //             ui: {
+    //                 '>>': {        // 'redirect' - ignore everything, jump to 'ui' namespace and prefix all paths with 'admin'
+    //                     namespace: 'ui',
+    //                     pathPrefix: 'admin'
+    //                 }
+    //             }
     //         }
     //     }
     // }
@@ -70,7 +76,8 @@ const config = {
     isLibrary: false,
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
-    outputDir: 'public/locales/en',
+    localesDirectory: 'public/locales',
+    baseLanguageCode: 'en',
     onConfigGeneration: async event => {
         // We do not modify imported configurations
         if (event.isImportedLibrary) return;

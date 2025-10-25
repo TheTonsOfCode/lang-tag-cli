@@ -2,12 +2,12 @@ import path from 'path';
 import micromatch from 'micromatch';
 import {LangTagCLIConfig} from '@/config.ts';
 import {checkAndRegenerateFileLangTags} from "@/core/regenerate/regenerate-config.ts";
-import {$LT_WriteToNamespaces} from "@/core/io/write-to-namespaces.ts";
+import {$LT_WriteToCollections} from "@/core/io/write-to-collections.ts";
 import {$LT_GetCommandEssentials} from "@/commands/setup.ts";
 import {LangTagCLILogger} from "@/logger.ts";
 import {$LT_CMD_Collect} from "@/commands/cmd-collect.ts";
 import {$LT_CollectCandidateFilesWithTags} from "@/core/collect/collect-tags.ts";
-import {$LT_GroupTagsToNamespaces} from "@/core/collect/group-tags-to-namespaces.ts";
+import {$LT_GroupTagsToCollections} from "@/core/collect/group-tags-to-collections.ts";
 import {$LT_CreateChokidarWatcher} from "@/core/watch/chokidar-watcher.ts";
 
 export async function $LT_WatchTranslations() {
@@ -44,18 +44,7 @@ async function handleFile(config: LangTagCLIConfig, logger: LangTagCLILogger, cw
 
     const files = await $LT_CollectCandidateFilesWithTags({filesToScan: [cwdRelativeFilePath], config, logger});
 
-    const namespaces = await $LT_GroupTagsToNamespaces({logger, files, config})
+    const namespaces = await $LT_GroupTagsToCollections({logger, files, config})
 
-    const changedNamespaces = await $LT_WriteToNamespaces({config, namespaces, logger});
-
-    if (changedNamespaces.length > 0) {
-        const n = changedNamespaces
-            .map(n => `"${n}.json"`)
-            .join(", ");
-
-        logger.success('Updated namespaces {outputDir} ({namespaces})', {
-            outputDir: config.outputDir,
-            namespaces: n,
-        });
-    }
+    await $LT_WriteToCollections({config, collections: namespaces, logger});
 }

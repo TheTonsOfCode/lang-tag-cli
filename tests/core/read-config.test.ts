@@ -80,7 +80,7 @@ describe('readConfig', () => {
 
     it('should correctly merge partial user config', async () => {
         const partialUserConfig = {
-            language: 'fr',
+            baseLanguageCode: 'fr',
             // Missing other fields like tagName, includes, excludes, outputDir, etc.
         };
         vi.mocked(fs.existsSync).mockReturnValue(true);
@@ -91,9 +91,9 @@ describe('readConfig', () => {
 
         const config = await $LT_ReadConfig(projectPath);
 
-        expect(config.language).toBe('fr');
+        expect(config.baseLanguageCode).toBe('fr');
         expect(config.tagName).toBe(defaultConfig.tagName);
-        expect(config.outputDir).toBe(defaultConfig.outputDir);
+        expect(config.localesDirectory).toBe(defaultConfig.localesDirectory);
         expect(config.import.dir).toBe(defaultConfig.import.dir);
     });
 
