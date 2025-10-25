@@ -1,8 +1,7 @@
 import * as process from "node:process";
 import {dirname, resolve} from 'pathe';
-import {LangTagExportData} from "@/core/type.ts";
 import {$LT_EnsureDirectoryExists, $LT_ReadJSON} from "@/core/io/file.ts";
-import {LangTagCLIConfig} from "@/config.ts";
+import {LangTagCLIConfig, LangTagCLIExportData} from "@/config.ts";
 import {writeFile} from "fs/promises";
 import {LangTagTranslationsConfig} from "lang-tag";
 import JSON5 from "json5";

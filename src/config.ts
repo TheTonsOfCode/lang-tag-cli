@@ -229,6 +229,25 @@ export interface LangTagCLIConflict {
     conflictType: 'path_overwrite' | 'type_mismatch';
 }
 
+export interface LangTagCLIExportData {
+
+    language: string;
+
+    files: LangTagCLIExportDataFile[];
+}
+
+export interface LangTagCLIExportDataFile {
+    relativeFilePath: string;
+
+    tags: LangTagCLIExportDataTag[]
+}
+
+export interface LangTagCLIExportDataTag {
+    variableName: string | undefined,
+    translations: object,
+    config: object | undefined,
+}
+
 /*
  * Events
  */

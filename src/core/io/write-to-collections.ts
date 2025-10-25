@@ -14,22 +14,22 @@ export async function $LT_WriteToCollections({config, collections, logger, clean
 
     const changedCollections: string[] = [];
 
-    for (let namespace of Object.keys(collections)) {
-        if (!namespace) {
+    for (let collectionName of Object.keys(collections)) {
+        if (!collectionName) {
             continue;
         }
 
-        const filePath = await config.collect!.collector!.resolveCollectionFilePath(namespace);
+        const filePath = await config.collect!.collector!.resolveCollectionFilePath(collectionName);
 
         let originalJSON = {};
         try {
             originalJSON = await $LT_ReadJSON(filePath);
         } catch (e) {
-            await config.collect!.collector!.onMissingCollection(namespace);
+            await config.collect!.collector!.onMissingCollection(collectionName);
         }
 
-        if (deepMergeTranslations(originalJSON, collections[namespace])) {
-            changedCollections.push(namespace);
+        if (deepMergeTranslations(originalJSON, collections[collectionName])) {
+            changedCollections.push(collectionName);
             await $LT_WriteJSON(filePath, originalJSON);
         }
     }

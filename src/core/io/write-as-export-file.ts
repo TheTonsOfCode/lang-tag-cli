@@ -1,10 +1,10 @@
-import {LangTagCLIConfig} from "@/config.ts";
 import {$LT_TagCandidateFile} from "@/core/collect/collect-tags.ts";
-import {$LT_ReadJSON, $LT_WriteJSON} from "@/core/io/file.ts";
-import {LangTagExportData, LangTagExportFiles} from "@/core/type.ts";
+import {$LT_ReadJSON} from "@/core/io/file.ts";
+import {LangTagCLIConfig, LangTagCLIExportData} from "@/config";
 import {EXPORTS_FILE_NAME} from "@/core/constants.ts";
 import path from "path";
 import {LangTagCLILogger} from "@/logger.ts";
+import {writeFile} from "fs/promises";
 
 export async function $LT_WriteAsExportFile({config, logger, files}: {
     config: LangTagCLIConfig,
@@ -17,33 +17,21 @@ export async function $LT_WriteAsExportFile({config, logger, files}: {
         throw new Error('package.json not found');
     }
 
-    const langTagFiles: LangTagExportFiles = {};
+    const exportData: LangTagCLIExportData = {
+        language: config.baseLanguageCode,
+        files: files.map(({relativeFilePath, tags}) => ({
+            relativeFilePath,
 
-    for (const file of files) {
-        langTagFiles[file.relativeFilePath] = {
-            matches: file.tags.map(tag => {
-                let T = config.translationArgPosition === 1 ? tag.parameter1Text : tag.parameter2Text;
-                let C = config.translationArgPosition === 1 ? tag.parameter2Text : tag.parameter1Text;
+            tags: tags.map(tag => ({
+                variableName: tag.variableName,
+                config: tag.parameterConfig,
+                translations: tag.parameterTranslations,
+            }))
 
-                // TODO: resolve default config and etc.
-                if (!T) T = "{}";
-                if (!C) C = "{}";
-
-                return ({
-                    translations: T,
-                    config: C,
-                    variableName: tag.variableName
-                });
-            })
-        };
+        }))
     }
 
-    const data: LangTagExportData = {
-        language: config.baseLanguageCode,
-        packageName: packageJson.name || '',
-        files: langTagFiles
-    };
+    await writeFile(EXPORTS_FILE_NAME, JSON.stringify(exportData), 'utf-8');
 
-    await $LT_WriteJSON(EXPORTS_FILE_NAME, data);
     logger.success(`Written {file}`, {file: EXPORTS_FILE_NAME})
 }

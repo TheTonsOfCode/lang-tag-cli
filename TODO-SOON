@@ -1,0 +1,6 @@
+
+ 1. Prettier
+    - sort local imports and external
+    - remove .ts from imports
+
+ 2. Change naming from @/cli/config to @/cli/type (update cmd init and etc.)
