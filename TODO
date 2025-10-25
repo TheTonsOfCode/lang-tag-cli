@@ -10,10 +10,6 @@
 
 
 
-
-// TODO: dorobic ze ktos moze dac w globalnym configu 'treatNamespaceAsPathPrefix' aby bylo ladniej i nie polegamy wtedy na
-//      appendNamespaceToPath w dictionary collectorze i jest ladniej (ale tą opcję też zostawić)
-
 // w filters to trzeba bedzie wywalic:
 /*
   if (!tag.parameterConfig.namespace) {

@@ -48,7 +48,8 @@ describe('init command e2e tests', () => {
         // Verify the config file contains expected content
         expect(configContent).toContain('includes: [\'src/**/*.{js,ts,jsx,tsx}\']');
         expect(configContent).toContain('excludes: [\'node_modules\', \'dist\', \'build\', \'**/*.test.ts\']');
-        expect(configContent).toContain('outputDir: \'public/locales/en\'');
+        expect(configContent).toContain('localesDirectory: \'public/locales\'');
+        expect(configContent).toContain('baseLanguageCode: \'en\'');
         expect(configContent).toContain('onConfigGeneration: async event => {');
     });
 
@@ -58,7 +59,8 @@ describe('init command e2e tests', () => {
 const config = {
     includes: ['custom/**/*.{js,ts}'],
     excludes: ['node_modules'],
-    outputDir: 'custom/locales/en',
+    localesDirectory: 'custom/locales',
+    baseLanguageCode: 'en',
     onConfigGeneration: async (event) => {
         if (event.config) {
             event.save(event.config);

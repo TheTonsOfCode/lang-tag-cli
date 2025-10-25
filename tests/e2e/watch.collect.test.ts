@@ -17,7 +17,7 @@ const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
 
 // Once at 30 runs it happened that delay was too slow to file system catch up,
 // if it will happen again, raise up the delay
-const DELAY = 500;
+const DELAY = 1000;
 
 describe('watch command e2e tests', () => {
     beforeAll(() => {
@@ -34,7 +34,8 @@ describe('watch command e2e tests', () => {
 const config = {
     includes: ['src/**/*.{js,ts,jsx,tsx}', 'app/components/**/*.{js,ts}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
-    outputDir: 'public/locales/en',
+    localesDirectory: 'public/locales',
+    baseLanguageCode: 'en',
     onConfigGeneration: async (event) => {
         if (event.config) {
             event.save(event.config);
