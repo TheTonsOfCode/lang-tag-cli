@@ -25,13 +25,11 @@ export interface LangTagCLIConfig {
 
     /**
      * Root directory for translation files. 
-     * Files are saved in baseLanguageCode subdirectory (e.g., locales/en/, locales/pl/).
      * The actual file structure depends on the collector implementation used.
      * @default 'locales'
-     * @example With baseLanguageCode='en' and localesDir='locales':
-     *   - Default collector: locales/en/common.json, locales/en/errors.json
-     *   - Custom collector: locales/en.json (all translations in one file)
-     * @example localesDir='public/locales' + baseLanguageCode='pl' → public/locales/pl/
+     * @example With baseLanguageCode='en' and localesDirectory='locales':
+     *   - NamespaceCollector (default): locales/en/common.json, locales/en/errors.json
+     *   - DictionaryCollector: locales/en.json (all translations in one file)
      */
     localesDirectory: string;
 
@@ -45,7 +43,13 @@ export interface LangTagCLIConfig {
     baseLanguageCode: string;
 
     collect?: {
-        // TODO: docs
+        /**
+         * Translation collector that defines how translation tags are organized into output files.
+         * If not specified, NamespaceCollector is used by default.
+         * @default NamespaceCollector
+         * @example DictionaryCollector - All translations in single file per language
+         * @example NamespaceCollector - Separate files per namespace within language directory
+         */
         collector?: TranslationsCollector;
 
         /**
