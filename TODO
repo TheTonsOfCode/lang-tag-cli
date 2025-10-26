@@ -9,3 +9,5 @@
 
  zrobic tą logikę tak (bo się da) że cofa się do rootu paczki nawet jak ktos w dist wrzuci i zwraca package.json
  ale mimo wszystko walic Error jak nie znajdzie i jak nie ma name w package.json
+
+ - zrobic cały algorytm ktory importuje na podstawie nazwy paczki i resolvuje nazwy itd
