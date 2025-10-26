@@ -4,3 +4,5 @@
     - remove .ts from imports
 
  2. Change naming from @/cli/config to @/cli/type (update cmd init and etc.)
+
+    - DEFAULT CONFIG wyciagnac z tego i przeniesc do default-config.ts czy jakos tak
