@@ -23,6 +23,20 @@ interface ImportedTagsFile {
 export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: LangTagCLILogger): Promise<void> {
     const exportFiles = await $LT_CollectExportFiles(logger);
 
+    const importedFiles: ImportedTagsFile[] = []
+
+    function importTag(pathRelativeToImportDir: string, tag: ImportedTag) {
+        let importedFile = importedFiles.find(file => file.pathRelativeToImportDir === pathRelativeToImportDir);
+        if (!importedFile) {
+            importedFile = {
+                pathRelativeToImportDir,
+                tags: []
+            };
+            importedFiles.push(importedFile);
+        }
+        importedFile.tags.push(tag)
+    }
+
     const generationFiles: Record<string /*fileName*/, Record<string /*export name*/, string>> = {}
 
     for (const {exportPath, packageJsonPath} of exportFiles) {
