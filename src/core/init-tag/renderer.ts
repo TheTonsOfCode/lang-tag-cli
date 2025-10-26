@@ -28,7 +28,7 @@ function renderTemplate(template: string, data: Record<string, any>): string {
 function loadTemplate(templateName: string): string {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    const templatePath = join(__dirname, 'template', `${templateName}.mustache`);
+    const templatePath = join(__dirname, 'templates', 'tag', `${templateName}.mustache`);
     
     try {
         return readFileSync(templatePath, 'utf-8');
