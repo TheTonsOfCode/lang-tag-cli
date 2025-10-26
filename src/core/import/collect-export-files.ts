@@ -1,5 +1,6 @@
-import fs from "fs";
+import { globby } from "globby";
 import path from "pathe";
+import fs from "fs";
 import {EXPORTS_FILE_NAME} from "@/core/constants.ts";
 import process from "node:process";
 import {LangTagCLILogger} from "@/logger.ts";
@@ -9,7 +10,7 @@ export interface ExportFileWithPackage {
     packageJsonPath: string;
 }
 
-export function $LT_CollectExportFiles(logger: LangTagCLILogger): ExportFileWithPackage[] {
+export async function $LT_CollectExportFiles(logger: LangTagCLILogger): Promise<ExportFileWithPackage[]> {
     const nodeModulesPath: string = path.join(process.cwd(), 'node_modules');
 
     if (!fs.existsSync(nodeModulesPath)) {
@@ -20,51 +21,37 @@ export function $LT_CollectExportFiles(logger: LangTagCLILogger): ExportFileWith
     const results: ExportFileWithPackage[] = [];
 
     try {
-        const entries = fs.readdirSync(nodeModulesPath);
-        
-        for (const entry of entries) {
-            const fullPath = path.join(nodeModulesPath, entry);
-            const stat = fs.statSync(fullPath);
-            
-            if (!stat.isDirectory()) continue;
+        const exportFiles = await globby([
+            `node_modules/**/${EXPORTS_FILE_NAME}`
+        ], {
+            cwd: process.cwd(),
+            onlyFiles: true,
+            ignore: ['**/node_modules/**/node_modules/**'],
+            deep: 4
+        });
 
-            if (entry.startsWith('@')) {
-                // Process scoped packages
-                try {
-                    const scopedEntries = fs.readdirSync(fullPath);
-                    
-                    for (const scopedEntry of scopedEntries) {
-                        const packageDir = path.join(fullPath, scopedEntry);
-                        const packageJsonPath = path.join(packageDir, 'package.json');
-                        
-                        if (fs.existsSync(packageJsonPath)) {
-                            searchForExportFiles(packageDir, (exportPath) => {
-                                results.push({
-                                    exportPath,
-                                    packageJsonPath
-                                });
-                            });
-                        }
-                    }
-                } catch (error) {
-                    // Skip if cannot read directory
-                }
+        // Second stage: match each export file with its package.json
+        for (const exportFile of exportFiles) {
+            const fullExportPath = path.resolve(exportFile);
+            const packageJsonPath = findPackageJsonForExport(fullExportPath, nodeModulesPath);
+
+            if (packageJsonPath) {
+                results.push({
+                    exportPath: fullExportPath,
+                    packageJsonPath
+                });
             } else {
-                // Process regular package
-                const packageJsonPath = path.join(fullPath, 'package.json');
-                
-                if (fs.existsSync(packageJsonPath)) {
-                    searchForExportFiles(fullPath, (exportPath) => {
-                        results.push({
-                            exportPath,
-                            packageJsonPath
-                        });
-                    });
-                }
+                logger.warn('Found export file but could not match package.json: {exportPath}', {
+                    exportPath: fullExportPath
+                });
             }
         }
+
+        logger.debug('Found {count} export files with matching package.json in node_modules', {
+            count: results.length
+        });
     } catch (error) {
-        logger.error('Error reading node_modules: {error}', {
+        logger.error('Error scanning node_modules with globby: {error}', {
             error: String(error),
         });
     }
@@ -72,30 +59,33 @@ export function $LT_CollectExportFiles(logger: LangTagCLILogger): ExportFileWith
     return results;
 }
 
-function searchForExportFiles(
-    dir: string, 
-    onExportFound: (exportPath: string) => void,
-    currentDepth: number = 0,
-    maxDepth: number = 1
-): void {
-    if (currentDepth > maxDepth) return;
-    
-    try {
-        const entries = fs.readdirSync(dir);
-        
-        for (const entry of entries) {
-            const fullPath = path.join(dir, entry);
-            const stat = fs.statSync(fullPath);
-            
-            if (stat.isDirectory()) {
-                // Recursively search subdirectories (limited to maxDepth)
-                searchForExportFiles(fullPath, onExportFound, currentDepth + 1, maxDepth);
-            } else if (entry === EXPORTS_FILE_NAME) {
-                // Found an export file
-                onExportFound(fullPath);
+function findPackageJsonForExport(exportPath: string, nodeModulesPath: string): string | null {
+    const relativePath = path.relative(nodeModulesPath, exportPath);
+    const pathParts = relativePath.split(path.sep);
+
+    if (pathParts.length < 2) {
+        return null;
+    }
+
+    if (pathParts[0].startsWith('@')) {
+        // For scoped packages: node_modules/@scope/package/...
+        if (pathParts.length >= 3) {
+            const packageDir = path.join(nodeModulesPath, pathParts[0], pathParts[1]);
+            const packageJsonPath = path.join(packageDir, 'package.json');
+
+            if (fs.existsSync(packageJsonPath)) {
+                return packageJsonPath;
             }
         }
-    } catch (error) {
-        // Skip if cannot read directory
+    } else {
+        // For regular packages: node_modules/package/...
+        const packageDir = path.join(nodeModulesPath, pathParts[0]);
+        const packageJsonPath = path.join(packageDir, 'package.json');
+
+        if (fs.existsSync(packageJsonPath)) {
+            return packageJsonPath;
+        }
     }
+
+    return null;
 }
