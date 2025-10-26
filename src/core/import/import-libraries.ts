@@ -5,11 +5,10 @@ import {LangTagCLIConfig, LangTagCLIExportData} from "@/config.ts";
 import {writeFile} from "fs/promises";
 import {LangTagTranslationsConfig} from "lang-tag";
 import JSON5 from "json5";
-import {$LT_CollectNodeModulesExportFilePaths} from "@/core/import/collect-node-modules-export-files.ts";
 import {LangTagCLILogger} from "@/logger.ts";
 
 export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: LangTagCLILogger): Promise<void> {
-    const files = $LT_CollectNodeModulesExportFilePaths(logger);
+    const files = await $LT_CollectNodeModulesExportFilePaths(logger);
 
     const generationFiles: Record<string /*fileName*/, Record<string /*export name*/, string>> = {}
 
