@@ -1,39 +1,53 @@
-import * as process from "node:process";
-import {dirname, resolve} from 'pathe';
-import {$LT_EnsureDirectoryExists, $LT_ReadJSON} from "@/core/io/file.ts";
+import {$LT_ReadJSON} from "@/core/io/file.ts";
 import {LangTagCLIConfig, LangTagCLIExportData} from "@/config.ts";
-import {writeFile} from "fs/promises";
 import {LangTagTranslationsConfig} from "lang-tag";
 import JSON5 from "json5";
 import {LangTagCLILogger} from "@/logger.ts";
+import {$LT_CollectExportFiles} from "@/core/import/collect-export-files.ts";
+import {generateImportFiles, ImportFileData} from "@/core/import/import-file-generator.ts";
+
+interface ImportedTag {
+    variableName: string;
+
+    translations: any;
+
+    config: any;
+}
+
+interface ImportedTagsFile {
+    pathRelativeToImportDir: string;
+
+    tags: ImportedTag[]
+}
 
 export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: LangTagCLILogger): Promise<void> {
-    const files = await $LT_CollectNodeModulesExportFilePaths(logger);
+    const exportFiles = await $LT_CollectExportFiles(logger);
 
     const generationFiles: Record<string /*fileName*/, Record<string /*export name*/, string>> = {}
 
-    for (const filePath of files) {
-        const exportData: LangTagExportData = await $LT_ReadJSON(filePath);
+    for (const {exportPath, packageJsonPath} of exportFiles) {
+        const exportData: LangTagCLIExportData = await $LT_ReadJSON(exportPath);
+        const packageJson: any = await $LT_ReadJSON(packageJsonPath);
+        const packageName = packageJson.name || 'unknown-package';
 
         // TODO: if different language, translate to base language
         //  exportData.language
 
-        for (let langTagFilePath in exportData.files) {
+        for (const fileData of exportData.files) {
             const fileGenerationData = {};
+            const langTagFilePath = fileData.relativeFilePath;
 
-            const matches = exportData.files[langTagFilePath].matches;
-
-            for (let match of matches) {
-                let parsedTranslations = typeof match.translations === 'string' ? JSON5.parse(match.translations) : match.translations;
-                let parsedConfig = typeof match.config === 'string' ? JSON5.parse(match.config) : (match.config === undefined ? {} : match.config) as LangTagTranslationsConfig;
+            for (const tag of fileData.tags) {
+                let parsedTranslations = typeof tag.translations === 'string' ? JSON5.parse(tag.translations) : tag.translations;
+                let parsedConfig = typeof tag.config === 'string' ? JSON5.parse(tag.config) : (tag.config === undefined ? {} : tag.config) as LangTagTranslationsConfig;
 
                 let file: string = langTagFilePath;
-                let exportName: string = match.variableName || '';
+                let exportName: string = tag.variableName || '';
 
                 config.import.onImport({
-                    packageName: exportData.packageName,
+                    packageName: packageName,
                     importedRelativePath: langTagFilePath,
-                    originalExportName: match.variableName,
+                    originalExportName: tag.variableName,
                     translations: parsedTranslations,
                     config: parsedConfig,
                     fileGenerationData
@@ -44,7 +58,7 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
                 });
 
                 if (!file || !exportName) {
-                    throw new Error(`[lang-tag] onImport did not set fileName or exportName for package: ${exportData.packageName}, file: '${file}' (original: '${langTagFilePath}'), exportName: '${exportName}' (original: ${match.variableName})`);
+                    throw new Error(`[lang-tag] onImport did not set fileName or exportName for package: ${packageName}, file: '${file}' (original: '${langTagFilePath}'), exportName: '${exportName}' (original: ${tag.variableName})`);
                 }
 
                 let exports = generationFiles[file];
@@ -61,24 +75,15 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
         }
     }
 
-    for (let fileName of Object.keys(generationFiles)) {
-        const filePath = resolve(
-            process.cwd(),
-            config.import.dir,
-            fileName
-        );
+    const filesData: ImportFileData[] = Object.entries(generationFiles).map(([fileName, exports]) => ({
+        fileName,
+        exports: Object.entries(exports).map(([name, tag]) => ({
+            name,
+            tag
+        }))
+    }));
 
-        const exports = Object.entries(generationFiles[fileName]).map(([name, tag]) => {
-            return `export const ${name} = ${tag};`;
-        }).join('\n\n');
-
-        const content = `${config.import.tagImportPath}\n\n${exports}`;
-
-        await $LT_EnsureDirectoryExists(dirname(filePath));
-        await writeFile(filePath, content, 'utf-8');
-
-        logger.success('Imported node_modules file: "{fileName}"', {fileName})
-    }
+    await generateImportFiles(config, logger, filesData);
 
     if (config.import.onImportFinish) config.import.onImportFinish();
 }
