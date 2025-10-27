@@ -27,12 +27,11 @@ export interface VariableNameOptions {
 
     /**
      * How to handle scoped package names (e.g., '@scope/package').
-     * - 'keep': Keep the full name including @ and /
      * - 'remove-scope': Remove @scope/ part, keep only package name
      * - 'replace': Remove @ and replace / with underscores
      * @default 'replace'
      */
-    scopedPackageHandling?: 'keep' | 'remove-scope' | 'replace';
+    scopedPackageHandling?: 'remove-scope' | 'replace';
 
     /**
      * Case transformation to apply to variable names.
@@ -68,12 +67,11 @@ export interface FilePathOptions {
 
     /**
      * How to handle scoped package names in file paths (e.g., '@scope/package').
-     * - 'keep': Keep the full name including @ and /
      * - 'remove-scope': Remove @scope/ part, keep only package name
      * - 'replace': Remove @ and replace / with underscores
      * @default 'replace'
      */
-    scopedPackageHandling?: 'keep' | 'remove-scope' | 'replace';
+    scopedPackageHandling?: 'remove-scope' | 'replace';
 
     /**
      * Case transformation to apply to file names and path segments.
@@ -311,11 +309,9 @@ function applyCaseTransformToPath(filePath: string, caseType: FilePathCaseType):
  */
 function normalizePackageName(
     packageName: string,
-    scopedPackageHandling: 'keep' | 'remove-scope' | 'replace' = 'replace'
+    scopedPackageHandling: 'remove-scope' | 'replace' = 'replace'
 ): string {
     switch (scopedPackageHandling) {
-        case 'keep':
-            return packageName;
         case 'remove-scope':
             // Remove @scope/ part, keep only package name
             return packageName.replace(/^@[^/]+\//, '');

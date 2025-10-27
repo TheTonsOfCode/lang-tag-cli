@@ -131,8 +131,8 @@ describe('defaultImportAlgorithm', () => {
                         relativeFilePath: 'common.ts',
                         tags: [
                             createMockTag('valid'),
-                            { ...createMockTag('invalid'), variableName: undefined },
-                            { ...createMockTag('another-invalid'), variableName: undefined },
+                            { ...createMockTag('auto-name'), variableName: undefined },
+                            { ...createMockTag('auto-name2'), variableName: undefined },
                             createMockTag('another-valid')
                         ]
                     }
@@ -277,33 +277,6 @@ describe('defaultImportAlgorithm', () => {
 
             expect(event.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'package_greeting',
-                translations: { hello: 'Hello' },
-                config: { namespace: 'common' }
-            });
-        });
-
-        it('should handle scoped packages with keep option', () => {
-            const exports = [
-                createMockExportData('@scope/package', [
-                    {
-                        relativeFilePath: 'common.ts',
-                        tags: [createMockTag('greeting')]
-                    }
-                ])
-            ];
-
-            const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
-                variableName: {
-                    prefixWithPackageName: true,
-                    scopedPackageHandling: 'keep'
-                }
-            });
-            
-            algorithm(event);
-
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
-                variableName: '@scope/package_greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
