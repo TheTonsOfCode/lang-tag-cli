@@ -5,6 +5,4 @@
 
     tutaj tez jest miejsce do popisu dla toola UI
 
-- funkcja on IMport przyjmuje cale dane o pliku i mamy wstepny algorytm ktory to ciosa
-
-- zamiast mapowania w import-libraries to ogolny typ wystawiony wyzej i tag jest generowany w templatce zamiast recznie
+- funkcja on Import przyjmuje cale dane o pliku i mamy wstepny algorytm ktory to ciosa
