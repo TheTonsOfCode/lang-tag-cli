@@ -8,12 +8,14 @@ import * as process from "node:process";
 import { $LT_EnsureDirectoryExists } from '@/core/io/file.ts';
 import { LangTagCLIConfig } from '@/config.ts';
 import { LangTagCLILogger } from '@/logger.ts';
+import JSON5 from 'json5';
 
 export interface ImportFileData {
     fileName: string;
     exports: Array<{
         name: string;
-        tag: string;
+        translations: any;
+        config: any;
     }>;
 }
 
@@ -39,9 +41,30 @@ export async function generateImportFiles(
             fileData.fileName
         );
 
+        // Process exports with parameter positioning logic
+        const processedExports = fileData.exports.map(exportData => {
+            const parameter1 = config.translationArgPosition === 1 ? exportData.translations : exportData.config;
+            const parameter2 = config.translationArgPosition === 1 ? exportData.config : exportData.translations;
+            
+            // Check if parameter2 should be included (not null, undefined, or empty object)
+            const hasParameter2 = parameter2 !== null && 
+                                 parameter2 !== undefined && 
+                                 (typeof parameter2 !== 'object' || Object.keys(parameter2).length > 0);
+            
+            return {
+                name: exportData.name,
+                parameter1: JSON5.stringify(parameter1, undefined, 4),
+                parameter2: hasParameter2 ? JSON5.stringify(parameter2, undefined, 4) : null,
+                hasParameter2,
+                config: {
+                    tagName: config.tagName
+                }
+            };
+        });
+
         const templateData = {
             tagImportPath: config.import.tagImportPath,
-            exports: fileData.exports
+            exports: processedExports
         };
 
         const content = renderTemplate(templateData);

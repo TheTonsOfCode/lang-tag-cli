@@ -37,7 +37,7 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
         importedFile.tags.push(tag)
     }
 
-    const generationFiles: Record<string /*fileName*/, Record<string /*export name*/, string>> = {}
+    const generationFiles: Record<string /*fileName*/, Record<string /*export name*/, {translations: any, config: any}>> = {}
 
     for (const {exportPath, packageJsonPath} of exportFiles) {
         const exportData: LangTagCLIExportData = await $LT_ReadJSON(exportPath);
@@ -81,19 +81,20 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
                     generationFiles[file] = exports;
                 }
 
-                const param1 = config.translationArgPosition === 1 ? parsedTranslations : parsedConfig;
-                const param2 = config.translationArgPosition === 1 ? parsedConfig : parsedTranslations;
-
-                exports[exportName] = `${config.tagName}(${JSON5.stringify(param1, undefined, 4)}, ${JSON5.stringify(param2, undefined, 4)})`;
+                exports[exportName] = {
+                    translations: parsedTranslations,
+                    config: parsedConfig
+                };
             }
         }
     }
 
     const filesData: ImportFileData[] = Object.entries(generationFiles).map(([fileName, exports]) => ({
         fileName,
-        exports: Object.entries(exports).map(([name, tag]) => ({
+        exports: Object.entries(exports).map(([name, data]) => ({
             name,
-            tag
+            translations: data.translations,
+            config: data.config
         }))
     }));
 

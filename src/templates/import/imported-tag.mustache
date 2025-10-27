@@ -1,5 +1,5 @@
 {{tagImportPath}}
 
 {{#exports}}
-export const {{name}} = {{config.tagName}}({{parameter1}}, {{parameter2}} tutaj na ifie jesli istnieje );
+export const {{name}} = {{config.tagName}}({{parameter1}}{{#hasParameter2}}, {{parameter2}}{{/hasParameter2}});
 {{/exports}}
