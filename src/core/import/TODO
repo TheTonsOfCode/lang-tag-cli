@@ -7,6 +7,16 @@
 
 
 
+---------
+w algorytmie zmienic wszystkie
+if (debug) {
+                logger.info(`Processing library: ${packageName}`);
+            }
+
+-- na logger.debug poprostu i nie sprawdzac tej zmiennej
+---------
+
+
 
 - ten algorytm powinien wykrywac na jakims etapie ze w generowanych plikach powielona jest nazwa exportu i walic error
 
@@ -14,3 +24,18 @@
 
 
 - funkcja do przydzielania i nadpisywania configów przed zapisaniem
+
+- wywalic case transformy z variable ktore nie mają prawa dzialac np. kebab, dot notation itd.
+
+    i zamieniac wszystkie - na _ w nazwie variabla aby nie generowalo głupot
+
+
+    ZACZAC od tego ze sam importTag wali błędem jesli jest nieprawidłowa nazwa zmiennej czyli a-z$_ !!!!
+
+
+
+w     it('should handle scoped packages in file paths with replace option', () => {
+
+ expect(event.importTag).toHaveBeenCalledWith('scope_package.ts', {
+
+ powinno transformowac dla sciezek usuwac @ a zamiast _ dawac - aby to się nazywało scope-package a _ w nazwach zmiennych

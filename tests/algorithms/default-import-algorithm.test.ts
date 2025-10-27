@@ -343,8 +343,8 @@ describe('defaultImportAlgorithm', () => {
                         relativeFilePath: 'common.ts',
                         tags: [
                             createMockTag('valid'),
-                            { ...createMockTag('invalid'), variableName: undefined },
-                            { ...createMockTag('another-invalid'), variableName: undefined },
+                            { ...createMockTag('auto-name'), variableName: undefined },
+                            { ...createMockTag('auto-name2'), variableName: undefined },
                             createMockTag('another-valid')
                         ]
                     }
@@ -1151,7 +1151,7 @@ describe('defaultImportAlgorithm', () => {
                 filePath: {
                     includePackageInPath: true,
                     case: {
-                        directories: 'kebab',
+                        directories: 'pascal',
                         files: 'snake'
                     }
                 }
@@ -1159,7 +1159,7 @@ describe('defaultImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('my-package/layout-components/translation_manager.ts', {
+            expect(event.importTag).toHaveBeenCalledWith('MyPackage/LayoutComponents/translation_manager.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
