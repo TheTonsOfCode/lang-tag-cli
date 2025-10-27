@@ -10,12 +10,13 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
     const importedFiles: LangTagCLIImportedTagsFile[] = []
 
     function importTag(pathRelativeToImportDir: string, tag: LangTagCLIImportedTag) {
+        if (!pathRelativeToImportDir) throw new Error(`pathRelativeToImportDir required, got: ${pathRelativeToImportDir}`);
+        if (!tag?.variableName) throw new Error(`tag.variableName required, got: ${tag?.variableName}`);
+        if (tag.translations == null) throw new Error(`tag.translations required`);
+
         let importedFile = importedFiles.find(file => file.pathRelativeToImportDir === pathRelativeToImportDir);
         if (!importedFile) {
-            importedFile = {
-                pathRelativeToImportDir,
-                tags: []
-            };
+            importedFile = { pathRelativeToImportDir, tags: [] };
             importedFiles.push(importedFile);
         }
         importedFile.tags.push(tag)
@@ -37,10 +38,10 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
         importTag
     })
 
-    //TODO: check imported files
-    // if (!file || !exportName) {
-    //     throw new Error(`[lang-tag] onImport did not set fileName or exportName for package: ${packageName}, file: '${file}' (original: '${langTagFilePath}'), exportName: '${exportName}' (original: ${tag.variableName})`);
-    // }
+    if (importedFiles.length === 0) {
+        logger.warn('No tags were imported from any library files');
+        return;
+    }
 
     const generationFiles: Record<string /*fileName*/, Record<string /*export name*/, {translations: any, config: any}>> = {}
 
