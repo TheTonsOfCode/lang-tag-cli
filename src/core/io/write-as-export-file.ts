@@ -18,7 +18,7 @@ export async function $LT_WriteAsExportFile({config, logger, files}: {
     }
 
     const exportData: LangTagCLIExportData = {
-        language: config.baseLanguageCode,
+        baseLanguageCode: config.baseLanguageCode,
         files: files.map(({relativeFilePath, tags}) => ({
             relativeFilePath,
 

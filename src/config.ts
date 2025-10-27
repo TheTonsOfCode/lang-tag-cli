@@ -139,7 +139,7 @@ export interface LangTagCLIConfig {
          * A function to customize the generated file name and export name for imported library tags.
          * Allows controlling how imported tags are organized and named within the generated files.
          */
-        onImport: (params: LangTagCLIOnImportParams, actions: LangTagCLIOnImportActions) => void;
+        onImport: (event: LangTagCLIImportEvent) => void;
 
         /**
          * A function called after all lang-tags were imported
@@ -162,36 +162,6 @@ export interface LangTagCLIConfig {
     // flattenKeys: boolean;
 
     debug?: boolean;
-}
-
-/**
- * Parameters passed to the `onImport` configuration function.
- */
-export interface LangTagCLIOnImportParams {
-    /** The name of the package from which the tag is being imported. */
-    packageName: string;
-    /** The relative path to the source file within the imported package. */
-    importedRelativePath: string;
-    /** The original variable name assigned to the lang tag in the source library file, if any. */
-    originalExportName: string | undefined;
-    /** Parsed JSON translation object from the imported tag. */
-    translations: Record<string, any>;
-    /** Configuration object associated with the imported tag. */
-    config: LangTagTranslationsConfig;
-    /** A mutable object that can be used to pass data between multiple `onImport` calls for the same generated file. */
-    fileGenerationData: any;
-}
-
-/**
- * Actions that can be performed within the onImport callback.
- */
-export interface LangTagCLIOnImportActions {
-    /** Sets the desired file for the generated import. */
-    setFile: (file: string) => void;
-    /** Sets the desired export name for the imported tag. */
-    setExportName: (name: string) => void;
-    /** Sets the configuration for the currently imported tag. */
-    setConfig: (config: LangTagTranslationsConfig) => void;
 }
 
 type Validity = 'ok' | 'invalid-param-1' | 'invalid-param-2' | 'translations-not-found';
@@ -229,9 +199,27 @@ export interface LangTagCLIConflict {
     conflictType: 'path_overwrite' | 'type_mismatch';
 }
 
+/*
+ * Import & Export
+ */
+
+export interface LangTagCLIImportedTag {
+    variableName: string;
+
+    translations: any;
+
+    config: any;
+}
+
+export interface LangTagCLIImportedTagsFile {
+    pathRelativeToImportDir: string;
+
+    tags: LangTagCLIImportedTag[]
+}
+
 export interface LangTagCLIExportData {
 
-    language: string;
+    baseLanguageCode: string;
 
     files: LangTagCLIExportDataFile[];
 }
@@ -251,6 +239,15 @@ export interface LangTagCLIExportDataTag {
 /*
  * Events
  */
+
+export interface LangTagCLIImportEvent {
+    exports: {
+        packageJSON: any;
+        exportData: LangTagCLIExportData;
+    }[];
+
+    importTag(pathRelativeToImportDir: string, tag: LangTagCLIImportedTag): void;
+}
 
 export interface LangTagCLIConfigGenerationEvent {
     /** The absolute path to the source file being processed. */
@@ -344,13 +341,13 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     import: {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
-        onImport: ({importedRelativePath, fileGenerationData}: LangTagCLIOnImportParams, actions)=> {
-            const exportIndex = (fileGenerationData.index || 0) + 1;
-            fileGenerationData.index = exportIndex;
-
-            actions.setFile(path.basename(importedRelativePath));
-            actions.setExportName(`translations${exportIndex}`);
-        }
+        // onImport: ({importedRelativePath, fileGenerationData}: LangTagCLIOnImportParams, actions)=> {
+        //     const exportIndex = (fileGenerationData.index || 0) + 1;
+        //     fileGenerationData.index = exportIndex;
+        //
+        //     actions.setFile(path.basename(importedRelativePath));
+        //     actions.setExportName(`translations${exportIndex}`);
+        // }
     },
     translationArgPosition: 1,
     onConfigGeneration: async event => {},
