@@ -40,6 +40,10 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
         return;
     }
 
+    // TODO: load current imported tag files
+    //       check for current tags
+    //       prioritize current project translations, old one comment, add new ones
+
     await generateImportFiles(config, logger, importedFiles);
 
     if (config.import.onImportFinish) config.import.onImportFinish();
