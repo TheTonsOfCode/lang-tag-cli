@@ -16,7 +16,7 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
 
         let importedFile = importedFiles.find(file => file.pathRelativeToImportDir === pathRelativeToImportDir);
         if (!importedFile) {
-            importedFile = { pathRelativeToImportDir, tags: [] };
+            importedFile = {pathRelativeToImportDir, tags: []};
             importedFiles.push(importedFile);
         }
         importedFile.tags.push(tag)
@@ -30,13 +30,10 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
         // TODO: if different language, translate to base language
         //  exportData.baseLanguageCode
 
-        exports.push({ packageJSON, exportData });
+        exports.push({packageJSON, exportData});
     }
 
-    config.import.onImport({
-        exports,
-        importTag
-    })
+    config.import.onImport({exports, logger, importTag})
 
     if (importedFiles.length === 0) {
         logger.warn('No tags were imported from any library files');

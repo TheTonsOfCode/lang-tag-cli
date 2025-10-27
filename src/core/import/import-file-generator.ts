@@ -10,7 +10,6 @@ import { LangTagCLIConfig, LangTagCLIImportedTagsFile } from '@/config.ts';
 import { LangTagCLILogger } from '@/logger.ts';
 import JSON5 from 'json5';
 
-// Load template at the top of the file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const templatePath = join(__dirname, 'templates', 'import', 'imported-tag.mustache');
@@ -32,12 +31,10 @@ export async function generateImportFiles(
             importedFile.pathRelativeToImportDir
         );
 
-        // Process exports with parameter positioning logic
         const processedExports = importedFile.tags.map(tag => {
             const parameter1 = config.translationArgPosition === 1 ? tag.translations : tag.config;
             const parameter2 = config.translationArgPosition === 1 ? tag.config : tag.translations;
-            
-            // Check if parameter2 should be included (not null, undefined, or empty object)
+
             const hasParameter2 = parameter2 !== null && 
                                  parameter2 !== undefined && 
                                  (typeof parameter2 !== 'object' || Object.keys(parameter2).length > 0);
@@ -63,6 +60,6 @@ export async function generateImportFiles(
         await $LT_EnsureDirectoryExists(dirname(filePath));
         await writeFile(filePath, content, 'utf-8');
 
-        logger.success('Imported node_modules file: "{fileName}"', {fileName: importedFile.pathRelativeToImportDir});
+        logger.success('Created tag file: "{file}"', {file: importedFile.pathRelativeToImportDir});
     }
 }

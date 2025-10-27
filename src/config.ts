@@ -246,6 +246,8 @@ export interface LangTagCLIImportEvent {
         exportData: LangTagCLIExportData;
     }[];
 
+    logger: LangTagCLILogger,
+
     importTag(pathRelativeToImportDir: string, tag: LangTagCLIImportedTag): void;
 }
 
@@ -296,7 +298,7 @@ export interface LangTagCLICollectConfigFixEvent {
 
 export interface LangTagCLIConflictResolutionEvent {
     conflict: LangTagCLIConflict,
-    logger: LangTagCLILogger
+    logger: LangTagCLILogger,
     /** Breaks translation collection process */
     exit(): void;
 }
@@ -341,6 +343,11 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     import: {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
+        onImport: event => {
+            for (let e of event.exports) {
+                console.log(111, e.packageJSON.name, e.exportData.files);
+            }
+        }
         // onImport: ({importedRelativePath, fileGenerationData}: LangTagCLIOnImportParams, actions)=> {
         //     const exportIndex = (fileGenerationData.index || 0) + 1;
         //     fileGenerationData.index = exportIndex;
