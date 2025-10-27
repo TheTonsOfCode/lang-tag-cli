@@ -246,6 +246,7 @@ export interface LangTagCLIImportEvent {
         exportData: LangTagCLIExportData;
     }[];
 
+    langTagConfig: LangTagCLIConfig,
     logger: LangTagCLILogger,
 
     importTag(pathRelativeToImportDir: string, tag: LangTagCLIImportedTag): void;

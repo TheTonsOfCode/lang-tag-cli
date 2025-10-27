@@ -5,5 +5,5 @@
  * and organized in your project.
  */
 
-// Placeholder - future import algorithms will be exported here
+export { defaultImportAlgorithm, type DefaultImportAlgorithmOptions } from './default-import-algorithm';
 

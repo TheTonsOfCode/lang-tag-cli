@@ -33,7 +33,7 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
         exports.push({packageJSON, exportData});
     }
 
-    config.import.onImport({exports, logger, importTag})
+    config.import.onImport({exports, logger, importTag, langTagConfig: config})
 
     if (importedFiles.length === 0) {
         logger.warn('No tags were imported from any library files');
