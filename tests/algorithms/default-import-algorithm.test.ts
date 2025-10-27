@@ -1133,6 +1133,96 @@ describe('defaultImportAlgorithm', () => {
                 config: { namespace: 'common' }
             });
         });
+
+        it('should handle separate case transformations for directories and files', () => {
+            const exports = [
+                createMockExportData('my-package', [
+                    {
+                        relativeFilePath: 'layout-components/translation-manager.ts',
+                        tags: [createMockTag('greeting')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports);
+            const algorithm = defaultImportAlgorithm({
+                filePath: {
+                    case: {
+                        directories: 'camel',
+                        files: 'pascal'
+                    }
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importTag).toHaveBeenCalledWith('layoutComponents/TranslationManager.ts', {
+                variableName: 'greeting',
+                translations: { hello: 'Hello' },
+                config: { namespace: 'common' }
+            });
+        });
+
+        it('should handle separate case transformations with includePackageInPath', () => {
+            const exports = [
+                createMockExportData('my-package', [
+                    {
+                        relativeFilePath: 'layout-components/translation-manager.ts',
+                        tags: [createMockTag('greeting')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports);
+            const algorithm = defaultImportAlgorithm({
+                filePath: {
+                    includePackageInPath: true,
+                    case: {
+                        directories: 'kebab',
+                        files: 'snake'
+                    }
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importTag).toHaveBeenCalledWith('my-package/layout-components/translation_manager.ts', {
+                variableName: 'greeting',
+                translations: { hello: 'Hello' },
+                config: { namespace: 'common' }
+            });
+        });
+
+        it('should handle mixed case transformations with deeply nested paths', () => {
+            const exports = [
+                createMockExportData('@scope/my-package', [
+                    {
+                        relativeFilePath: 'src/components/ui/button-component.ts',
+                        tags: [createMockTag('buttonText')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports);
+            const algorithm = defaultImportAlgorithm({
+                filePath: {
+                    includePackageInPath: true,
+                    scopedPackageHandling: 'remove-scope',
+                    case: {
+                        directories: 'snake',
+                        files: 'camel'
+                    }
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importTag).toHaveBeenCalledWith('my_package/src/components/ui/buttonComponent.ts', {
+                variableName: 'buttonText',
+                translations: { hello: 'Hello' },
+                config: { namespace: 'common' }
+            });
+        });
     });
 
     describe('Edge cases', () => {

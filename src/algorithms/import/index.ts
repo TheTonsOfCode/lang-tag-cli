@@ -5,5 +5,10 @@
  * and organized in your project.
  */
 
-export { defaultImportAlgorithm, type DefaultImportAlgorithmOptions } from './default-import-algorithm';
+export { 
+    defaultImportAlgorithm, 
+    type DefaultImportAlgorithmOptions,
+    type CaseType,
+    type FilePathCaseType
+} from './default-import-algorithm';
 

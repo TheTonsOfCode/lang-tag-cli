@@ -3,6 +3,21 @@ import { join } from "pathe";
 import * as caseLib from "case";
 import micromatch from "micromatch";
 
+/**
+ * Available case transformation options.
+ */
+export type CaseType = 'camel' | 'capital' | 'constant' | 'dot' | 'header' | 'kebab' | 'lower' | 'no' | 'param' | 'pascal' | 'path' | 'sentence' | 'snake' | 'swap' | 'title' | 'upper';
+
+/**
+ * Case transformation configuration for file paths.
+ * Can be a string for uniform case transformation, or an object with separate
+ * case transformations for directories and files.
+ */
+export type FilePathCaseType = CaseType | {
+    directories?: CaseType;
+    files?: CaseType;
+};
+
 export interface VariableNameOptions {
     /**
      * Whether to prefix variable names with package name to avoid conflicts.
@@ -25,7 +40,7 @@ export interface VariableNameOptions {
      * 'lower', 'no', 'param', 'pascal', 'path', 'sentence', 'snake', 'swap', 'title', 'upper'
      * @default 'no'
      */
-    case?: 'camel' | 'capital' | 'constant' | 'dot' | 'header' | 'kebab' | 'lower' | 'no' | 'param' | 'pascal' | 'path' | 'sentence' | 'snake' | 'swap' | 'title' | 'upper';
+    case?: CaseType;
 
     /**
      * How to handle tags without variableName.
@@ -62,11 +77,13 @@ export interface FilePathOptions {
 
     /**
      * Case transformation to apply to file names and path segments.
+     * Can be a string for uniform case transformation, or an object with separate
+     * case transformations for directories and files.
      * Available options: 'camel', 'capital', 'constant', 'dot', 'header', 'kebab', 
      * 'lower', 'no', 'param', 'pascal', 'path', 'sentence', 'snake', 'swap', 'title', 'upper'
      * @default 'no'
      */
-    case?: 'camel' | 'capital' | 'constant' | 'dot' | 'header' | 'kebab' | 'lower' | 'no' | 'param' | 'pascal' | 'path' | 'sentence' | 'snake' | 'swap' | 'title' | 'upper';
+    case?: FilePathCaseType;
 }
 
 export interface DefaultImportAlgorithmOptions {
@@ -239,6 +256,57 @@ function applyCaseTransform(str: string, caseType: string): string {
 }
 
 /**
+ * Applies case transformation to file path segments.
+ * If caseType is a string, applies uniform transformation per segment.
+ * If caseType is an object, applies separate transformations for directories and files.
+ */
+function applyCaseTransformToPath(filePath: string, caseType: FilePathCaseType): string {
+    if (typeof caseType === 'string') {
+        // Apply case per segment (both directories and files)
+        const segments = filePath.split('/');
+        const fileName = segments[segments.length - 1];
+        const directorySegments = segments.slice(0, -1);
+        
+        // Apply case to directories
+        const transformedDirectories = directorySegments.map(dir => applyCaseTransform(dir, caseType));
+        
+        // Apply case to filename
+        const transformedFileName = applyCaseTransformToFileName(fileName, caseType);
+        
+        // Reconstruct path
+        if (transformedDirectories.length === 0) {
+            return transformedFileName;
+        }
+        
+        return [...transformedDirectories, transformedFileName].join('/');
+    }
+    
+    if (typeof caseType === 'object') {
+        const { directories = 'no', files = 'no' } = caseType;
+        
+        // Split path into segments
+        const segments = filePath.split('/');
+        const fileName = segments[segments.length - 1];
+        const directorySegments = segments.slice(0, -1);
+        
+        // Apply case to directories
+        const transformedDirectories = directorySegments.map(dir => applyCaseTransform(dir, directories));
+        
+        // Apply case to filename
+        const transformedFileName = applyCaseTransformToFileName(fileName, files);
+        
+        // Reconstruct path
+        if (transformedDirectories.length === 0) {
+            return transformedFileName;
+        }
+        
+        return [...transformedDirectories, transformedFileName].join('/');
+    }
+    
+    return filePath;
+}
+
+/**
  * Normalizes package name based on scoped package handling option.
  */
 function normalizePackageName(
@@ -316,16 +384,25 @@ function generateFilePath(
         // Group all translations from this package into one file
         const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling);
         const fileName = `${normalizedPackageName}.ts`;
-        return applyCaseTransformToFileName(fileName, caseType);
+        return applyCaseTransformToFileName(fileName, typeof caseType === 'string' ? caseType : caseType.files || 'no');
     } else if (includePackageInPath) {
         // Include package name in the path
         const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling);
-        const transformedPackageName = applyCaseTransform(normalizedPackageName, caseType);
-        const transformedFileName = applyCaseTransformToFileName(originalFileName, caseType);
-        return join(transformedPackageName, transformedFileName);
+        
+        if (typeof caseType === 'string') {
+            // Apply case per segment for both package name and file path
+            const transformedPackageName = applyCaseTransform(normalizedPackageName, caseType);
+            const transformedFilePath = applyCaseTransformToPath(originalFileName, caseType);
+            return join(transformedPackageName, transformedFilePath);
+        } else {
+            // New behavior: apply case per segment
+            const transformedPackageName = applyCaseTransform(normalizedPackageName, caseType.directories || 'no');
+            const transformedFilePath = applyCaseTransformToPath(originalFileName, caseType);
+            return join(transformedPackageName, transformedFilePath);
+        }
     } else {
-        // Preserve original file structure
-        return applyCaseTransformToFileName(originalFileName, caseType);
+        // Preserve original file structure with per-segment case transformation
+        return applyCaseTransformToPath(originalFileName, caseType);
     }
 }
 
