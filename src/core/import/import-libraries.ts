@@ -2,7 +2,7 @@ import {$LT_ReadJSON} from "@/core/io/file.ts";
 import {LangTagCLIConfig, LangTagCLIExportData, LangTagCLIImportedTag, LangTagCLIImportedTagsFile} from "@/config.ts";
 import {LangTagCLILogger} from "@/logger.ts";
 import {$LT_CollectExportFiles} from "@/core/import/collect-export-files.ts";
-import {generateImportFiles, ImportFileData} from "@/core/import/import-file-generator.ts";
+import {generateImportFiles} from "@/core/import/import-file-generator.ts";
 
 export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: LangTagCLILogger): Promise<void> {
     const exportFiles = await $LT_CollectExportFiles(logger);
@@ -43,18 +43,7 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
         return;
     }
 
-    const generationFiles: Record<string /*fileName*/, Record<string /*export name*/, {translations: any, config: any}>> = {}
-
-    const filesData: ImportFileData[] = Object.entries(generationFiles).map(([fileName, exports]) => ({
-        fileName,
-        exports: Object.entries(exports).map(([name, data]) => ({
-            name,
-            translations: data.translations,
-            config: data.config
-        }))
-    }));
-
-    await generateImportFiles(config, logger, filesData);
+    await generateImportFiles(config, logger, importedFiles);
 
     if (config.import.onImportFinish) config.import.onImportFinish();
 }

@@ -6,18 +6,9 @@ import { writeFile } from 'fs/promises';
 import { resolve } from 'pathe';
 import * as process from "node:process";
 import { $LT_EnsureDirectoryExists } from '@/core/io/file.ts';
-import { LangTagCLIConfig } from '@/config.ts';
+import { LangTagCLIConfig, LangTagCLIImportedTagsFile } from '@/config.ts';
 import { LangTagCLILogger } from '@/logger.ts';
 import JSON5 from 'json5';
-
-export interface ImportFileData {
-    fileName: string;
-    exports: Array<{
-        name: string;
-        translations: any;
-        config: any;
-    }>;
-}
 
 // Load template at the top of the file
 const __filename = fileURLToPath(import.meta.url);
@@ -32,19 +23,19 @@ function renderTemplate(data: Record<string, any>): string {
 export async function generateImportFiles(
     config: LangTagCLIConfig, 
     logger: LangTagCLILogger,
-    filesData: ImportFileData[]
+    importedFiles: LangTagCLIImportedTagsFile[]
 ): Promise<void> {
-    for (const fileData of filesData) {
+    for (const importedFile of importedFiles) {
         const filePath = resolve(
             process.cwd(),
             config.import.dir,
-            fileData.fileName
+            importedFile.pathRelativeToImportDir
         );
 
         // Process exports with parameter positioning logic
-        const processedExports = fileData.exports.map(exportData => {
-            const parameter1 = config.translationArgPosition === 1 ? exportData.translations : exportData.config;
-            const parameter2 = config.translationArgPosition === 1 ? exportData.config : exportData.translations;
+        const processedExports = importedFile.tags.map(tag => {
+            const parameter1 = config.translationArgPosition === 1 ? tag.translations : tag.config;
+            const parameter2 = config.translationArgPosition === 1 ? tag.config : tag.translations;
             
             // Check if parameter2 should be included (not null, undefined, or empty object)
             const hasParameter2 = parameter2 !== null && 
@@ -52,7 +43,7 @@ export async function generateImportFiles(
                                  (typeof parameter2 !== 'object' || Object.keys(parameter2).length > 0);
             
             return {
-                name: exportData.name,
+                name: tag.variableName,
                 parameter1: JSON5.stringify(parameter1, undefined, 4),
                 parameter2: hasParameter2 ? JSON5.stringify(parameter2, undefined, 4) : null,
                 hasParameter2,
@@ -72,6 +63,6 @@ export async function generateImportFiles(
         await $LT_EnsureDirectoryExists(dirname(filePath));
         await writeFile(filePath, content, 'utf-8');
 
-        logger.success('Imported node_modules file: "{fileName}"', {fileName: fileData.fileName});
+        logger.success('Imported node_modules file: "{fileName}"', {fileName: importedFile.pathRelativeToImportDir});
     }
 }
