@@ -182,21 +182,16 @@ export function defaultImportAlgorithm(
 
     return (event: LangTagCLIImportEvent) => {
         const { exports, importTag, logger } = event;
-        const debug = event.langTagConfig.debug;
         
         for (const { packageJSON, exportData } of exports) {
             const packageName = packageJSON.name || 'unknown-package';
             
             if (excludePackages.includes(packageName)) {
-                if (debug) {
-                    logger.info(`Skipping excluded package: ${packageName}`);
-                }
+                logger.debug(`Skipping excluded package: ${packageName}`);
                 continue;
             }
 
-            if (debug) {
-                logger.info(`Processing library: ${packageName}`);
-            }
+            logger.debug(`Processing library: ${packageName}`);
 
             for (const file of exportData.files) {
                 const originalFileName = file.relativeFilePath;
@@ -208,18 +203,14 @@ export function defaultImportAlgorithm(
                     
                     const tagNamespace = (tag.config as any)?.namespace;
                     if (tagNamespace && isNamespaceExcluded(tagNamespace, excludeNamespaces)) {
-                        if (debug) {
-                            logger.info(`Skipping excluded namespace: ${tagNamespace}`);
-                        }
+                        logger.debug(`Skipping excluded namespace: ${tagNamespace}`);
                         continue;
                     }
 
                     const finalVariableName = generateVariableName(tag.variableName, packageName, originalFileName, i, variableName);
 
                     if (finalVariableName === null) {
-                        if (debug) {
-                            logger.info(`Skipping tag without variableName in ${join(packageName, originalFileName)}`);
-                        }
+                        logger.debug(`Skipping tag without variableName in ${join(packageName, originalFileName)}`);
                         continue;
                     }
 
@@ -229,9 +220,7 @@ export function defaultImportAlgorithm(
                         config: tag.config
                     });
 
-                    if (debug) {
-                        logger.info(`Imported: ${finalVariableName} -> ${targetFilePath}`);
-                    }
+                    logger.debug(`Imported: ${finalVariableName} -> ${targetFilePath}`);
                 }
             }
         }

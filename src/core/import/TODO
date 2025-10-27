@@ -7,15 +7,6 @@
 
 
 
----------
-w algorytmie zmienic wszystkie
-if (debug) {
-                logger.info(`Processing library: ${packageName}`);
-            }
-
--- na logger.debug poprostu i nie sprawdzac tej zmiennej
----------
-
 
 
 - ten algorytm powinien wykrywac na jakims etapie ze w generowanych plikach powielona jest nazwa exportu i walic error

@@ -15,6 +15,7 @@ function createMockEvent(
             config: { debug },
             info: vi.fn(),
             warn: vi.fn(),
+            debug: vi.fn(),
             success: vi.fn(),
             error: vi.fn(),
         },
@@ -197,7 +198,7 @@ describe('defaultImportAlgorithm', () => {
             expect(event.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
                 variableName: 'another-valid'
             }));
-            expect(event.logger.info).toHaveBeenCalledWith('Skipping tag without variableName in package1/common.ts');
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping tag without variableName in package1/common.ts');
         });
     });
 
@@ -602,7 +603,7 @@ describe('defaultImportAlgorithm', () => {
             expect(event.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
                 variableName: 'greeting'
             }));
-            expect(event.logger.info).toHaveBeenCalledWith('Skipping excluded package: excluded-package');
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping excluded package: excluded-package');
         });
 
         it('should exclude tags by namespace patterns', () => {
@@ -632,8 +633,8 @@ describe('defaultImportAlgorithm', () => {
             expect(event.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
                 variableName: 'greeting'
             }));
-            expect(event.logger.info).toHaveBeenCalledWith('Skipping excluded namespace: admin.user');
-            expect(event.logger.info).toHaveBeenCalledWith('Skipping excluded namespace: internal');
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping excluded namespace: admin.user');
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping excluded namespace: internal');
         });
 
         it('should handle wildcard namespace patterns', () => {
@@ -797,26 +798,8 @@ describe('defaultImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.logger.info).toHaveBeenCalledWith('Processing library: test-package');
-            expect(event.logger.info).toHaveBeenCalledWith('Imported: greeting -> common.ts');
-        });
-
-        it('should not log debug information when debug is disabled', () => {
-            const exports = [
-                createMockExportData('test-package', [
-                    {
-                        relativeFilePath: 'common.ts',
-                        tags: [createMockTag('greeting')]
-                    }
-                ])
-            ];
-
-            const event = createMockEvent(exports, false); // Disable debug
-            const algorithm = defaultImportAlgorithm();
-            
-            algorithm(event);
-
-            expect(event.logger.info).not.toHaveBeenCalled();
+            expect(event.logger.debug).toHaveBeenCalledWith('Processing library: test-package');
+            expect(event.logger.debug).toHaveBeenCalledWith('Imported: greeting -> common.ts');
         });
     });
 
