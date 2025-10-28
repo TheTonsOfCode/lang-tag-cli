@@ -13,6 +13,7 @@ export interface ConfigRenderOptions {
 interface TemplateData {
     isCJS: boolean;
     addComments: boolean;
+    needsAlgorithms: boolean;
     needsPathBasedImport: boolean;
     useKeeper: boolean;
     isDictionary: boolean;
@@ -129,13 +130,22 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
     const needsTagName =
         answers.tagName !== 'lang' && answers.projectType === 'library';
 
+    const useKeeper = answers.configGeneration.keepVariables || false;
+    const isDictionary = answers.collectorType === 'dictionary';
+    const importLibraries = answers.importLibraries;
+
+    // Check if any algorithms are needed
+    const needsAlgorithms =
+        needsPathBasedImport || useKeeper || isDictionary || importLibraries;
+
     return {
         isCJS: moduleSystem === 'cjs',
         addComments: answers.addCommentGuides,
+        needsAlgorithms,
         needsPathBasedImport,
-        useKeeper: answers.configGeneration.keepVariables || false,
-        isDictionary: answers.collectorType === 'dictionary',
-        importLibraries: answers.importLibraries,
+        useKeeper,
+        isDictionary,
+        importLibraries,
         needsTagName,
         tagName: answers.tagName,
         isLibrary: answers.projectType === 'library',

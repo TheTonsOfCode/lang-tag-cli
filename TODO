@@ -1,13 +1,5 @@
 
 
-naprawic puste:
-
-const {
-} = require('@lang-tag/cli/algorithms');
-
-
-
-
 
 localesDirectory ma nie renderowac jesli to biblioteka
 

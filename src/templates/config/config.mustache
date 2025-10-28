@@ -5,6 +5,7 @@
  * Documentation: https://github.com/TheTonsOfCode/lang-tag-cli
  */
 
+{{#needsAlgorithms}}
 {{#isCJS}}const{{/isCJS}}{{^isCJS}}import{{/isCJS}} {
 {{#needsPathBasedImport}}
     pathBasedConfigGenerator,
@@ -19,15 +20,16 @@
     flexibleImportAlgorithm,
 {{/importLibraries}}
 } {{#isCJS}}= require('@lang-tag/cli/algorithms');{{/isCJS}}{{^isCJS}}from '@lang-tag/cli/algorithms';{{/isCJS}}
-{{#needsPathBasedImport}}
+{{/needsAlgorithms}}
 
+{{#needsPathBasedImport}}
 {{>generation-algorithm}}
 
+{{/needsPathBasedImport}}
 {{#useKeeper}}
-const keeper = configKeeper({ propertyName: 'keep' });
+    const keeper = configKeeper({ propertyName: 'keep' });
 
 {{/useKeeper}}
-{{/needsPathBasedImport}}
 /** @type {import('@lang-tag/cli/type').LangTagCLIConfig} */
 const config = {
 {{#needsTagName}}
@@ -60,11 +62,17 @@ const config = {
         // We do not modify imported configurations
         if (event.isImportedLibrary) return;
 
+{{#useKeeper}}
+        if (event.config?.keep === 'both') return;
+{{/useKeeper}}
         // TODO: Implement your custom config generation logic here
         // event.config = {
         //     namespace: 'your-namespace',
         //     path: 'your.path'
         // };
+{{#useKeeper}}
+        await keeper(event);
+{{/useKeeper}}
     },
 {{/useCustom}}
 {{/hasConfigGeneration}}

@@ -57,14 +57,14 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
             message: 'How would you like to collect translations?',
             choices: [
                 {
-                    name: 'Dictionary (flat structure, all translations in one file)',
-                    value: 'dictionary',
-                    description: 'Simple flat dictionary structure',
-                },
-                {
                     name: 'Namespace (organized by modules/features)',
                     value: 'namespace',
                     description: 'Organized structure with namespaces',
+                },
+                {
+                    name: 'Dictionary (flat structure, all translations in one file)',
+                    value: 'dictionary',
+                    description: 'Simple flat dictionary structure',
                 },
             ],
         });
