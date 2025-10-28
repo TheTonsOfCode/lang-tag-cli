@@ -21,12 +21,6 @@
     i zamieniac wszystkie - na _ w nazwie variabla aby nie generowalo głupot
 
 
-  !!!!!!!!  ZACZAC od tego ze sam importTag wali błędem jesli jest nieprawidłowa nazwa zmiennej czyli a-z$_ !!!!
-  a potem w mockach to odwzorowac zeby też się pruło
-    - napisac tą MAPe z FUNCKCJA 'importTag' i walidacja errorow na zmienna itd jako oosbny manager plik
-    i reuzyc go potem w logice i tescie na raz
-
-
 
 
 - dodac mapping algorytm który przyjmuje liste paczek i tagów po nazwać/indeksach i wskazuje nowe sciezki/nazwy_zmiennych/jak remapowac config
