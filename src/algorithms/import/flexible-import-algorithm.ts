@@ -120,6 +120,47 @@ export interface FlexibleImportAlgorithmOptions {
         namespaces?: string[];
     };
 
+    /**
+     * Function to remap/override configs before saving imported tags.
+     * Allows modification of namespace, path, and other config properties
+     * based on package name, file path, or other context.
+     * 
+     * @param originalConfig - The original config from the imported tag
+     * @param context - Context information about the import
+     * @returns The modified config object, or null to remove the config from the tag
+     * 
+     * @example
+     * ```typescript
+     * configRemap: (config, context) => {
+     *   // Override namespace based on package name
+     *   if (context.packageName === 'ui-components') {
+     *     return { ...config, namespace: 'ui' };
+     *   }
+     *   
+     *   // Remove config for certain packages (tag will be imported without config)
+     *   if (context.packageName === 'no-config-package') {
+     *     return null;
+     *   }
+     *   
+     *   // Add prefix to all paths
+     *   if (config.path) {
+     *     return { ...config, path: `lib.${config.path}` };
+     *   }
+     *   
+     *   return config;
+     * }
+     * ```
+     */
+    configRemap?: (
+        originalConfig: any,
+        context: {
+            packageName: string;
+            fileName: string;
+            variableName: string;
+            tagIndex: number;
+        }
+    ) => any | null;
+
 }
 
 /**
@@ -182,7 +223,8 @@ export function flexibleImportAlgorithm(
     const {
         variableName = {},
         filePath = {},
-        exclude = {}
+        exclude = {},
+        configRemap
     } = options;
 
     const { packages: excludePackages = [], namespaces: excludeNamespaces = [] } = exclude;
@@ -221,10 +263,28 @@ export function flexibleImportAlgorithm(
                         continue;
                     }
 
+                    // Apply config remapping if provided
+                    let finalConfig: any | null = tag.config;
+                    if (configRemap) {
+                        const remappedConfig = configRemap(tag.config, {
+                            packageName,
+                            fileName: originalFileName,
+                            variableName: finalVariableName,
+                            tagIndex: i
+                        });
+                        
+                        if (remappedConfig === null) {
+                            logger.debug(`Removing config due to configRemap returning null in ${join(packageName, originalFileName)}`);
+                            finalConfig = null;
+                        } else {
+                            finalConfig = remappedConfig;
+                        }
+                    }
+
                     importManager.importTag(targetFilePath, {
                         variableName: finalVariableName,
                         translations: tag.translations,
-                        config: tag.config
+                        config: finalConfig
                     });
 
                     logger.debug(`Imported: ${finalVariableName} -> ${targetFilePath}`);

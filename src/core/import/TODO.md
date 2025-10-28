@@ -1,8 +1,6 @@
 
 
 
-- funkcja do przydzielania i nadpisywania configów przed zapisaniem
-
 - opcja ktora pozwala na pelny custom nazewnictwa variabli zamiast oryginalnych co przychodzą z exportu
 
 

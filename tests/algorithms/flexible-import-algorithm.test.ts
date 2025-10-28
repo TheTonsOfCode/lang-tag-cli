@@ -1402,4 +1402,179 @@ describe('flexibleImportAlgorithm', () => {
             });
         });
     });
+
+    describe('configRemap functionality', () => {
+        it('should apply config remapping when provided', () => {
+            const mockEvent = createMockEvent([
+                createMockExportData('test-package', [
+                    {
+                        relativeFilePath: 'components/Button.ts',
+                        tags: [
+                            createMockTag('buttonText', { hello: 'Hello' }, { namespace: 'ui', path: 'button.text' })
+                        ]
+                    }
+                ])
+            ]);
+
+            const algorithm = flexibleImportAlgorithm({
+                configRemap: (config, context) => {
+                    // Override namespace based on package name
+                    if (context.packageName === 'test-package') {
+                        return { ...config, namespace: 'overridden' };
+                    }
+                    return config;
+                }
+            });
+
+            algorithm(mockEvent);
+
+            expect(mockEvent.importManager.importTag).toHaveBeenCalledWith(
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'buttonText',
+                    translations: { hello: 'Hello' },
+                    config: { namespace: 'overridden', path: 'button.text' }
+                })
+            );
+        });
+
+        it('should remove config when configRemap returns null', () => {
+            const mockEvent = createMockEvent([
+                createMockExportData('no-config-package', [
+                    {
+                        relativeFilePath: 'components/Button.ts',
+                        tags: [
+                            createMockTag('buttonText', { hello: 'Hello' }, { namespace: 'ui' })
+                        ]
+                    }
+                ])
+            ]);
+
+            const algorithm = flexibleImportAlgorithm({
+                configRemap: (config, context) => {
+                    // Remove config for certain packages
+                    if (context.packageName === 'no-config-package') {
+                        return null;
+                    }
+                    return config;
+                }
+            });
+
+            algorithm(mockEvent);
+
+            expect(mockEvent.importManager.importTag).toHaveBeenCalledWith(
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'buttonText',
+                    translations: { hello: 'Hello' },
+                    config: null
+                })
+            );
+        });
+
+        it('should provide correct context to configRemap function', () => {
+            const mockEvent = createMockEvent([
+                createMockExportData('context-test', [
+                    {
+                        relativeFilePath: 'admin/User.ts',
+                        tags: [
+                            createMockTag('userName', { name: 'John' }, { namespace: 'common' })
+                        ]
+                    }
+                ])
+            ]);
+
+            const configRemapSpy = vi.fn((config, context) => config);
+
+            const algorithm = flexibleImportAlgorithm({
+                configRemap: configRemapSpy
+            });
+
+            algorithm(mockEvent);
+
+            expect(configRemapSpy).toHaveBeenCalledWith(
+                { namespace: 'common' },
+                {
+                    packageName: 'context-test',
+                    fileName: 'admin/User.ts',
+                    variableName: 'userName',
+                    tagIndex: 0
+                }
+            );
+        });
+
+        it('should import tag without config when configRemap returns null', () => {
+            const mockEvent = createMockEvent([
+                createMockExportData('mixed-package', [
+                    {
+                        relativeFilePath: 'components/Button.ts',
+                        tags: [
+                            createMockTag('buttonWithConfig', { hello: 'Hello' }, { namespace: 'ui' }),
+                            createMockTag('buttonWithoutConfig', { goodbye: 'Goodbye' }, { namespace: 'ui' })
+                        ]
+                    }
+                ])
+            ]);
+
+            const algorithm = flexibleImportAlgorithm({
+                configRemap: (config, context) => {
+                    // Remove config only for specific variable names
+                    if (context.variableName === 'buttonWithoutConfig') {
+                        return null;
+                    }
+                    return config;
+                }
+            });
+
+            algorithm(mockEvent);
+
+            expect(mockEvent.importManager.importTag).toHaveBeenCalledTimes(2);
+            
+            // First tag should have config
+            expect(mockEvent.importManager.importTag).toHaveBeenNthCalledWith(1,
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'buttonWithConfig',
+                    translations: { hello: 'Hello' },
+                    config: { namespace: 'ui' }
+                })
+            );
+            
+            // Second tag should have null config
+            expect(mockEvent.importManager.importTag).toHaveBeenNthCalledWith(2,
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'buttonWithoutConfig',
+                    translations: { goodbye: 'Goodbye' },
+                    config: null
+                })
+            );
+        });
+
+        it('should work without configRemap function', () => {
+            const mockEvent = createMockEvent([
+                createMockExportData('no-remap', [
+                    {
+                        relativeFilePath: 'components/Button.ts',
+                        tags: [
+                            createMockTag('buttonText', { hello: 'Hello' }, { namespace: 'ui' })
+                        ]
+                    }
+                ])
+            ]);
+
+            const algorithm = flexibleImportAlgorithm({});
+
+            algorithm(mockEvent);
+
+            expect(mockEvent.importManager.importTag).toHaveBeenCalledWith(
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'buttonText',
+                    translations: { hello: 'Hello' },
+                    config: { namespace: 'ui' }
+                })
+            );
+        });
+    });
 });

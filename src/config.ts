@@ -215,7 +215,7 @@ export interface LangTagCLIImportedTag {
 
     translations: any;
 
-    config: any;
+    config: any | null;
 }
 
 export interface LangTagCLIImportedTagsFile {
