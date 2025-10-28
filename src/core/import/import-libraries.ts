@@ -3,24 +3,12 @@ import {LangTagCLIConfig, LangTagCLIExportData, LangTagCLIImportedTag, LangTagCL
 import {LangTagCLILogger} from "@/logger.ts";
 import {$LT_CollectExportFiles} from "@/core/import/collect-export-files.ts";
 import {generateImportFiles} from "@/core/import/import-file-generator.ts";
+import {ImportManager} from "@/core/import/import-manager.ts";
 
 export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: LangTagCLILogger): Promise<void> {
     const exportFiles = await $LT_CollectExportFiles(logger);
 
-    const importedFiles: LangTagCLIImportedTagsFile[] = []
-
-    function importTag(pathRelativeToImportDir: string, tag: LangTagCLIImportedTag) {
-        if (!pathRelativeToImportDir) throw new Error(`pathRelativeToImportDir required, got: ${pathRelativeToImportDir}`);
-        if (!tag?.variableName) throw new Error(`tag.variableName required, got: ${tag?.variableName}`);
-        if (tag.translations == null) throw new Error(`tag.translations required`);
-
-        let importedFile = importedFiles.find(file => file.pathRelativeToImportDir === pathRelativeToImportDir);
-        if (!importedFile) {
-            importedFile = {pathRelativeToImportDir, tags: []};
-            importedFiles.push(importedFile);
-        }
-        importedFile.tags.push(tag)
-    }
+    const importManager = new ImportManager();
 
     let exports = [];
     for (const {exportPath, packageJsonPath} of exportFiles) {
@@ -33,9 +21,9 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
         exports.push({packageJSON, exportData});
     }
 
-    config.import.onImport({exports, logger, importTag, langTagConfig: config})
+    config.import.onImport({exports, importManager, logger, langTagConfig: config})
 
-    if (importedFiles.length === 0) {
+    if (!importManager.hasImportedFiles()) {
         logger.warn('No tags were imported from any library files');
         return;
     }
@@ -44,7 +32,7 @@ export async function $LT_ImportLibraries(config: LangTagCLIConfig, logger: Lang
     //       check for current tags
     //       prioritize current project translations, old one comment, add new ones
 
-    await generateImportFiles(config, logger, importedFiles);
+    await generateImportFiles(config, logger, importManager);
 
     if (config.import.onImportFinish) config.import.onImportFinish();
 }

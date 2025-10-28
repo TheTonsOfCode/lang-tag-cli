@@ -203,6 +203,13 @@ export interface LangTagCLIConflict {
  * Import & Export
  */
 
+export interface LangTagCLIImportManager {
+    importTag(pathRelativeToImportDir: string, tag: LangTagCLIImportedTag): void;
+    getImportedFiles(): LangTagCLIImportedTagsFile[];
+    getImportedFilesCount(): number;
+    hasImportedFiles(): boolean;
+}
+
 export interface LangTagCLIImportedTag {
     variableName: string;
 
@@ -249,7 +256,7 @@ export interface LangTagCLIImportEvent {
     langTagConfig: LangTagCLIConfig,
     logger: LangTagCLILogger,
 
-    importTag(pathRelativeToImportDir: string, tag: LangTagCLIImportedTag): void;
+    importManager: LangTagCLIImportManager;
 }
 
 export interface LangTagCLIConfigGenerationEvent {

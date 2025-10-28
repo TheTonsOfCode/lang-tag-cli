@@ -6,7 +6,7 @@ import { writeFile } from 'fs/promises';
 import { resolve } from 'pathe';
 import * as process from "node:process";
 import { $LT_EnsureDirectoryExists } from '@/core/io/file.ts';
-import { LangTagCLIConfig, LangTagCLIImportedTagsFile } from '@/config.ts';
+import {LangTagCLIConfig, LangTagCLIImportedTagsFile, LangTagCLIImportManager} from '@/config.ts';
 import { LangTagCLILogger } from '@/logger.ts';
 import JSON5 from 'json5';
 
@@ -22,8 +22,10 @@ function renderTemplate(data: Record<string, any>): string {
 export async function generateImportFiles(
     config: LangTagCLIConfig, 
     logger: LangTagCLILogger,
-    importedFiles: LangTagCLIImportedTagsFile[]
+    importManager: LangTagCLIImportManager,
 ): Promise<void> {
+    const importedFiles: LangTagCLIImportedTagsFile[] = importManager.getImportedFiles();
+
     for (const importedFile of importedFiles) {
         const filePath = resolve(
             process.cwd(),

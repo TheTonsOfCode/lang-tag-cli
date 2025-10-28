@@ -1,13 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { flexibleImportAlgorithm } from '@/algorithms/import/flexible-import-algorithm.ts';
 import { LangTagCLIImportEvent } from '../../src/config';
+import { ImportManager } from '../../src/core/import/import-manager.ts';
 
 // Helper function to create a mock event
 function createMockEvent(
     exports: Array<{ packageJSON: any; exportData: any }>,
     debug: boolean = false
 ): LangTagCLIImportEvent {
-    const importedFiles: any[] = [];
+    const importManager = new ImportManager();
+    
+    vi.spyOn(importManager, 'importTag');
     
     return {
         exports,
@@ -22,14 +25,7 @@ function createMockEvent(
         langTagConfig: {
             debug
         },
-        importTag: vi.fn((pathRelativeToImportDir: string, tag: any) => {
-            let importedFile = importedFiles.find(file => file.pathRelativeToImportDir === pathRelativeToImportDir);
-            if (!importedFile) {
-                importedFile = { pathRelativeToImportDir, tags: [] };
-                importedFiles.push(importedFile);
-            }
-            importedFile.tags.push(tag);
-        }),
+        importManager,
     } as any;
 }
 
@@ -81,18 +77,18 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(3);
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(3);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'farewell',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('ui.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('ui.ts', {
                 variableName: 'button',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -118,7 +114,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('unknown.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('unknown.ts', {
                 variableName: 'test',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -145,23 +141,23 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(4);
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(4);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'valid',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'translations2',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'translations3',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'another-valid',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -191,11 +187,11 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(2);
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
                 variableName: 'valid'
             }));
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
                 variableName: 'another-valid'
             }));
             expect(event.logger.debug).toHaveBeenCalledWith('Skipping tag without variableName in package1/common.ts');
@@ -222,7 +218,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'my-package_greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -249,7 +245,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'scope_package_greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -276,7 +272,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'package_greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -303,7 +299,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'myPackageMyVariable',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -330,7 +326,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'my-package_my-variable',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -361,23 +357,23 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(4);
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(4);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'valid',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'translations2',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'translations3',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'another-valid',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -410,18 +406,18 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(3);
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(3);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'valid',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'my-package_common_2',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'my-package_common_3',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -451,7 +447,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'myPackageTranslations1',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -483,11 +479,11 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(2);
-            expect(event.importTag).toHaveBeenCalledWith('my-package.ts', expect.objectContaining({
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('my-package.ts', expect.objectContaining({
                 variableName: 'greeting'
             }));
-            expect(event.importTag).toHaveBeenCalledWith('my-package.ts', expect.objectContaining({
+            expect(event.importManager.importTag).toHaveBeenCalledWith('my-package.ts', expect.objectContaining({
                 variableName: 'button'
             }));
         });
@@ -511,7 +507,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('my-package/common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('my-package/common.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -538,7 +534,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('scope_package.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('scope_package.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -565,7 +561,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('myPackage/myFile.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('myPackage/myFile.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -599,8 +595,8 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(1);
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(1);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
                 variableName: 'greeting'
             }));
             expect(event.logger.debug).toHaveBeenCalledWith('Skipping excluded package: excluded-package');
@@ -629,8 +625,8 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(1);
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(1);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
                 variableName: 'greeting'
             }));
             expect(event.logger.debug).toHaveBeenCalledWith('Skipping excluded namespace: admin.user');
@@ -661,8 +657,8 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(1);
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(1);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
                 variableName: 'greeting'
             }));
         });
@@ -718,22 +714,22 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(3);
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(3);
             
             // UI Button package
-            expect(event.importTag).toHaveBeenCalledWith('button.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('button.ts', {
                 variableName: 'uiButtonPrimary',
                 translations: { text: 'Primary' },
                 config: { namespace: 'ui' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('button.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('button.ts', {
                 variableName: 'uiButtonSecondary',
                 translations: { text: 'Secondary' },
                 config: { namespace: 'ui' }
             });
             
             // Utils package
-            expect(event.importTag).toHaveBeenCalledWith('helpers.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('helpers.ts', {
                 variableName: 'utilsHelpersFormat',
                 translations: { text: 'Format' },
                 config: { namespace: 'utils' }
@@ -747,7 +743,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).not.toHaveBeenCalled();
+            expect(event.importManager.importTag).not.toHaveBeenCalled();
         });
 
         it('should handle packages with empty files array', () => {
@@ -760,7 +756,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).not.toHaveBeenCalled();
+            expect(event.importManager.importTag).not.toHaveBeenCalled();
         });
 
         it('should handle files with empty tags array', () => {
@@ -778,7 +774,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).not.toHaveBeenCalled();
+            expect(event.importManager.importTag).not.toHaveBeenCalled();
         });
     });
 
@@ -823,7 +819,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('layout-components/translation-manager.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('layout-components/translation-manager.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -849,7 +845,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('layoutComponents/translationManager.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('layoutComponents/translationManager.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -875,7 +871,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('layout-components/translation-manager.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('layout-components/translation-manager.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -901,7 +897,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('layout_components/translation_manager.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('layout_components/translation_manager.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -928,7 +924,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('my-package/layout-components/translation-manager.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('my-package/layout-components/translation-manager.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -956,7 +952,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('scope-my-package/layout-components/translation-manager.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('scope-my-package/layout-components/translation-manager.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -987,13 +983,13 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(2);
-            expect(event.importTag).toHaveBeenCalledWith('my-package.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('my-package.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('my-package.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('my-package.ts', {
                 variableName: 'farewell',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -1025,13 +1021,13 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(2);
-            expect(event.importTag).toHaveBeenCalledWith('my_package/src/components/ui/button_component.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('my_package/src/components/ui/button_component.ts', {
                 variableName: 'buttonText',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
-            expect(event.importTag).toHaveBeenCalledWith('my_package/src/utils/helper_functions.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('my_package/src/utils/helper_functions.ts', {
                 variableName: 'helperMessage',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -1057,7 +1053,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('Components/Ui/ButtonComponent.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('Components/Ui/ButtonComponent.ts', {
                 variableName: 'buttonText',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -1083,7 +1079,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('COMPONENTS/UI/BUTTON_COMPONENT.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('COMPONENTS/UI/BUTTON_COMPONENT.ts', {
                 variableName: 'buttonText',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -1112,7 +1108,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('layoutComponents/TranslationManager.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('layoutComponents/TranslationManager.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -1142,7 +1138,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('MyPackage/LayoutComponents/translation_manager.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('MyPackage/LayoutComponents/translation_manager.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -1173,7 +1169,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('my_package/src/components/ui/buttonComponent.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('my_package/src/components/ui/buttonComponent.ts', {
                 variableName: 'buttonText',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -1200,13 +1196,13 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(2);
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: null
             });
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'farewell',
                 translations: { bye: 'Bye' },
                 config: null
@@ -1234,8 +1230,8 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledTimes(1);
-            expect(event.importTag).toHaveBeenCalledWith('common.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(1);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: '' }
@@ -1268,7 +1264,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importTag).toHaveBeenCalledWith('ui-components.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('ui-components.ts', {
                 variableName: 'myOrgUiComponentsPrimary',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }

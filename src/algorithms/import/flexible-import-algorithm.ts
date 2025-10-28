@@ -181,7 +181,7 @@ export function flexibleImportAlgorithm(
     const { packages: excludePackages = [], namespaces: excludeNamespaces = [] } = exclude;
 
     return (event: LangTagCLIImportEvent) => {
-        const { exports, importTag, logger } = event;
+        const { exports, importManager, logger } = event;
         
         for (const { packageJSON, exportData } of exports) {
             const packageName = packageJSON.name || 'unknown-package';
@@ -214,7 +214,7 @@ export function flexibleImportAlgorithm(
                         continue;
                     }
 
-                    importTag(targetFilePath, {
+                    importManager.importTag(targetFilePath, {
                         variableName: finalVariableName,
                         translations: tag.translations,
                         config: tag.config
