@@ -1,12 +1,7 @@
 import { LangTagCLIImportEvent } from "@/config.ts";
 import { join } from "pathe";
-import * as caseLib from "case";
+import { CaseType, applyCaseTransform } from "../case-utils";
 import micromatch from "micromatch";
-
-/**
- * Available case transformation options.
- */
-export type CaseType = 'no' | 'camel' | 'capital' | 'constant' | 'dot' | 'header' | 'kebab' | 'lower' | 'param' | 'pascal' | 'path' | 'sentence' | 'snake' | 'swap' | 'title' | 'upper';
 
 /**
  * Available case transformation options for variable names.
@@ -239,21 +234,6 @@ export function flexibleImportAlgorithm(
     };
 }
 
-/**
- * Applies case transformation to a string using the case library.
- */
-function applyCaseTransform(str: string, caseType: string): string {
-    if (caseType === 'no') {
-        return str;
-    }
-    
-    const caseFunction = (caseLib as any)[caseType];
-    if (typeof caseFunction === 'function') {
-        return caseFunction(str);
-    }
-    return str;
-}
-
 function sanitizeVariableName(name: string): string {
     let sanitized = name.replace(/[^a-zA-Z0-9_$]/g, '$');
     
@@ -275,18 +255,14 @@ function sanitizeVariableName(name: string): string {
  */
 function applyCaseTransformToPath(filePath: string, caseType: FilePathCaseType): string {
     if (typeof caseType === 'string') {
-        // Apply case per segment (both directories and files)
         const segments = filePath.split('/');
         const fileName = segments[segments.length - 1];
         const directorySegments = segments.slice(0, -1);
         
-        // Apply case to directories
         const transformedDirectories = directorySegments.map(dir => applyCaseTransform(dir, caseType));
         
-        // Apply case to filename
         const transformedFileName = applyCaseTransformToFileName(fileName, caseType);
         
-        // Reconstruct path
         if (transformedDirectories.length === 0) {
             return transformedFileName;
         }
@@ -297,18 +273,14 @@ function applyCaseTransformToPath(filePath: string, caseType: FilePathCaseType):
     if (typeof caseType === 'object') {
         const { directories = 'no', files = 'no' } = caseType;
         
-        // Split path into segments
         const segments = filePath.split('/');
         const fileName = segments[segments.length - 1];
         const directorySegments = segments.slice(0, -1);
-        
-        // Apply case to directories
+
         const transformedDirectories = directorySegments.map(dir => applyCaseTransform(dir, directories));
         
-        // Apply case to filename
         const transformedFileName = applyCaseTransformToFileName(fileName, files);
         
-        // Reconstruct path
         if (transformedDirectories.length === 0) {
             return transformedFileName;
         }
@@ -329,18 +301,14 @@ function normalizePackageName(
 ): string {
     switch (scopedPackageHandling) {
         case 'remove-scope':
-            // Remove @scope/ part, keep only package name
             let result = packageName.replace(/^@[^/]+\//, '');
-            // For variableName context, ensure valid JavaScript identifier
             if (context === 'variableName') {
                 result = result.replace(/[^a-zA-Z0-9_$]/g, '_');
             }
             return result;
         case 'replace':
         default:
-            // Remove @ and replace / with appropriate separator based on context
             let normalized = packageName.replace(/@/g, '').replace(/\//g, context === 'variableName' ? '_' : '-');
-            // For variableName context, ensure valid JavaScript identifier
             if (context === 'variableName') {
                 normalized = normalized.replace(/[^a-zA-Z0-9_$]/g, '_');
             }
@@ -365,8 +333,7 @@ function generateVariableName(
         sanitizeVariableName: shouldSanitize = true,
         handleMissingVariableName = 'auto-generate'
     } = options;
-
-    // Handle missing variable name
+    
     if (!originalVariableName) {
         switch (handleMissingVariableName) {
             case 'skip':
@@ -406,27 +373,22 @@ function generateFilePath(
     const { groupByPackage = false, includePackageInPath = false, scopedPackageHandling = 'replace', case: caseType = 'no' } = options;
 
     if (groupByPackage) {
-        // Group all translations from this package into one file
         const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling, 'filePath');
         const fileName = `${normalizedPackageName}.ts`;
         return applyCaseTransformToFileName(fileName, typeof caseType === 'string' ? caseType : caseType.files || 'no');
     } else if (includePackageInPath) {
-        // Include package name in the path
         const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling, 'filePath');
         
         if (typeof caseType === 'string') {
-            // Apply case per segment for both package name and file path
             const transformedPackageName = applyCaseTransform(normalizedPackageName, caseType);
             const transformedFilePath = applyCaseTransformToPath(originalFileName, caseType);
             return join(transformedPackageName, transformedFilePath);
         } else {
-            // New behavior: apply case per segment
             const transformedPackageName = applyCaseTransform(normalizedPackageName, caseType.directories || 'no');
             const transformedFilePath = applyCaseTransformToPath(originalFileName, caseType);
             return join(transformedPackageName, transformedFilePath);
         }
     } else {
-        // Preserve original file structure with per-segment case transformation
         return applyCaseTransformToPath(originalFileName, caseType);
     }
 }
@@ -434,22 +396,19 @@ function generateFilePath(
 /**
  * Applies case transformation to a file name while preserving the extension.
  */
-function applyCaseTransformToFileName(fileName: string, caseType: string): string {
+function applyCaseTransformToFileName(fileName: string, caseType: CaseType): string {
     if (caseType === 'no') {
         return fileName;
     }
-    
-    // Split filename and extension
+
     const lastDotIndex = fileName.lastIndexOf('.');
     if (lastDotIndex === -1) {
-        // No extension, apply case to whole name
         return applyCaseTransform(fileName, caseType);
     }
     
     const nameWithoutExt = fileName.substring(0, lastDotIndex);
     const extension = fileName.substring(lastDotIndex);
     
-    // Apply case only to the name part, preserve extension
     const transformedName = applyCaseTransform(nameWithoutExt, caseType);
     return transformedName + extension;
 }

@@ -8,7 +8,7 @@
 export { 
     flexibleImportAlgorithm,
     type FlexibleImportAlgorithmOptions,
-    type CaseType,
-    type FilePathCaseType
+    type FilePathCaseType,
+    type VariableNameCaseType
 } from './flexible-import-algorithm.ts';
 

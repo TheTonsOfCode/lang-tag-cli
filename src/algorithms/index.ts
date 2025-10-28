@@ -5,8 +5,11 @@
  * - Collectors: Define how translation tags are organized into output files
  * - Config Generation: Customize tag configuration generation
  * - Import: Handle importing translation libraries
+ * - Case Utils: Common case transformation utilities
  */
 
+// Case Utilities
+export * from './case-utils';
 
 // Collectors Algorithms
 export * from './collector/index.ts';

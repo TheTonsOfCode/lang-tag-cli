@@ -1,6 +1,6 @@
 import { LangTagCLIConfigGenerationEvent } from "@/config.ts";
 import { sep } from "pathe";
-import * as caseLib from "case";
+import { CaseType, applyCaseTransform } from "../case-utils";
 
 const TRIGGER_NAME = "path-based-config-generator";
 
@@ -132,7 +132,7 @@ export interface PathBasedConfigGeneratorOptions {
      * 'lower', 'no', 'param', 'pascal', 'path', 'sentence', 'snake', 'swap', 'title', 'upper'
      * @default undefined (no transformation)
      */
-    namespaceCase?: 'camel' | 'capital' | 'constant' | 'dot' | 'header' | 'kebab' | 'lower' | 'no' | 'param' | 'pascal' | 'path' | 'sentence' | 'snake' | 'swap' | 'title' | 'upper';
+    namespaceCase?: CaseType;
 
     /**
      * Case transformation to apply to the path segments.
@@ -140,7 +140,7 @@ export interface PathBasedConfigGeneratorOptions {
      * 'lower', 'no', 'param', 'pascal', 'path', 'sentence', 'snake', 'swap', 'title', 'upper'
      * @default undefined (no transformation)
      */
-    pathCase?: 'camel' | 'capital' | 'constant' | 'dot' | 'header' | 'kebab' | 'lower' | 'no' | 'param' | 'pascal' | 'path' | 'sentence' | 'snake' | 'swap' | 'title' | 'upper';
+    pathCase?: CaseType;
 
     /**
      * Fallback namespace to use when no segments remain after filtering.
@@ -617,17 +617,6 @@ function applyPathRules(
     }
     
     return result;
-}
-
-/**
- * Applies case transformation to a string using the case library.
- */
-function applyCaseTransform(str: string, caseType: string): string {
-    const caseFunction = (caseLib as any)[caseType];
-    if (typeof caseFunction === 'function') {
-        return caseFunction(str);
-    }
-    return str;
 }
 
 /**
