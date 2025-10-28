@@ -18,3 +18,11 @@
 
 
     - argument o translacji pozycji schowac bo w 99% bedzie to 1 a jesli nie to w dokumentacji se ktos doczyta
+
+
+
+
+    - dodac info po wygenerowaniu ze jak już zainstalował wszystkie podstawowe biblioteki, reacta, typescripta itd.
+    (bo tag bedzie bazowany na tym co jest w projekcie)
+    to
+    polecam uzyc init-tag aby wygenerować wstępną wersje tag'a
