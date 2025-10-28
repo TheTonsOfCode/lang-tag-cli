@@ -81,13 +81,13 @@ export async function $LT_CMD_InitConfig(options: InitOptions = {}) {
             configFile: CONFIG_FILE_NAME,
         });
         logger.info(
-            '  2. Since you have installed all basic libraries (React, TypeScript, etc.)'
+            '  2. Ensure all dependencies are installed (TypeScript, React, etc.),'
         );
         logger.info(
-            '     and the initialized basic tag is based on what you use in your project,'
+            '     then run "npx lang-tag init-tag" to generate an initial tag'
         );
         logger.info(
-            '     we recommend using "npx lang-tag init-tag" to generate an initial version of the tag'
+            '     (the tag will be based on what libraries you have in your project)'
         );
         logger.info(
             '  3. Use your tag in the project under the include directories'
