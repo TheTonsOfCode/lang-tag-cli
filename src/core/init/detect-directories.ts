@@ -59,9 +59,7 @@ export function detectProjectDirectories(): string[] {
                 if (stat.isDirectory()) {
                     detectedFolders.push(entry);
                 }
-            } catch {
-                continue;
-            }
+            } catch {}
         }
     } catch {
         return ['src', 'app'];
