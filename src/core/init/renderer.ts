@@ -48,13 +48,13 @@ function loadTemplateFile(
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
 
-    // Try build path first (from dist/core/init to dist/templates/config)
+    // After build path
     let templatePath = join(__dirname, 'templates', 'config', filename);
 
     try {
         return readFileSync(templatePath, 'utf-8');
     } catch {
-        // Fallback to source path (from src/core/init to src/templates/config)
+        // Try sources (tests purposes)
         templatePath = join(
             __dirname,
             '..',
