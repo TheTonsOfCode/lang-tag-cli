@@ -27,9 +27,8 @@ interface TemplateData {
     hasConfigGeneration: boolean;
     usePathBased: boolean;
     useCustom: boolean;
-    showConfigGenerationComment: boolean;
     defaultNamespace: string;
-    showImportComment: boolean;
+    interfereWithCollection: boolean;
 }
 
 function renderTemplate(
@@ -126,10 +125,6 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
     const useCustom =
         hasConfigGeneration &&
         answers.configGeneration.useAlgorithm === 'custom';
-    const showConfigGenerationComment =
-        !hasConfigGeneration && answers.addCommentGuides;
-    const showImportComment =
-        !answers.importLibraries && answers.addCommentGuides;
 
     const needsTagName =
         answers.tagName !== 'lang' && answers.projectType === 'library';
@@ -151,10 +146,9 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
         hasConfigGeneration,
         usePathBased,
         useCustom,
-        showConfigGenerationComment,
         defaultNamespace:
             answers.namespaceOptions?.defaultNamespace || 'common',
-        showImportComment,
+        interfereWithCollection: answers.interfereWithCollection,
     };
 }
 

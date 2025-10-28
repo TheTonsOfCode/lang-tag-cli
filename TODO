@@ -8,9 +8,6 @@ const {
 
 
 
-- pytanie czy chce ingerowac w mechanizmy collectowania, defaultowo na No i nie renderuje tych 2 eventow
-
-
 
 localesDirectory ma nie renderowac jesli to biblioteka
 

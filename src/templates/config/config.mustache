@@ -68,12 +68,6 @@ const config = {
     },
 {{/useCustom}}
 {{/hasConfigGeneration}}
-{{#showConfigGenerationComment}}
-    // onConfigGeneration: async event => {
-    //     // Configure how tag configs are generated
-    //     // See documentation for available algorithms
-    // },
-{{/showConfigGenerationComment}}
     collect: {
 {{#isDictionary}}
         collector: new DictionaryCollector(),
@@ -81,6 +75,7 @@ const config = {
 {{^isDictionary}}
         defaultNamespace: '{{defaultNamespace}}',
 {{/isDictionary}}
+{{#interfereWithCollection}}
         onConflictResolution: async event => {
             await event.logger.conflict(event.conflict, true);
             // By default, continue processing even if conflicts occur
@@ -89,6 +84,7 @@ const config = {
         onCollectFinish: event => {
             if (event.conflicts.length) event.exit(); // Stop the process to avoid merging on conflict
         }
+{{/interfereWithCollection}}
     },
 {{#importLibraries}}
     import: {
@@ -97,13 +93,6 @@ const config = {
         onImport: flexibleImportAlgorithm({ filePath: { includePackageInPath: true } })
     },
 {{/importLibraries}}
-{{#showImportComment}}
-    // import: {
-    //     dir: 'src/lang-libraries',
-    //     tagImportPath: 'import { {{tagName}} } from "@/my-lang-tag-path"',
-    //     onImport: flexibleImportAlgorithm({ filePath: { includePackageInPath: true } })
-    // },
-{{/showImportComment}}
 };
 
 {{#isCJS}}module.exports = config;{{/isCJS}}{{^isCJS}}export default config;{{/isCJS}}

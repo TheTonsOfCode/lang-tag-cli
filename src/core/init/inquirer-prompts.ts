@@ -20,6 +20,7 @@ export interface InitAnswers {
         keepVariables?: boolean;
     };
     importLibraries: boolean;
+    interfereWithCollection: boolean;
     includeDirectories: string[];
     baseLanguageCode: string;
     addCommentGuides: boolean;
@@ -105,7 +106,7 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
     }
 
     const enableConfigGeneration = await confirm({
-        message: 'Do you want to enable automatic config generation for tags?',
+        message: 'Do you want to script config generation for tags?',
         default: projectType === 'project',
     });
 
@@ -150,6 +151,12 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
         default: projectType === 'project',
     });
 
+    const interfereWithCollection = await confirm({
+        message:
+            'Do you want to interfere with collection mechanisms (conflict resolution, collection finish)?',
+        default: false,
+    });
+
     const detectedDirectories = detectProjectDirectories();
     const includeDirectories = await checkbox<string>({
         message:
@@ -186,6 +193,7 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
         localesDirectory,
         configGeneration,
         importLibraries,
+        interfereWithCollection,
         includeDirectories,
         baseLanguageCode,
         addCommentGuides,
