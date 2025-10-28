@@ -3,7 +3,10 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { CONFIG_FILE_NAME } from '@/core/constants';
-import { askProjectSetupQuestions } from '@/core/init/inquirer-prompts';
+import {
+    askProjectSetupQuestions,
+    getDefaultAnswers,
+} from '@/core/init/inquirer-prompts';
 import { renderConfigTemplate } from '@/core/init/renderer';
 import { $LT_CreateDefaultLogger } from '@/core/logger/default-logger';
 import { LangTagCLILogger } from '@/logger';
@@ -32,7 +35,11 @@ async function detectModuleSystem(): Promise<'esm' | 'cjs'> {
     }
 }
 
-export async function $LT_CMD_InitConfig() {
+interface InitOptions {
+    yes?: boolean;
+}
+
+export async function $LT_CMD_InitConfig(options: InitOptions = {}) {
     const logger: LangTagCLILogger = $LT_CreateDefaultLogger();
 
     if (existsSync(CONFIG_FILE_NAME)) {
@@ -47,7 +54,13 @@ export async function $LT_CMD_InitConfig() {
     console.log('');
 
     try {
-        const answers = await askProjectSetupQuestions();
+        const answers = options.yes
+            ? getDefaultAnswers()
+            : await askProjectSetupQuestions();
+
+        if (options.yes) {
+            logger.info('Using default configuration (--yes flag detected)...');
+        }
 
         const moduleSystem = await detectModuleSystem();
 

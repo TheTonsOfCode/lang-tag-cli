@@ -99,7 +99,7 @@ export function prepareMainProjectBase(suffix: string) {
                     c: `${RUN_CMD}langtag c`,
                     i: `${RUN_CMD}langtag i`,
                     rt: `${RUN_CMD}lang-tag rt`,
-                    init: `${RUN_CMD}langtag init`,
+                    init: `${RUN_CMD}langtag init --yes`,
                     watch: `${RUN_CMD}lang-tag watch`,
                     compile: `${RUN_CMD}tsc`,
                 },

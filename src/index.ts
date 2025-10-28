@@ -44,6 +44,7 @@ export function createCli() {
     program
         .command('init')
         .description('Initialize project with default configuration')
+        .option('-y, --yes', 'Skip prompts and use default configuration')
         .action($LT_CMD_InitConfig);
 
     program

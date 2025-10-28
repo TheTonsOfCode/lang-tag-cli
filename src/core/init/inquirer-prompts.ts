@@ -26,6 +26,33 @@ export interface InitAnswers {
     addCommentGuides: boolean;
 }
 
+export function getDefaultAnswers(): InitAnswers {
+    const detectedDirectories = detectProjectDirectories();
+    const includeDirectories =
+        detectedDirectories.length > 0 ? [detectedDirectories[0]] : ['src'];
+
+    return {
+        projectType: 'project',
+        tagName: 'lang',
+        collectorType: 'namespace',
+        namespaceOptions: {
+            modifyNamespaceOptions: false,
+            defaultNamespace: 'common',
+        },
+        localesDirectory: 'public/locales',
+        configGeneration: {
+            enabled: true,
+            useAlgorithm: 'path-based',
+            keepVariables: true,
+        },
+        importLibraries: true,
+        interfereWithCollection: false,
+        includeDirectories,
+        baseLanguageCode: 'en',
+        addCommentGuides: false,
+    };
+}
+
 export async function askProjectSetupQuestions(): Promise<InitAnswers> {
     const projectType = await select<'project' | 'library'>({
         message: 'Is this a project or a library?',
