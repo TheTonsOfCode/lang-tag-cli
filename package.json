@@ -47,6 +47,10 @@
         "lang-tag": "*"
     },
     "dependencies": {
+        "@inquirer/checkbox": "^4.3.0",
+        "@inquirer/confirm": "^5.1.19",
+        "@inquirer/prompts": "^7.9.0",
+        "@inquirer/select": "^4.4.0",
         "acorn": "^8.15.0",
         "case": "^1.6.3",
         "chokidar": "^4.0.3",
