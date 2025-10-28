@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { defaultImportAlgorithm } from '../../src/algorithms/import/default-import-algorithm';
+import { flexibleImportAlgorithm } from '@/algorithms/import/flexible-import-algorithm.ts';
 import { LangTagCLIImportEvent } from '../../src/config';
 
 // Helper function to create a mock event
@@ -53,7 +53,7 @@ function createMockTag(variableName: string, translations: any = { hello: 'Hello
     };
 }
 
-describe('defaultImportAlgorithm', () => {
+describe('flexibleImportAlgorithm', () => {
     describe('Basic functionality', () => {
         it('should import all tags from all packages with default options', () => {
             const exports = [
@@ -77,7 +77,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm();
+            const algorithm = flexibleImportAlgorithm();
             
             algorithm(event);
 
@@ -114,7 +114,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm();
+            const algorithm = flexibleImportAlgorithm();
             
             algorithm(event);
 
@@ -141,7 +141,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm(); // No options - use defaults
+            const algorithm = flexibleImportAlgorithm(); // No options - use defaults
             
             algorithm(event);
 
@@ -183,7 +183,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports, true); // Enable debug
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     handleMissingVariableName: 'skip'
                 }
@@ -214,7 +214,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     prefixWithPackageName: true
                 }
@@ -240,7 +240,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     prefixWithPackageName: true,
                     scopedPackageHandling: 'replace'
@@ -267,7 +267,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     prefixWithPackageName: true,
                     scopedPackageHandling: 'remove-scope'
@@ -294,7 +294,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     prefixWithPackageName: true,
                     case: 'camel'
@@ -321,7 +321,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     prefixWithPackageName: true,
                     case: 'no'
@@ -353,7 +353,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     handleMissingVariableName: 'auto-generate'
                 }
@@ -399,7 +399,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     handleMissingVariableName: (tag, packageName, fileName, index) => {
                         const baseName = fileName.replace('.ts', '');
@@ -441,7 +441,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     prefixWithPackageName: true,
                     handleMissingVariableName: 'auto-generate',
@@ -475,7 +475,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     groupByPackage: true
                 }
@@ -503,7 +503,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     includePackageInPath: true
                 }
@@ -529,7 +529,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     groupByPackage: true,
                     scopedPackageHandling: 'replace'
@@ -556,7 +556,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     includePackageInPath: true,
                     case: 'camel'
@@ -591,7 +591,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports, true); // Enable debug
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 exclude: {
                     packages: ['excluded-package']
                 }
@@ -621,7 +621,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports, true); // Enable debug
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 exclude: {
                     namespaces: ['admin.*', 'internal*']
                 }
@@ -653,7 +653,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports, true); // Enable debug
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 exclude: {
                     namespaces: ['admin.*', 'internal*']
                 }
@@ -699,7 +699,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports, true); // Enable debug
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     prefixWithPackageName: true,
                     scopedPackageHandling: 'replace',
@@ -743,7 +743,7 @@ describe('defaultImportAlgorithm', () => {
         it('should handle empty exports array', () => {
             const exports: any[] = [];
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm();
+            const algorithm = flexibleImportAlgorithm();
             
             algorithm(event);
 
@@ -756,7 +756,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm();
+            const algorithm = flexibleImportAlgorithm();
             
             algorithm(event);
 
@@ -774,7 +774,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm();
+            const algorithm = flexibleImportAlgorithm();
             
             algorithm(event);
 
@@ -794,7 +794,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports, true); // Enable debug
-            const algorithm = defaultImportAlgorithm();
+            const algorithm = flexibleImportAlgorithm();
             
             algorithm(event);
 
@@ -815,7 +815,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     case: 'no'
                 }
@@ -841,7 +841,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     case: 'camel'
                 }
@@ -867,7 +867,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     case: 'kebab'
                 }
@@ -893,7 +893,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     case: 'snake'
                 }
@@ -919,7 +919,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     includePackageInPath: true,
                     case: 'kebab'
@@ -946,7 +946,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     includePackageInPath: true,
                     scopedPackageHandling: 'replace',
@@ -978,7 +978,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     groupByPackage: true,
                     case: 'kebab'
@@ -1015,7 +1015,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     includePackageInPath: true,
                     scopedPackageHandling: 'remove-scope',
@@ -1049,7 +1049,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     case: 'pascal'
                 }
@@ -1075,7 +1075,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     case: 'constant'
                 }
@@ -1101,7 +1101,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     case: {
                         directories: 'camel',
@@ -1130,7 +1130,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     includePackageInPath: true,
                     case: {
@@ -1160,7 +1160,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 filePath: {
                     includePackageInPath: true,
                     scopedPackageHandling: 'remove-scope',
@@ -1196,7 +1196,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm();
+            const algorithm = flexibleImportAlgorithm();
             
             algorithm(event);
 
@@ -1226,7 +1226,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 exclude: {
                     namespaces: ['admin.*']
                 }
@@ -1253,7 +1253,7 @@ describe('defaultImportAlgorithm', () => {
             ];
 
             const event = createMockEvent(exports);
-            const algorithm = defaultImportAlgorithm({
+            const algorithm = flexibleImportAlgorithm({
                 variableName: {
                     prefixWithPackageName: true,
                     scopedPackageHandling: 'replace',

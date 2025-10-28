@@ -84,7 +84,7 @@ export interface FilePathOptions {
     case?: FilePathCaseType;
 }
 
-export interface DefaultImportAlgorithmOptions {
+export interface FlexibleImportAlgorithmOptions {
     /**
      * Options for controlling variable name generation.
      */
@@ -126,11 +126,11 @@ export interface DefaultImportAlgorithmOptions {
  * 
  * @example
  * ```typescript
- * import { defaultImportAlgorithm } from '@lang-tag/cli/algorithms';
+ * import { flexibleImportAlgorithm } from '@lang-tag/cli/algorithms';
  * 
  * export default {
  *   import: {
- *     onImport: defaultImportAlgorithm({
+ *     onImport: flexibleImportAlgorithm({
  *       variableName: {
  *         prefixWithPackageName: true,
  *         scopedPackageHandling: 'replace', // '@scope/package' -> 'scope_package'
@@ -156,7 +156,7 @@ export interface DefaultImportAlgorithmOptions {
  * // Custom function for handling missing variable names
  * export default {
  *   import: {
- *     onImport: defaultImportAlgorithm({
+ *     onImport: flexibleImportAlgorithm({
  *       variableName: {
  *         handleMissingVariableName: (tag, packageName, fileName, index) => {
  *           // Generate predictable names based on package and file
@@ -169,8 +169,8 @@ export interface DefaultImportAlgorithmOptions {
  * };
  * ```
  */
-export function defaultImportAlgorithm(
-    options: DefaultImportAlgorithmOptions = {}
+export function flexibleImportAlgorithm(
+    options: FlexibleImportAlgorithmOptions = {}
 ): (event: LangTagCLIImportEvent) => void {
     const {
         variableName = {},

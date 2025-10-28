@@ -6,9 +6,9 @@
  */
 
 export { 
-    defaultImportAlgorithm, 
-    type DefaultImportAlgorithmOptions,
+    flexibleImportAlgorithm,
+    type FlexibleImportAlgorithmOptions,
     type CaseType,
     type FilePathCaseType
-} from './default-import-algorithm';
+} from './flexible-import-algorithm.ts';
 
