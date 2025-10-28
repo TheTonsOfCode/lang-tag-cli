@@ -3,7 +3,7 @@ import confirm from '@inquirer/confirm';
 import input from '@inquirer/input';
 import select from '@inquirer/select';
 
-import { detectProjectFolders } from './detect-directories';
+import { detectProjectDirectories } from './detect-directories';
 
 export interface InitAnswers {
     projectType: 'project' | 'library';
@@ -150,11 +150,11 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
         default: projectType === 'project',
     });
 
-    const detectedDirectories = detectProjectFolders();
-    const includeDirectories = await checkbox({
+    const detectedDirectories = detectProjectDirectories();
+    const includeDirectories = await checkbox<string>({
         message:
             'Select directories where lang tags will be used (you can add more later):',
-        choices: detectedDirectories.map((directory) => ({
+        choices: detectedDirectories.map((directory: string) => ({
             name: directory,
             value: directory,
             checked: directory === 'src' || detectedDirectories.length === 1,

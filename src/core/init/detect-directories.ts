@@ -11,7 +11,17 @@ function parseGitignore(cwd: string): string[] {
             .split('\n')
             .map((line) => line.trim())
             .filter((line) => line && !line.startsWith('#'))
-            .map((line) => (line.endsWith('/') ? line.slice(0, -1) : line));
+            .filter((line) => !line.startsWith('!')) // Exclude negation patterns
+            .map((line) => (line.endsWith('/') ? line.slice(0, -1) : line))
+            .filter((line) => {
+                // Only keep patterns that are meant for directories
+                // Exclude patterns with file extensions (*.log, *.json, etc.)
+                // Exclude patterns starting with * that are clearly for files
+                if (line.startsWith('*.')) return false;
+                if (line.includes('.') && line.split('.')[1].length <= 4)
+                    return false;
+                return true;
+            });
     } catch {
         return [];
     }
@@ -29,7 +39,7 @@ function isIgnored(entry: string, ignorePatterns: string[]): boolean {
     return micromatch.isMatch(entry, ignorePatterns);
 }
 
-export function detectProjectFolders(): string[] {
+export function detectProjectDirectories(): string[] {
     const cwd = process.cwd();
     const ignorePatterns = parseGitignore(cwd);
     const detectedFolders: string[] = [];
