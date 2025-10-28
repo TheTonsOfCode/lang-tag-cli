@@ -1,5 +1,19 @@
 
 
+naprawic puste:
+
+const {
+} = require('@lang-tag/cli/algorithms');
+
+
+
+
+- pytanie czy chce ingerowac w mechanizmy collectowania, defaultowo na No i nie renderuje tych 2 eventow
+
+
+
+localesDirectory ma nie renderowac jesli to biblioteka
+
 
 
     - dodac info po wygenerowaniu ze jak już zainstalował wszystkie podstawowe biblioteki, reacta, typescripta itd.
