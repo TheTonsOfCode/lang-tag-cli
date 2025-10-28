@@ -8,21 +8,21 @@ This core function transforms translation objects (of type `LangTagTranslations`
 
 ```ts
 import {
-  CallableTranslations,
-  InterpolationParams,
-  LangTagTranslations,
-  LangTagTranslationsConfig,
-  TranslationKeyProcessor,
-  TranslationMappingStrategy,
-  TranslationTransformContext,
-  // Supporting types that might be used when defining a strategy:
-  TranslationTransformer,
+    CallableTranslations,
+    InterpolationParams,
+    LangTagTranslations,
+    LangTagTranslationsConfig,
+    TranslationKeyProcessor,
+    TranslationMappingStrategy,
+    TranslationTransformContext,
+    // Supporting types that might be used when defining a strategy:
+    TranslationTransformer,
 } from 'lang-tag';
 
 function createCallableTranslations<T extends LangTagTranslations>(
-  translations: T,
-  config: LangTagTranslationsConfig | undefined,
-  strategy: TranslationMappingStrategy<LangTagTranslationsConfig>
+    translations: T,
+    config: LangTagTranslationsConfig | undefined,
+    strategy: TranslationMappingStrategy<LangTagTranslationsConfig>
 ): CallableTranslations<T>;
 ```
 
@@ -31,21 +31,21 @@ function createCallableTranslations<T extends LangTagTranslations>(
 - `translations: T`: The input object containing translation strings and nested objects.
 - `config: LangTagTranslationsConfig | undefined`: Configuration object, often including `namespace` and a base `path` for the translations.
 - `strategy: TranslationMappingStrategy<LangTagTranslationsConfig>`: An object defining the transformation behavior:
-  - `transform: TranslationTransformer`: A function that takes a `TranslationTransformContext` and returns the final string. This is where you define how placeholders are replaced.
-  - `processKey?: TranslationKeyProcessor`: An optional function to customize how keys are processed, e.g., for handling pluralization by generating multiple keys from a single input key.
+    - `transform: TranslationTransformer`: A function that takes a `TranslationTransformContext` and returns the final string. This is where you define how placeholders are replaced.
+    - `processKey?: TranslationKeyProcessor`: An optional function to customize how keys are processed, e.g., for handling pluralization by generating multiple keys from a single input key.
 
 **`TranslationTransformContext` (passed to `strategy.transform`):**
 
 ```ts
 interface TranslationTransformContext<
-  Config extends LangTagTranslationsConfig,
+    Config extends LangTagTranslationsConfig,
 > {
-  config: Config | undefined; // The config object passed to createCallableTranslations.
-  parentPath: string; // Dot-notation path of the parent object (e.g., "myFeature.greetings.").
-  path: string; // Full dot-notation path to the current translation (e.g., "myFeature.greetings.hello").
-  key: string; // The specific key of the current translation (e.g., "hello").
-  value: string; // The raw string value of the translation (e.g., "Hello {{name}}!").
-  params?: InterpolationParams; // Parameters passed when the resulting translation function is called (e.g., { name: "Joe" }).
+    config: Config | undefined; // The config object passed to createCallableTranslations.
+    parentPath: string; // Dot-notation path of the parent object (e.g., "myFeature.greetings.").
+    path: string; // Full dot-notation path to the current translation (e.g., "myFeature.greetings.hello").
+    key: string; // The specific key of the current translation (e.g., "hello").
+    value: string; // The raw string value of the translation (e.g., "Hello {{name}}!").
+    params?: InterpolationParams; // Parameters passed when the resulting translation function is called (e.g., { name: "Joe" }).
 }
 ```
 
@@ -53,13 +53,13 @@ interface TranslationTransformContext<
 
 ```ts
 interface TranslationKeyProcessorContext<
-  Config extends LangTagTranslationsConfig,
+    Config extends LangTagTranslationsConfig,
 > {
-  config: Config | undefined;
-  parentPath: string;
-  path: string; // Full path to the original key being processed.
-  key: string; // The original key being processed.
-  value: string; // The original value being processed.
+    config: Config | undefined;
+    parentPath: string;
+    path: string; // Full path to the original key being processed.
+    key: string; // The original key being processed.
+    value: string; // The original value being processed.
 }
 ```
 
@@ -67,8 +67,8 @@ interface TranslationKeyProcessorContext<
 
 ```ts
 type TranslationKeyProcessor<Config extends LangTagTranslationsConfig> = (
-  context: TranslationKeyProcessorContext<Config>,
-  addProcessedKey: (newKey: string, originalValue: string) => void
+    context: TranslationKeyProcessorContext<Config>,
+    addProcessedKey: (newKey: string, originalValue: string) => void
 ) => void;
 ```
 
@@ -91,7 +91,7 @@ Converts a `FlexibleTranslations<T>` object (where translations can be strings o
 import { CallableTranslations, FlexibleTranslations } from 'lang-tag';
 
 function normalizeTranslations<T>(
-  translations: FlexibleTranslations<T>
+    translations: FlexibleTranslations<T>
 ): CallableTranslations<T>;
 ```
 
@@ -101,13 +101,13 @@ A pre-defined `TranslationTransformer` that implements basic placeholder replace
 
 ```ts
 import {
-  LangTagTranslationsConfig,
-  TranslationTransformer,
-  defaultTranslationTransformer,
+    LangTagTranslationsConfig,
+    TranslationTransformer,
+    defaultTranslationTransformer,
 } from 'lang-tag';
 
 const myTransformer: TranslationTransformer<LangTagTranslationsConfig> =
-  defaultTranslationTransformer;
+    defaultTranslationTransformer;
 ```
 
 ## Core Types

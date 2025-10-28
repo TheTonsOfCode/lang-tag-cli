@@ -8,41 +8,41 @@ import { $LT_CreateDefaultLogger } from '@/core/logger/default-logger';
 import { LangTagCLILogger } from '@/logger';
 
 async function detectModuleSystem(): Promise<'esm' | 'cjs'> {
-  const packageJsonPath = join(process.cwd(), 'package.json');
+    const packageJsonPath = join(process.cwd(), 'package.json');
 
-  if (!existsSync(packageJsonPath)) {
-    return 'cjs';
-  }
-
-  try {
-    const content = await readFile(packageJsonPath, 'utf-8');
-    const packageJson = JSON.parse(content);
-
-    if (packageJson.type === 'module') {
-      return 'esm';
+    if (!existsSync(packageJsonPath)) {
+        return 'cjs';
     }
 
-    // Maybe check for .mjs files or other ESM indicators
-    // For now, default to CommonJS if not explicitly set to module
-    return 'cjs';
-  } catch (error) {
-    // Default to CommonJS on error
-    return 'cjs';
-  }
+    try {
+        const content = await readFile(packageJsonPath, 'utf-8');
+        const packageJson = JSON.parse(content);
+
+        if (packageJson.type === 'module') {
+            return 'esm';
+        }
+
+        // Maybe check for .mjs files or other ESM indicators
+        // For now, default to CommonJS if not explicitly set to module
+        return 'cjs';
+    } catch (error) {
+        // Default to CommonJS on error
+        return 'cjs';
+    }
 }
 
 async function generateDefaultConfig(): Promise<string> {
-  const moduleSystem = await detectModuleSystem();
-  const importStatement =
-    moduleSystem === 'esm'
-      ? `import { pathBasedConfigGenerator, configKeeper } from '@lang-tag/cli/algorithms';`
-      : `const { pathBasedConfigGenerator, configKeeper } = require('@lang-tag/cli/algorithms');`;
-  const exportStatement =
-    moduleSystem === 'esm'
-      ? 'export default config;'
-      : 'module.exports = config;';
+    const moduleSystem = await detectModuleSystem();
+    const importStatement =
+        moduleSystem === 'esm'
+            ? `import { pathBasedConfigGenerator, configKeeper } from '@lang-tag/cli/algorithms';`
+            : `const { pathBasedConfigGenerator, configKeeper } = require('@lang-tag/cli/algorithms');`;
+    const exportStatement =
+        moduleSystem === 'esm'
+            ? 'export default config;'
+            : 'module.exports = config;';
 
-  return `${importStatement}
+    return `${importStatement}
 
 const generationAlgorithm = pathBasedConfigGenerator({
     ignoreIncludesRootDirectories: true,
@@ -110,20 +110,20 @@ ${exportStatement}`;
 }
 
 export async function $LT_CMD_InitConfig() {
-  const logger: LangTagCLILogger = $LT_CreateDefaultLogger();
+    const logger: LangTagCLILogger = $LT_CreateDefaultLogger();
 
-  if (existsSync(CONFIG_FILE_NAME)) {
-    logger.success(
-      'Configuration file already exists. Please remove the existing configuration file before creating a new default one'
-    );
-    return;
-  }
+    if (existsSync(CONFIG_FILE_NAME)) {
+        logger.success(
+            'Configuration file already exists. Please remove the existing configuration file before creating a new default one'
+        );
+        return;
+    }
 
-  try {
-    const configContent = await generateDefaultConfig();
-    await writeFile(CONFIG_FILE_NAME, configContent, 'utf-8');
-    logger.success('Configuration file created successfully');
-  } catch (error: any) {
-    logger.error(error?.message);
-  }
+    try {
+        const configContent = await generateDefaultConfig();
+        await writeFile(CONFIG_FILE_NAME, configContent, 'utf-8');
+        logger.success('Configuration file created successfully');
+    } catch (error: any) {
+        logger.error(error?.message);
+    }
 }

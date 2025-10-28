@@ -28,11 +28,11 @@ A common scenario for `FlexibleTranslations` is when creating reusable component
 ```tsx
 // --- Library: src/components/ProfileCard.tsx ---
 import {
-  CallableTranslations,
-  FlexibleTranslations,
-  InterpolationParams,
-  ParameterizedTranslation,
-  normalizeTranslations,
+    CallableTranslations,
+    FlexibleTranslations,
+    InterpolationParams,
+    ParameterizedTranslation,
+    normalizeTranslations,
 } from 'lang-tag';
 import React from 'react';
 
@@ -41,43 +41,43 @@ import React from 'react';
 // 1. Define the SHAPE of translations your component expects.
 // This object's structure will be used with typeof.
 const profileCardTranslation = lang(
-  {
-    title: 'Member profile',
-    description: 'Some description',
-    welcomeMessage: 'Hello, {{name}}!',
-    footer: {
-      copyright: '© 2024 Company',
-      contact: 'Contact us at {{email}}',
+    {
+        title: 'Member profile',
+        description: 'Some description',
+        welcomeMessage: 'Hello, {{name}}!',
+        footer: {
+            copyright: '© 2024 Company',
+            contact: 'Contact us at {{email}}',
+        },
     },
-  },
-  { namespace: 'profile' }
+    { namespace: 'profile' }
 );
 
 // 2. Define Prop types for your component
 export interface ProfileCardProps {
-  userName?: string;
-  lastUpdateDate: string;
-  // The component accepts FlexibleTranslations based on the defined shape
-  translations: FlexibleTranslations<typeof profileCardTranslation>;
+    userName?: string;
+    lastUpdateDate: string;
+    // The component accepts FlexibleTranslations based on the defined shape
+    translations: FlexibleTranslations<typeof profileCardTranslation>;
 }
 
 export const ProfileCard: React.FC<ProfileCardProps> = ({
-  userName,
-  email,
-  translations,
+    userName,
+    email,
+    translations,
 }) => {
-  // 3. Normalize translations internally before use
-  const t = normalizeTranslations(translations);
+    // 3. Normalize translations internally before use
+    const t = normalizeTranslations(translations);
 
-  return (
-    <div className="profile-card">
-      <h1>{t.title()}</h1>
-      <p>{t.welcomeMessage({ name: userName })}</p>
-      <footer>
-        <p>{t.footer.contact({ email })}</p>
-      </footer>
-    </div>
-  );
+    return (
+        <div className="profile-card">
+            <h1>{t.title()}</h1>
+            <p>{t.welcomeMessage({ name: userName })}</p>
+            <footer>
+                <p>{t.footer.contact({ email })}</p>
+            </footer>
+        </div>
+    );
 };
 ```
 
@@ -96,9 +96,9 @@ import { normalizeTranslations } from 'lang-tag';
 
 // A translation object with mixed strings and functions
 const flexibleTranslations = {
-  title: 'Member profile',
-  description: 'Some description',
-  welcomeMessage: (params) => `Hello, ${params.name}!`,
+    title: 'Member profile',
+    description: 'Some description',
+    welcomeMessage: (params) => `Hello, ${params.name}!`,
 };
 
 // Normalize converts strings to functions
@@ -133,30 +133,30 @@ import { app_i18n } from '../utils/app_i18n';
 // Define translations for the ProfileCard, matching its expected shape.
 // This `cardTranslations` object will be of type CallableTranslations<typeof profileCardTranslationShape>
 const cardTranslations = app_i18n(
-  {
-    // These keys must match 'profileCardTranslationShape'
-    title: 'My Application Profile',
-    greeting: (params) => `Welcome back, ${params.name}!`,
-    description: 'Tell us about yourself...',
-    footer: {
-      contact: 'Constact us at: {{email}}',
+    {
+        // These keys must match 'profileCardTranslationShape'
+        title: 'My Application Profile',
+        greeting: (params) => `Welcome back, ${params.name}!`,
+        description: 'Tell us about yourself...',
+        footer: {
+            contact: 'Constact us at: {{email}}',
+        },
     },
-  },
-  { namespace: 'userViews', path: 'profilePage.card' }
+    { namespace: 'userViews', path: 'profilePage.card' }
 );
 
 export function UserProfilePage() {
-  const currentUser = { name: 'Alice', lastSeen: '2024-03-10' };
+    const currentUser = { name: 'Alice', lastSeen: '2024-03-10' };
 
-  // The output of app_i18n (cardTranslations) is already CallableTranslations.
-  // normalizeTranslations inside ProfileCard will handle this fine.
-  return (
-    <ProfileCard
-      userName={currentUser.name}
-      lastUpdateDate={currentUser.lastSeen}
-      translations={cardTranslations} // Pass the fully callable translations
-    />
-  );
+    // The output of app_i18n (cardTranslations) is already CallableTranslations.
+    // normalizeTranslations inside ProfileCard will handle this fine.
+    return (
+        <ProfileCard
+            userName={currentUser.name}
+            lastUpdateDate={currentUser.lastSeen}
+            translations={cardTranslations} // Pass the fully callable translations
+        />
+    );
 }
 ```
 
@@ -174,24 +174,24 @@ import React from 'react';
 // No lang-tag import needed here if providing raw translations
 
 export function AnotherProfilePage() {
-  const currentUser = { name: 'Bob', email: '2024-03-11' };
+    const currentUser = { name: 'Bob', email: '2024-03-11' };
 
-  return (
-    <ProfileCard
-      userName={currentUser.name}
-      lastUpdateDate={currentUser.lastSeen}
-      translations={{
-        // This is a FlexibleTranslations object
-        title: "Bob's View", // string
-        welcomeMessage: (params) => `Hey ${params.name}, what's up?`, // function
-        description: 'Some description', // string
-        footer: {
-          // Can mix strings and functions even in nested objects
-          contact: 'Contact at: {{email}}',
-        },
-      }}
-    />
-  );
+    return (
+        <ProfileCard
+            userName={currentUser.name}
+            lastUpdateDate={currentUser.lastSeen}
+            translations={{
+                // This is a FlexibleTranslations object
+                title: "Bob's View", // string
+                welcomeMessage: (params) => `Hey ${params.name}, what's up?`, // function
+                description: 'Some description', // string
+                footer: {
+                    // Can mix strings and functions even in nested objects
+                    contact: 'Contact at: {{email}}',
+                },
+            }}
+        />
+    );
 }
 ```
 
@@ -224,29 +224,29 @@ This is useful when you want to provide only a subset of translations for a give
 
 ```typescript
 import {
-  PartialFlexibleTranslations,
-  normalizeTranslations,
+    PartialFlexibleTranslations,
+    normalizeTranslations,
 } from './src/index';
 
 // Assuming the path is correct
 
 interface MyTranslations {
-  greeting: string;
-  farewell: string;
-  user: {
-    name: string;
-    age: string; // Represented as a string for translation purposes
-  };
+    greeting: string;
+    farewell: string;
+    user: {
+        name: string;
+        age: string; // Represented as a string for translation purposes
+    };
 }
 
 const partialMsgs: PartialFlexibleTranslations<MyTranslations> = {
-  greeting: 'Hi there!', // string becomes ParameterizedTranslation | string
-  user: {
-    // user itself is optional, and its properties are also optional
-    age: (params) => `Age: ${params?.years}`, // can be a ParameterizedTranslation directly
-  },
-  // farewell is omitted, which is allowed
-  // user.name is omitted, also allowed
+    greeting: 'Hi there!', // string becomes ParameterizedTranslation | string
+    user: {
+        // user itself is optional, and its properties are also optional
+        age: (params) => `Age: ${params?.years}`, // can be a ParameterizedTranslation directly
+    },
+    // farewell is omitted, which is allowed
+    // user.name is omitted, also allowed
 };
 
 // This can then be passed to normalizeTranslations:

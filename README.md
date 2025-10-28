@@ -50,33 +50,33 @@ Instead of maintaining separate translation files and complex key mappings, tran
 import { i18n } from '../utils/i18n';
 
 const translations = i18n(
-  {
-    greeting: 'Welcome {{name}} to our store!',
-    orderSummary: 'You have {{count}} items in your cart.',
-    actions: {
-      proceed: 'Proceed to Payment',
-      cancel: 'Cancel Order',
+    {
+        greeting: 'Welcome {{name}} to our store!',
+        orderSummary: 'You have {{count}} items in your cart.',
+        actions: {
+            proceed: 'Proceed to Payment',
+            cancel: 'Cancel Order',
+        },
     },
-  },
-  {
-    namespace: 'orders',
-    path: 'components.checkout',
-  }
+    {
+        namespace: 'orders',
+        path: 'components.checkout',
+    }
 );
 
 function CheckoutComponent({ name, count }) {
-  const t = translations.useT();
+    const t = translations.useT();
 
-  return (
-    <div>
-      <h2>{t.greeting({ name })}</h2>
-      <p>{t.orderSummary({ count })}</p>
-      <div>
-        <button>{t.actions.proceed()}</button>
-        <button>{t.actions.cancel()}</button>
-      </div>
-    </div>
-  );
+    return (
+        <div>
+            <h2>{t.greeting({ name })}</h2>
+            <p>{t.orderSummary({ count })}</p>
+            <div>
+                <button>{t.actions.proceed()}</button>
+                <button>{t.actions.cancel()}</button>
+            </div>
+        </div>
+    );
 }
 ```
 

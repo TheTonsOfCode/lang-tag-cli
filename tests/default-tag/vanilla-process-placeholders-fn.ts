@@ -8,17 +8,17 @@
  * @returns The processed string, or an empty string if the input was not a string.
  */
 export function processPlaceholders(
-  translation: any,
-  params?: { [key: string]: any | number }
+    translation: any,
+    params?: { [key: string]: any | number }
 ): string {
-  if (typeof translation !== 'string') {
-    // As a safeguard, return an empty string if the input is not a string.
-    return '';
-  }
-  return translation.replace(/{{(.*?)}}/g, (_: any, placeholder: string) => {
-    const trimmedPlaceholder = placeholder.trim();
-    return params?.[trimmedPlaceholder] !== undefined
-      ? String(params[trimmedPlaceholder])
-      : '';
-  });
+    if (typeof translation !== 'string') {
+        // As a safeguard, return an empty string if the input is not a string.
+        return '';
+    }
+    return translation.replace(/{{(.*?)}}/g, (_: any, placeholder: string) => {
+        const trimmedPlaceholder = placeholder.trim();
+        return params?.[trimmedPlaceholder] !== undefined
+            ? String(params[trimmedPlaceholder])
+            : '';
+    });
 }

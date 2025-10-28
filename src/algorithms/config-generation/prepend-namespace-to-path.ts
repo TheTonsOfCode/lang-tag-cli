@@ -29,34 +29,34 @@ export interface PrependNamespaceToPathOptions {}
  * @returns A function compatible with LangTagCLIConfigGenerationEvent
  */
 export function prependNamespaceToPath(
-  options: PrependNamespaceToPathOptions = {}
+    options: PrependNamespaceToPathOptions = {}
 ): (event: LangTagCLIConfigGenerationEvent) => Promise<void> {
-  return async (event: LangTagCLIConfigGenerationEvent) => {
-    const currentConfig = event.savedConfig;
-    const { namespace, path } = currentConfig || {};
+    return async (event: LangTagCLIConfigGenerationEvent) => {
+        const currentConfig = event.savedConfig;
+        const { namespace, path } = currentConfig || {};
 
-    const actualNamespace =
-      namespace || event.langTagConfig.collect?.defaultNamespace;
+        const actualNamespace =
+            namespace || event.langTagConfig.collect?.defaultNamespace;
 
-    if (!actualNamespace) {
-      return;
-    }
+        if (!actualNamespace) {
+            return;
+        }
 
-    let newPath: string;
+        let newPath: string;
 
-    if (path) {
-      newPath = `${actualNamespace}.${path}`;
-    } else {
-      newPath = actualNamespace;
-    }
+        if (path) {
+            newPath = `${actualNamespace}.${path}`;
+        } else {
+            newPath = actualNamespace;
+        }
 
-    event.save(
-      {
-        ...(currentConfig || {}),
-        path: newPath,
-        namespace: undefined,
-      },
-      TRIGGER_NAME
-    );
-  };
+        event.save(
+            {
+                ...(currentConfig || {}),
+                path: newPath,
+                namespace: undefined,
+            },
+            TRIGGER_NAME
+        );
+    };
 }

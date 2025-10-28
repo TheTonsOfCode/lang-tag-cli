@@ -5,50 +5,50 @@ Automatically generates `namespace` and `path` configuration from file path stru
 ## How It Works
 
 1. **Extract Path Segments**
-   - Takes the `relativePath` from the event
-   - Splits it into directory segments using path separator
+    - Takes the `relativePath` from the event
+    - Splits it into directory segments using path separator
 
 2. **Handle Filename** (option `includeFileName`)
-   - `false`: Removes filename from segments (default)
-   - `true`: Strips extension and includes filename as a segment
+    - `false`: Removes filename from segments (default)
+    - `true`: Strips extension and includes filename as a segment
 
 3. **Process Bracketed Directories** (option `removeBracketedDirectories`)
-   - `true`: Completely removes directories wrapped in `()` or `[]` (default)
-   - `false`: Only removes the brackets, keeps directory name
+    - `true`: Completely removes directories wrapped in `()` or `[]` (default)
+    - `false`: Only removes the brackets, keeps directory name
 
 4. **Extract Root Directories from Includes** (option `ignoreIncludesRootDirectories`)
-   - When enabled, automatically extracts root directory names from `config.includes` patterns
-   - Adds extracted directories to the ignore list
-   - Handles group patterns like `(src|app)` and `[frontend|backend]`
+    - When enabled, automatically extracts root directory names from `config.includes` patterns
+    - Adds extracted directories to the ignore list
+    - Handles group patterns like `(src|app)` and `[frontend|backend]`
 
 5. **Apply Path Transformation Rules** (option `pathRules` or `ignoreStructured`)
-   - **`pathRules`** (recommended): Advanced hierarchical rules with ignore and rename
-     - `_: false` - Ignores current segment but continues with nested rules
-     - `>: 'name'` - Renames current segment to specified value
-     - String value - Shorthand for rename (e.g., `segment: 'newName'`)
-     - Boolean value - Shorthand for ignore (e.g., `segment: false`)
-   - **`ignoreStructured`** (legacy): Hierarchical ignore-only rules
-     - `_: true` - Ignores current segment but continues with nested rules
-     - `true` - Ignores segment and stops hierarchy
-     - Array - Ignores specific child segments
-   - **Note:** Cannot use both `pathRules` and `ignoreStructured` simultaneously
+    - **`pathRules`** (recommended): Advanced hierarchical rules with ignore and rename
+        - `_: false` - Ignores current segment but continues with nested rules
+        - `>: 'name'` - Renames current segment to specified value
+        - String value - Shorthand for rename (e.g., `segment: 'newName'`)
+        - Boolean value - Shorthand for ignore (e.g., `segment: false`)
+    - **`ignoreStructured`** (legacy): Hierarchical ignore-only rules
+        - `_: true` - Ignores current segment but continues with nested rules
+        - `true` - Ignores segment and stops hierarchy
+        - Array - Ignores specific child segments
+    - **Note:** Cannot use both `pathRules` and `ignoreStructured` simultaneously
 
 6. **Apply Global Ignore** (option `ignoreDirectories`)
-   - Removes all segments matching globally ignored directory names
-   - Applied regardless of position in path
+    - Removes all segments matching globally ignored directory names
+    - Applied regardless of position in path
 
 7. **Generate Namespace**
-   - If segments remain: First segment becomes `namespace`
-   - If no segments: Uses `fallbackNamespace` (defaults to `langTagConfig.collect.defaultNamespace`)
+    - If segments remain: First segment becomes `namespace`
+    - If no segments: Uses `fallbackNamespace` (defaults to `langTagConfig.collect.defaultNamespace`)
 
 8. **Generate Path**
-   - If multiple segments remain: Remaining segments joined with `.` become `path`
-   - If empty: No `path` is set
+    - If multiple segments remain: Remaining segments joined with `.` become `path`
+    - If empty: No `path` is set
 
 9. **Apply Case Transformations** (options `lowercaseNamespace`, `namespaceCase`, `pathCase`)
-   - `lowercaseNamespace`: Converts namespace to lowercase
-   - `namespaceCase`: Applies case transformation to namespace (camel, snake, kebab, etc.)
-   - `pathCase`: Applies case transformation to each path segment
+    - `lowercaseNamespace`: Converts namespace to lowercase
+    - `namespaceCase`: Applies case transformation to namespace (camel, snake, kebab, etc.)
+    - `pathCase`: Applies case transformation to each path segment
 
 10. **Handle Default Namespace** (option `clearOnDefaultNamespace`)
     - `true` (default): When namespace equals fallback/default, omits it from config
@@ -80,8 +80,8 @@ Automatically generates `namespace` and `path` configuration from file path stru
 
 ```typescript
 pathBasedConfigGenerator({
-  ignoreDirectories: ['src', 'app'],
-  lowercaseNamespace: true,
+    ignoreDirectories: ['src', 'app'],
+    lowercaseNamespace: true,
 });
 ```
 
@@ -92,8 +92,8 @@ pathBasedConfigGenerator({
 
 ```typescript
 pathBasedConfigGenerator({
-  includeFileName: true,
-  ignoreDirectories: ['src'],
+    includeFileName: true,
+    ignoreDirectories: ['src'],
 });
 ```
 
@@ -104,8 +104,8 @@ pathBasedConfigGenerator({
 
 ```typescript
 pathBasedConfigGenerator({
-  removeBracketedDirectories: true,
-  ignoreDirectories: ['app'],
+    removeBracketedDirectories: true,
+    ignoreDirectories: ['app'],
 });
 ```
 
@@ -116,12 +116,12 @@ pathBasedConfigGenerator({
 
 ```typescript
 pathBasedConfigGenerator({
-  ignoreStructured: {
-    src: {
-      app: true,
-      features: ['auth', 'admin'],
+    ignoreStructured: {
+        src: {
+            app: true,
+            features: ['auth', 'admin'],
+        },
     },
-  },
 });
 ```
 
@@ -133,14 +133,14 @@ pathBasedConfigGenerator({
 
 ```typescript
 pathBasedConfigGenerator({
-  ignoreStructured: {
-    app: {
-      dashboard: {
-        _: true, // ignore "dashboard" but continue with nested rules
-        modules: true, // also ignore "modules"
-      },
+    ignoreStructured: {
+        app: {
+            dashboard: {
+                _: true, // ignore "dashboard" but continue with nested rules
+                modules: true, // also ignore "modules"
+            },
+        },
     },
-  },
 });
 ```
 
@@ -151,18 +151,18 @@ pathBasedConfigGenerator({
 
 ```typescript
 pathBasedConfigGenerator({
-  pathRules: {
-    app: {
-      dashboard: {
-        _: false, // ignore "dashboard" but continue
-        modules: false, // also ignore "modules"
-      },
-      admin: {
-        '>': 'management', // rename "admin" to "management"
-        users: false, // ignore "users"
-      },
+    pathRules: {
+        app: {
+            dashboard: {
+                _: false, // ignore "dashboard" but continue
+                modules: false, // also ignore "modules"
+            },
+            admin: {
+                '>': 'management', // rename "admin" to "management"
+                users: false, // ignore "users"
+            },
+        },
     },
-  },
 });
 ```
 
@@ -179,9 +179,9 @@ pathBasedConfigGenerator({
 
 ```typescript
 pathBasedConfigGenerator({
-  namespaceCase: 'kebab',
-  pathCase: 'camel',
-  ignoreDirectories: ['src'],
+    namespaceCase: 'kebab',
+    pathCase: 'camel',
+    ignoreDirectories: ['src'],
 });
 ```
 
@@ -193,8 +193,8 @@ pathBasedConfigGenerator({
 ```typescript
 // With config.includes: ['(src|app)/**/*.{js,ts,jsx,tsx}', 'components/**/*.{jsx,tsx}']
 pathBasedConfigGenerator({
-  ignoreIncludesRootDirectories: true, // Auto-ignores: src, app, components
-  lowercaseNamespace: true,
+    ignoreIncludesRootDirectories: true, // Auto-ignores: src, app, components
+    lowercaseNamespace: true,
 });
 ```
 
@@ -211,23 +211,23 @@ pathBasedConfigGenerator({
 
 ```typescript
 pathBasedConfigGenerator({
-  ignoreIncludesRootDirectories: true,
-  removeBracketedDirectories: true,
-  namespaceCase: 'kebab',
-  pathCase: 'camel',
-  clearOnDefaultNamespace: true,
-  ignoreDirectories: ['views'],
-  pathRules: {
-    app: {
-      dashboard: {
-        _: false, // ignore "dashboard"
-        modules: false, // ignore "modules"
-      },
-      admin: {
-        '>': 'management', // rename "admin" to "management"
-      },
+    ignoreIncludesRootDirectories: true,
+    removeBracketedDirectories: true,
+    namespaceCase: 'kebab',
+    pathCase: 'camel',
+    clearOnDefaultNamespace: true,
+    ignoreDirectories: ['views'],
+    pathRules: {
+        app: {
+            dashboard: {
+                _: false, // ignore "dashboard"
+                modules: false, // ignore "modules"
+            },
+            admin: {
+                '>': 'management', // rename "admin" to "management"
+            },
+        },
     },
-  },
 });
 ```
 

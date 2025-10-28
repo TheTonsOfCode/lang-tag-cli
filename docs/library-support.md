@@ -11,9 +11,9 @@ To designate your project as a library that exports its translations for consump
 ```javascript
 // lang-tag.config.js for your library project
 module.exports = {
-  // ... other configurations (tagName, includes, language, etc.)
-  isLibrary: true,
-  // outputDir is typically not needed or ignored in library mode, as translations are exported to .lang-tag.exports.json
+    // ... other configurations (tagName, includes, language, etc.)
+    isLibrary: true,
+    // outputDir is typically not needed or ignored in library mode, as translations are exported to .lang-tag.exports.json
 };
 ```
 
@@ -30,14 +30,14 @@ import { i18n } from '../utils/library-i18n-tag';
 // Your library's i18n tag setup
 
 export const libTranslations = i18n(
-  {
-    greeting: 'Hello from the library!',
-    farewell: 'Goodbye from the library, {{user}}.',
-  },
-  {
-    namespace: 'myLibNamespace', // Namespace for these library translations
-    path: 'myLibComponent', // Path within the namespace
-  }
+    {
+        greeting: 'Hello from the library!',
+        farewell: 'Goodbye from the library, {{user}}.',
+    },
+    {
+        namespace: 'myLibNamespace', // Namespace for these library translations
+        path: 'myLibComponent', // Path within the namespace
+    }
 );
 
 // Your library component might use these directly or expose them
@@ -65,21 +65,21 @@ For an application to consume translations from your `lang-tag` enabled library:
     ```javascript
     // lang-tag.config.js for the consuming application
     module.exports = {
-      // ... other app configurations (tagName, includes, outputDir, language, etc.)
-      import: {
-        // Directory within your app where lang-tag will generate modules for library translations
-        // Default: 'src/lang-tag-libs' (you might prefer a name like 'src/i18n/libs')
-        dir: 'src/i18n/generated-libs',
+        // ... other app configurations (tagName, includes, outputDir, language, etc.)
+        import: {
+            // Directory within your app where lang-tag will generate modules for library translations
+            // Default: 'src/lang-tag-libs' (you might prefer a name like 'src/i18n/libs')
+            dir: 'src/i18n/generated-libs',
 
-        // Import statement for the consuming application's OWN tag function.
-        // This is used in the generated files so they use the app's i18n setup.
-        // Example: 'import { i18n } from "@/utils/i18n-tag"',
-        tagImportPath: 'import { i18n } from "@/app/core/i18n-tag"', // Adjust to your app's i18n tag
+            // Import statement for the consuming application's OWN tag function.
+            // This is used in the generated files so they use the app's i18n setup.
+            // Example: 'import { i18n } from "@/utils/i18n-tag"',
+            tagImportPath: 'import { i18n } from "@/app/core/i18n-tag"', // Adjust to your app's i18n tag
 
-        // Optional: Function to customize the generated file and export names for library tags.
-        // onImport: (params: { libraryName: string; originalTagName: string; }) =>
-        //   ({ fileName?: string; exportName?: string; }),
-      },
+            // Optional: Function to customize the generated file and export names for library tags.
+            // onImport: (params: { libraryName: string; originalTagName: string; }) =>
+            //   ({ fileName?: string; exportName?: string; }),
+        },
     };
     ```
 
@@ -102,15 +102,15 @@ import { i18n } from '@/app/core/i18n-tag';
 // Using the app's i18n tag
 
 export const myLibNamespaceMyLibComponentTranslations = i18n(
-  {
-    greeting: 'Hello from the library!', // Default text from library
-    farewell: 'Goodbye from the library, {{user}}.',
-  },
-  {
-    namespace: 'myLibNamespace', // Original namespace from library
-    path: 'myLibComponent', // Original path from library
-    // lang-tag might add other metadata here, like isImported: true
-  }
+    {
+        greeting: 'Hello from the library!', // Default text from library
+        farewell: 'Goodbye from the library, {{user}}.',
+    },
+    {
+        namespace: 'myLibNamespace', // Original namespace from library
+        path: 'myLibComponent', // Original path from library
+        // lang-tag might add other metadata here, like isImported: true
+    }
 );
 
 // Other translations from the same library would also be here.
@@ -173,28 +173,28 @@ export type FeatureXTranslationProps = typeof featureXTranslations;
 import React from 'react';
 
 import {
-  FeatureXTranslationProps,
-  featureXTranslations,
+    FeatureXTranslationProps,
+    featureXTranslations,
 } from '../lib-features/FeatureX';
 
 interface FeatureXComponentProps {
-  // The component expects the callable translation object as a prop.
-  // This allows the consuming application to pass in potentially overridden translations.
-  t: FeatureXTranslationProps;
-  // other props...
+    // The component expects the callable translation object as a prop.
+    // This allows the consuming application to pass in potentially overridden translations.
+    t: FeatureXTranslationProps;
+    // other props...
 }
 
 export const FeatureXComponent: React.FC<FeatureXComponentProps> = ({
-  t,
-  ...props
+    t,
+    ...props
 }) => {
-  return (
-    <div>
-      <h2>{t.featureName()}</h2>
-      <button>{t.enableButton({ featureName: t.featureName() })}</button>
-      {/* ... rest of component ... */}
-    </div>
-  );
+    return (
+        <div>
+            <h2>{t.featureName()}</h2>
+            <button>{t.enableButton({ featureName: t.featureName() })}</button>
+            {/* ... rest of component ... */}
+        </div>
+    );
 };
 ```
 

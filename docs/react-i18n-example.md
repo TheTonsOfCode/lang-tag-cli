@@ -6,13 +6,13 @@ This guide demonstrates how to leverage `lang-tag`'s component-colocated transla
 
 - `lang-tag` installed in your project.
 - `react-i18next` and `i18next` installed:
-  ```bash
-  npm install react-i18next i18next --save
-  # or
-  yarn add react-i18next i18next
-  # or
-  pnpm add react-i18next i18next
-  ```
+    ```bash
+    npm install react-i18next i18next --save
+    # or
+    yarn add react-i18next i18next
+    # or
+    pnpm add react-i18next i18next
+    ```
 
 ## Setup Steps
 
@@ -23,63 +23,63 @@ Define a custom function (let's call it `i18n`) that uses `lang-tag`'s `createCa
 ```typescript
 // src/lib/i18n.ts (or your preferred location)
 import {
-  LangTagTranslations,
-  LangTagTranslationsConfig,
-  TranslationMappingStrategy,
-  // To type the strategy object
-  createCallableTranslations,
+    LangTagTranslations,
+    LangTagTranslationsConfig,
+    TranslationMappingStrategy,
+    // To type the strategy object
+    createCallableTranslations,
 } from 'lang-tag';
 import { useTranslation } from 'react-i18next';
 
 // Define your custom tag function
 export function i18n<T extends LangTagTranslations>(
-  translations: T,
-  config?: LangTagTranslationsConfig
+    translations: T,
+    config?: LangTagTranslationsConfig
 ) {
-  // Define the strategy for react-i18next integration
-  const i18nextStrategy = (
-    i18nInstance: any
-  ): TranslationMappingStrategy<LangTagTranslationsConfig> => ({
-    transform: ({ path, params }) => i18nInstance.t(path, params),
-    // processKey: ... // Add if you need advanced key processing like plural aliasing
-  });
+    // Define the strategy for react-i18next integration
+    const i18nextStrategy = (
+        i18nInstance: any
+    ): TranslationMappingStrategy<LangTagTranslationsConfig> => ({
+        transform: ({ path, params }) => i18nInstance.t(path, params),
+        // processKey: ... // Add if you need advanced key processing like plural aliasing
+    });
 
-  const i18nextKeysStrategy: TranslationMappingStrategy<LangTagTranslationsConfig> =
-    {
-      transform: ({ path }) => path,
+    const i18nextKeysStrategy: TranslationMappingStrategy<LangTagTranslationsConfig> =
+        {
+            transform: ({ path }) => path,
+        };
+
+    return {
+        /**
+         * Returns an object mapping original keys to their final translation paths (strings).
+         * Useful for scenarios where the hook cannot be used (e.g., SSR, constants).
+         * These paths are then passed to an i18next `t` function.
+         */
+        keys() {
+            return createCallableTranslations(
+                translations,
+                config,
+                i18nextKeysStrategy
+            );
+        },
+
+        /**
+         * A React hook that provides a typed `t` function object for client-side rendering.
+         * It uses react-i18next's `useTranslation` internally.
+         */
+        useT() {
+            const namespace = config?.namespace; // Or your default namespace logic
+            const { t: i18nextT } = useTranslation(namespace);
+
+            // Return a typed object where methods correspond to your keys
+            // and call i18nextT internally.
+            return createCallableTranslations(
+                translations,
+                config,
+                i18nextStrategy({ t: i18nextT })
+            );
+        },
     };
-
-  return {
-    /**
-     * Returns an object mapping original keys to their final translation paths (strings).
-     * Useful for scenarios where the hook cannot be used (e.g., SSR, constants).
-     * These paths are then passed to an i18next `t` function.
-     */
-    keys() {
-      return createCallableTranslations(
-        translations,
-        config,
-        i18nextKeysStrategy
-      );
-    },
-
-    /**
-     * A React hook that provides a typed `t` function object for client-side rendering.
-     * It uses react-i18next's `useTranslation` internally.
-     */
-    useT() {
-      const namespace = config?.namespace; // Or your default namespace logic
-      const { t: i18nextT } = useTranslation(namespace);
-
-      // Return a typed object where methods correspond to your keys
-      // and call i18nextT internally.
-      return createCallableTranslations(
-        translations,
-        config,
-        i18nextStrategy({ t: i18nextT })
-      );
-    },
-  };
 }
 ```
 
@@ -104,36 +104,42 @@ import { initReactI18next } from 'react-i18next';
 
 // To detect user language
 
-i18n
-  .use(HttpApi) // Use backend to load translations from files or an API
-  .use(LanguageDetector) // Detect user language in the browser
-  .use(initReactI18next) // Passes i18n instance to react-i18next
-  .init({
-    fallbackLng: 'en', // Default language if detected language is not available
-    debug: process.env.NODE_ENV === 'development', // Enable debug output in development
+i18n.use(HttpApi) // Use backend to load translations from files or an API
+    .use(LanguageDetector) // Detect user language in the browser
+    .use(initReactI18next) // Passes i18n instance to react-i18next
+    .init({
+        fallbackLng: 'en', // Default language if detected language is not available
+        debug: process.env.NODE_ENV === 'development', // Enable debug output in development
 
-    // Define all namespaces used in your project that i18next should be aware of.
-    // These should correspond to the namespaces you use in your lang-tag `i18n` calls.
-    ns: ['common', 'auth', 'dashboard', 'products', 'profile', 'userDetails'],
-    defaultNS: 'common', // Default namespace if not specified in useTranslation or t calls
+        // Define all namespaces used in your project that i18next should be aware of.
+        // These should correspond to the namespaces you use in your lang-tag `i18n` calls.
+        ns: [
+            'common',
+            'auth',
+            'dashboard',
+            'products',
+            'profile',
+            'userDetails',
+        ],
+        defaultNS: 'common', // Default namespace if not specified in useTranslation or t calls
 
-    backend: {
-      // Path to load translation files from.
-      // {{lng}} will be replaced with the language code (e.g., 'en')
-      // {{ns}} will be replaced with the namespace (e.g., 'auth')
-      // This MUST match lang-tag's outputDir structure (e.g., public/locales/en/auth.json)
-      loadPath: '/locales/{{lng}}/{{ns}}.json',
-    },
+        backend: {
+            // Path to load translation files from.
+            // {{lng}} will be replaced with the language code (e.g., 'en')
+            // {{ns}} will be replaced with the namespace (e.g., 'auth')
+            // This MUST match lang-tag's outputDir structure (e.g., public/locales/en/auth.json)
+            loadPath: '/locales/{{lng}}/{{ns}}.json',
+        },
 
-    interpolation: {
-      escapeValue: false, // React already protects against XSS
-    },
+        interpolation: {
+            escapeValue: false, // React already protects against XSS
+        },
 
-    // It's good practice to set saveMissing to true during development
-    // to automatically send missing keys to your backend or handler.
-    // saveMissing: true, // process.env.NODE_ENV === 'development',
-    // missingKeyHandler: (lng, ns, key, fallbackValue) => { /* ... report missing key ... */ }
-  });
+        // It's good practice to set saveMissing to true during development
+        // to automatically send missing keys to your backend or handler.
+        // saveMissing: true, // process.env.NODE_ENV === 'development',
+        // missingKeyHandler: (lng, ns, key, fallbackValue) => { /* ... report missing key ... */ }
+    });
 
 export default i18n;
 ```
@@ -150,84 +156,88 @@ const path = require('path'); // Optional, if you need to resolve paths
 
 /** @type {import('lang-tag').LangTagConfig} */
 module.exports = {
-  // Name of your custom tag function (e.g., 'i18n') that lang-tag should scan for.
-  tagName: 'i18n',
+    // Name of your custom tag function (e.g., 'i18n') that lang-tag should scan for.
+    tagName: 'i18n',
 
-  // Files to scan for translation tags.
-  includes: ['src/**/*.{ts,tsx,js,jsx}'],
-  // Files/directories to exclude from scanning.
-  excludes: [
-    'node_modules/**',
-    'dist/**',
-    'build/**',
-    '**/*.test.{ts,tsx,js,jsx}',
-    '**/*.spec.{ts,tsx,js,jsx}',
-    'src/i18next-config.ts', // Exclude i18next config file itself
-    'src/lib/i18n.ts', // Exclude the tag definition file
-  ],
+    // Files to scan for translation tags.
+    includes: ['src/**/*.{ts,tsx,js,jsx}'],
+    // Files/directories to exclude from scanning.
+    excludes: [
+        'node_modules/**',
+        'dist/**',
+        'build/**',
+        '**/*.test.{ts,tsx,js,jsx}',
+        '**/*.spec.{ts,tsx,js,jsx}',
+        'src/i18next-config.ts', // Exclude i18next config file itself
+        'src/lib/i18n.ts', // Exclude the tag definition file
+    ],
 
-  // Output directory for the base language (e.g., English).
-  // The structure should match react-i18next's `loadPath` format.
-  // For example, if outputDir is 'public/locales/en', translations for the 'common' namespace
-  // will be in 'public/locales/en/common.json'.
-  outputDir: 'public/locales/en',
+    // Output directory for the base language (e.g., English).
+    // The structure should match react-i18next's `loadPath` format.
+    // For example, if outputDir is 'public/locales/en', translations for the 'common' namespace
+    // will be in 'public/locales/en/common.json'.
+    outputDir: 'public/locales/en',
 
-  // Optional: Automatic config generation based on file path.
-  // This function runs when you use `lang-tag regenerate-tags`.
-  onConfigGeneration: (params) => {
-    const { filePath, isImportedLibrary, currentConfig } = params;
-    // `filePath` is like: 'src/components/Auth/LoginForm.tsx'
-    // `currentConfig` is the { namespace?, path? } object passed directly to your i18n() tag.
+    // Optional: Automatic config generation based on file path.
+    // This function runs when you use `lang-tag regenerate-tags`.
+    onConfigGeneration: (params) => {
+        const { filePath, isImportedLibrary, currentConfig } = params;
+        // `filePath` is like: 'src/components/Auth/LoginForm.tsx'
+        // `currentConfig` is the { namespace?, path? } object passed directly to your i18n() tag.
 
-    if (isImportedLibrary) return currentConfig; // Don't alter imported library configs
+        if (isImportedLibrary) return currentConfig; // Don't alter imported library configs
 
-    // Example: Skip if path is manually overridden (e.g., starts with '!')
-    if (currentConfig.path && currentConfig.path.startsWith('!')) {
-      return currentConfig;
-    }
+        // Example: Skip if path is manually overridden (e.g., starts with '!')
+        if (currentConfig.path && currentConfig.path.startsWith('!')) {
+            return currentConfig;
+        }
 
-    // --- Default/Calculated Values ---
-    let calculatedNamespace = 'common';
-    // Derive path from filename (e.g., LoginForm.tsx -> loginForm)
-    let calculatedPath = path.parse(filePath).name;
-    calculatedPath =
-      calculatedPath.charAt(0).toLowerCase() + calculatedPath.slice(1);
-    if (calculatedPath === 'index') {
-      // Avoid 'index' as path if it's an index file
-      const parentDir = path.basename(path.dirname(filePath));
-      calculatedPath = parentDir.charAt(0).toLowerCase() + parentDir.slice(1);
-    }
+        // --- Default/Calculated Values ---
+        let calculatedNamespace = 'common';
+        // Derive path from filename (e.g., LoginForm.tsx -> loginForm)
+        let calculatedPath = path.parse(filePath).name;
+        calculatedPath =
+            calculatedPath.charAt(0).toLowerCase() + calculatedPath.slice(1);
+        if (calculatedPath === 'index') {
+            // Avoid 'index' as path if it's an index file
+            const parentDir = path.basename(path.dirname(filePath));
+            calculatedPath =
+                parentDir.charAt(0).toLowerCase() + parentDir.slice(1);
+        }
 
-    // --- Logic to Determine Namespace & Path ---
-    const relativeFilePath = filePath.startsWith('src/')
-      ? filePath.substring(4)
-      : filePath;
-    const parts = relativeFilePath.split('/');
+        // --- Logic to Determine Namespace & Path ---
+        const relativeFilePath = filePath.startsWith('src/')
+            ? filePath.substring(4)
+            : filePath;
+        const parts = relativeFilePath.split('/');
 
-    // Example: Use directory name after 'components' or 'features' as namespace
-    // e.g., features/auth/LoginForm.tsx -> namespace: auth
-    const featureOrComponentIndex = parts.findIndex((p) =>
-      ['components', 'features', 'pages', 'views'].includes(p.toLowerCase())
-    );
-    if (
-      featureOrComponentIndex !== -1 &&
-      parts.length > featureOrComponentIndex + 1
-    ) {
-      // Check if the next part is not a file itself (implying it's a feature/module directory)
-      if (!parts[featureOrComponentIndex + 1].includes('.')) {
-        calculatedNamespace = parts[featureOrComponentIndex + 1].toLowerCase();
-      }
-    }
+        // Example: Use directory name after 'components' or 'features' as namespace
+        // e.g., features/auth/LoginForm.tsx -> namespace: auth
+        const featureOrComponentIndex = parts.findIndex((p) =>
+            ['components', 'features', 'pages', 'views'].includes(
+                p.toLowerCase()
+            )
+        );
+        if (
+            featureOrComponentIndex !== -1 &&
+            parts.length > featureOrComponentIndex + 1
+        ) {
+            // Check if the next part is not a file itself (implying it's a feature/module directory)
+            if (!parts[featureOrComponentIndex + 1].includes('.')) {
+                calculatedNamespace =
+                    parts[featureOrComponentIndex + 1].toLowerCase();
+            }
+        }
 
-    // --- Determine Final Config (Give priority to inline config) ---
-    const finalNamespace = currentConfig.namespace ?? calculatedNamespace;
-    const finalPath = currentConfig.path ?? calculatedPath;
+        // --- Determine Final Config (Give priority to inline config) ---
+        const finalNamespace = currentConfig.namespace ?? calculatedNamespace;
+        const finalPath = currentConfig.path ?? calculatedPath;
 
-    return {
-      namespace: finalNamespace,
-      path: finalPath,
-    };
-  },
+        return {
+            namespace: finalNamespace,
+            path: finalPath,
+        };
+    },
 };
 ```
 

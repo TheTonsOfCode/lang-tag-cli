@@ -7,116 +7,116 @@ import { TranslationsCollector } from '@/algorithms/collector/type';
 import { LangTagCLIProcessedTag } from '@/type';
 
 interface Options {
-  appendNamespaceToPath: boolean;
+    appendNamespaceToPath: boolean;
 }
 
 export class DictionaryCollector extends TranslationsCollector {
-  private clean!: boolean;
+    private clean!: boolean;
 
-  constructor(
-    private readonly options: Options = {
-      appendNamespaceToPath: false,
-    }
-  ) {
-    super();
-  }
-
-  aggregateCollection(namespace: string): string {
-    return this.config.baseLanguageCode;
-  }
-
-  transformTag(tag: LangTagCLIProcessedTag): LangTagCLIProcessedTag {
-    const originalPath = tag.parameterConfig.path;
-    let path = originalPath;
-
-    if (this.options.appendNamespaceToPath) {
-      path = tag.parameterConfig.namespace;
-      if (originalPath) {
-        path += '.';
-        path += originalPath;
-      }
-
-      return {
-        ...tag,
-        parameterConfig: {
-          ...tag.parameterConfig,
-          namespace: undefined,
-          path,
-        },
-      };
+    constructor(
+        private readonly options: Options = {
+            appendNamespaceToPath: false,
+        }
+    ) {
+        super();
     }
 
-    return tag;
-  }
-
-  async preWrite(clean: boolean): Promise<void> {
-    this.clean = clean;
-
-    const baseDictionaryFile = path.join(
-      this.config.localesDirectory,
-      `${this.config.baseLanguageCode}.json`
-    );
-
-    if (clean) {
-      this.logger.info('Removing {file}', { file: baseDictionaryFile });
-      await removeFile(baseDictionaryFile);
+    aggregateCollection(namespace: string): string {
+        return this.config.baseLanguageCode;
     }
 
-    await ensureDirectoryExists(this.config.localesDirectory);
-  }
+    transformTag(tag: LangTagCLIProcessedTag): LangTagCLIProcessedTag {
+        const originalPath = tag.parameterConfig.path;
+        let path = originalPath;
 
-  async resolveCollectionFilePath(baseLanguageCode: string): Promise<any> {
-    return resolve(
-      process.cwd(),
-      this.config.localesDirectory,
-      baseLanguageCode + '.json'
-    );
-  }
+        if (this.options.appendNamespaceToPath) {
+            path = tag.parameterConfig.namespace;
+            if (originalPath) {
+                path += '.';
+                path += originalPath;
+            }
 
-  async onMissingCollection(baseLanguageCode: string): Promise<void> {
-    if (!this.clean) {
-      this.logger.warn(
-        `Original dictionary file "{namespace}.json" not found. A new one will be created.`,
-        { namespace: baseLanguageCode }
-      );
-    }
-  }
+            return {
+                ...tag,
+                parameterConfig: {
+                    ...tag.parameterConfig,
+                    namespace: undefined,
+                    path,
+                },
+            };
+        }
 
-  async postWrite(changedCollections: string[]): Promise<void> {
-    if (!changedCollections?.length) {
-      this.logger.info(
-        'No changes were made based on the current configuration and files'
-      );
-      return;
+        return tag;
     }
 
-    if (changedCollections.length > 1) {
-      throw new Error(
-        'Should not write more than 1 collection! Only 1 base language dictionary expected!'
-      );
+    async preWrite(clean: boolean): Promise<void> {
+        this.clean = clean;
+
+        const baseDictionaryFile = path.join(
+            this.config.localesDirectory,
+            `${this.config.baseLanguageCode}.json`
+        );
+
+        if (clean) {
+            this.logger.info('Removing {file}', { file: baseDictionaryFile });
+            await removeFile(baseDictionaryFile);
+        }
+
+        await ensureDirectoryExists(this.config.localesDirectory);
     }
 
-    const dict = resolve(
-      this.config.localesDirectory,
-      this.config.baseLanguageCode + '.json'
-    );
+    async resolveCollectionFilePath(baseLanguageCode: string): Promise<any> {
+        return resolve(
+            process.cwd(),
+            this.config.localesDirectory,
+            baseLanguageCode + '.json'
+        );
+    }
 
-    this.logger.success('Updated dictionary {dict}', { dict });
-  }
+    async onMissingCollection(baseLanguageCode: string): Promise<void> {
+        if (!this.clean) {
+            this.logger.warn(
+                `Original dictionary file "{namespace}.json" not found. A new one will be created.`,
+                { namespace: baseLanguageCode }
+            );
+        }
+    }
+
+    async postWrite(changedCollections: string[]): Promise<void> {
+        if (!changedCollections?.length) {
+            this.logger.info(
+                'No changes were made based on the current configuration and files'
+            );
+            return;
+        }
+
+        if (changedCollections.length > 1) {
+            throw new Error(
+                'Should not write more than 1 collection! Only 1 base language dictionary expected!'
+            );
+        }
+
+        const dict = resolve(
+            this.config.localesDirectory,
+            this.config.baseLanguageCode + '.json'
+        );
+
+        this.logger.success('Updated dictionary {dict}', { dict });
+    }
 }
 
 async function ensureDirectoryExists(filePath: string): Promise<void> {
-  try {
-    await mkdir(filePath, { recursive: true });
-  } catch (error) {
-    if ((error as any).code !== 'EEXIST') {
-      throw error;
+    try {
+        await mkdir(filePath, { recursive: true });
+    } catch (error) {
+        if ((error as any).code !== 'EEXIST') {
+            throw error;
+        }
     }
-  }
 }
 
 async function removeFile(filePath: string): Promise<void> {
-  try {
-    await rm(filePath, { force: true });
-  } catch (error) {}
+    try {
+        await rm(filePath, { force: true });
+    } catch (error) {}
 }

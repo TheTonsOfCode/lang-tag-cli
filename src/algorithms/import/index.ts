@@ -6,15 +6,15 @@
  */
 
 export {
-  flexibleImportAlgorithm,
-  type FlexibleImportAlgorithmOptions,
-  type FilePathCaseType,
-  type VariableNameCaseType,
+    flexibleImportAlgorithm,
+    type FlexibleImportAlgorithmOptions,
+    type FilePathCaseType,
+    type VariableNameCaseType,
 } from './flexible-import-algorithm';
 
 export {
-  simpleMappingImportAlgorithm,
-  type SimpleMappingImportAlgorithmOptions,
-  type PackageMapping,
-  type FileMapping,
+    simpleMappingImportAlgorithm,
+    type SimpleMappingImportAlgorithmOptions,
+    type PackageMapping,
+    type FileMapping,
 } from './simple-mapping-import-algorithm';

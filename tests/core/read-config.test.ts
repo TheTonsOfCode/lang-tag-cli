@@ -15,112 +15,112 @@ vi.mock('pathe');
 vi.mock('url');
 
 describe('readConfig', () => {
-  const projectPath = '/fake/project';
-  const expectedConfigPath = '/fake/project/lang-tag.config.js';
-  const configUrl = 'file:///fake/project/lang-tag.config.js';
+    const projectPath = '/fake/project';
+    const expectedConfigPath = '/fake/project/lang-tag.config.js';
+    const configUrl = 'file:///fake/project/lang-tag.config.js';
 
-  beforeEach(() => {
-    vi.resetAllMocks();
+    beforeEach(() => {
+        vi.resetAllMocks();
 
-    // Setup mocks for path resolution and URL conversion
-    vi.mocked(resolve).mockImplementation((...args) =>
-      args.join('/').replace(/\/\/+/g, '/')
-    );
-    vi.mocked(pathToFileURL).mockImplementation(
-      (path) => ({ href: configUrl }) as any
-    );
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it('should throw error if config file does not exist', async () => {
-    vi.mocked(fs.existsSync).mockReturnValue(false);
-
-    await expect($LT_ReadConfig(projectPath)).rejects.toThrow(
-      `No "${CONFIG_FILE_NAME}" detected`
-    );
-    expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
-  });
-
-  it('should read and merge user config with default config if file exists', async () => {
-    const userConfig = {
-      tagName: 'myLang',
-      outputDir: 'custom/locales',
-      import: { dir: 'custom/imports' },
-    };
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-
-    await vi.doMock(configUrl, () => ({
-      default: userConfig,
-    }));
-
-    const config = await $LT_ReadConfig(projectPath);
-
-    expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
-    expect(config).toEqual({
-      ...defaultConfig,
-      ...userConfig,
-      import: {
-        ...defaultConfig.import,
-        ...userConfig.import,
-      },
+        // Setup mocks for path resolution and URL conversion
+        vi.mocked(resolve).mockImplementation((...args) =>
+            args.join('/').replace(/\/\/+/g, '/')
+        );
+        vi.mocked(pathToFileURL).mockImplementation(
+            (path) => ({ href: configUrl }) as any
+        );
     });
-  });
 
-  it('should throw error if config file exists but has no default export', async () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true);
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
 
-    // Mock the module to have a default export that is undefined
-    await vi.doMock(configUrl, () => ({
-      default: undefined,
-    }));
+    it('should throw error if config file does not exist', async () => {
+        vi.mocked(fs.existsSync).mockReturnValue(false);
 
-    await expect($LT_ReadConfig(projectPath)).rejects.toThrow(
-      'Config found, but default export is undefined'
-    );
-    expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
-  });
+        await expect($LT_ReadConfig(projectPath)).rejects.toThrow(
+            `No "${CONFIG_FILE_NAME}" detected`
+        );
+        expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
+    });
 
-  it('should correctly merge partial user config', async () => {
-    const partialUserConfig = {
-      baseLanguageCode: 'fr',
-      // Missing other fields like tagName, includes, excludes, outputDir, etc.
-    };
-    vi.mocked(fs.existsSync).mockReturnValue(true);
+    it('should read and merge user config with default config if file exists', async () => {
+        const userConfig = {
+            tagName: 'myLang',
+            outputDir: 'custom/locales',
+            import: { dir: 'custom/imports' },
+        };
+        vi.mocked(fs.existsSync).mockReturnValue(true);
 
-    await vi.doMock(configUrl, () => ({
-      default: partialUserConfig,
-    }));
+        await vi.doMock(configUrl, () => ({
+            default: userConfig,
+        }));
 
-    const config = await $LT_ReadConfig(projectPath);
+        const config = await $LT_ReadConfig(projectPath);
 
-    expect(config.baseLanguageCode).toBe('fr');
-    expect(config.tagName).toBe(defaultConfig.tagName);
-    expect(config.localesDirectory).toBe(defaultConfig.localesDirectory);
-    expect(config.import.dir).toBe(defaultConfig.import.dir);
-  });
+        expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
+        expect(config).toEqual({
+            ...defaultConfig,
+            ...userConfig,
+            import: {
+                ...defaultConfig.import,
+                ...userConfig.import,
+            },
+        });
+    });
 
-  it('should handle user config with partial nested import config', async () => {
-    const partialImportConfig = {
-      import: {
-        tagImportPath: 'import { customTag } from "custom/path"',
-        // Missing 'dir' and 'onImport'
-      },
-    };
-    vi.mocked(fs.existsSync).mockReturnValue(true);
+    it('should throw error if config file exists but has no default export', async () => {
+        vi.mocked(fs.existsSync).mockReturnValue(true);
 
-    await vi.doMock(configUrl, () => ({
-      default: partialImportConfig,
-    }));
+        // Mock the module to have a default export that is undefined
+        await vi.doMock(configUrl, () => ({
+            default: undefined,
+        }));
 
-    const config = await $LT_ReadConfig(projectPath);
+        await expect($LT_ReadConfig(projectPath)).rejects.toThrow(
+            'Config found, but default export is undefined'
+        );
+        expect(fs.existsSync).toHaveBeenCalledWith(expectedConfigPath);
+    });
 
-    expect(config.import.tagImportPath).toBe(
-      'import { customTag } from "custom/path"'
-    );
-    expect(config.import.dir).toBe(defaultConfig.import.dir);
-    expect(config.import.onImport).toBe(defaultConfig.import.onImport);
-  });
+    it('should correctly merge partial user config', async () => {
+        const partialUserConfig = {
+            baseLanguageCode: 'fr',
+            // Missing other fields like tagName, includes, excludes, outputDir, etc.
+        };
+        vi.mocked(fs.existsSync).mockReturnValue(true);
+
+        await vi.doMock(configUrl, () => ({
+            default: partialUserConfig,
+        }));
+
+        const config = await $LT_ReadConfig(projectPath);
+
+        expect(config.baseLanguageCode).toBe('fr');
+        expect(config.tagName).toBe(defaultConfig.tagName);
+        expect(config.localesDirectory).toBe(defaultConfig.localesDirectory);
+        expect(config.import.dir).toBe(defaultConfig.import.dir);
+    });
+
+    it('should handle user config with partial nested import config', async () => {
+        const partialImportConfig = {
+            import: {
+                tagImportPath: 'import { customTag } from "custom/path"',
+                // Missing 'dir' and 'onImport'
+            },
+        };
+        vi.mocked(fs.existsSync).mockReturnValue(true);
+
+        await vi.doMock(configUrl, () => ({
+            default: partialImportConfig,
+        }));
+
+        const config = await $LT_ReadConfig(projectPath);
+
+        expect(config.import.tagImportPath).toBe(
+            'import { customTag } from "custom/path"'
+        );
+        expect(config.import.dir).toBe(defaultConfig.import.dir);
+        expect(config.import.onImport).toBe(defaultConfig.import.onImport);
+    });
 });
