@@ -76,9 +76,12 @@ export async function $LT_CMD_InitConfig() {
         logger.info(
             '     we recommend using "npx lang-tag init-tag" to generate an initial version of the tag'
         );
-        logger.info('  3. Run "npx lang-tag collect" to collect translations');
+        logger.info(
+            '  3. Use your tag in the project under the include directories'
+        );
+        logger.info('  4. Run "npx lang-tag collect" to collect translations');
         if (answers.projectType === 'project') {
-            logger.info('  4. Your translations will be in {dir}', {
+            logger.info('  5. Your translations will be in {dir}', {
                 dir: answers.localesDirectory,
             });
         }
