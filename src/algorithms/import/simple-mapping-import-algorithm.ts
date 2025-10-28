@@ -131,7 +131,6 @@ export function simpleMappingImportAlgorithm(
 ): (event: LangTagCLIImportEvent) => void {
     const { mappings, configRemap } = options;
 
-    // Create lookup maps for faster access
     const packageMap = new Map<string, PackageMapping>();
     const fileMap = new Map<string, Map<string, FileMapping>>();
 
@@ -149,8 +148,7 @@ export function simpleMappingImportAlgorithm(
         
         for (const { packageJSON, exportData } of exports) {
             const packageName = packageJSON.name || 'unknown-package';
-            
-            // Skip if package not in mappings
+        
             const packageMapping = packageMap.get(packageName);
             if (!packageMapping) {
                 logger.debug(`Skipping unmapped package: ${packageName}`);
@@ -162,7 +160,6 @@ export function simpleMappingImportAlgorithm(
             for (const file of exportData.files) {
                 const sourceFile = file.relativeFilePath;
                 
-                // Skip if file not in mappings for this package
                 const packageFiles = fileMap.get(packageName);
                 if (!packageFiles) continue;
                 
@@ -177,19 +174,15 @@ export function simpleMappingImportAlgorithm(
                 for (const tag of file.tags) {
                     const originalVariableName = tag.variableName;
                     
-                    // Skip if variable not in mappings
                     if (!originalVariableName || !(originalVariableName in fileMapping.variables)) {
                         logger.debug(`Skipping unmapped variable: ${originalVariableName} in ${packageName}/${sourceFile}`);
                         continue;
                     }
 
-                    // Get new variable name (use original if undefined)
                     const newVariableName = fileMapping.variables[originalVariableName] || originalVariableName;
 
-                    // Use target file path directly
                     const targetFilePath = fileMapping.targetFile;
 
-                    // Apply config remapping if provided
                     let finalConfig = tag.config;
                     if (configRemap) {
                         finalConfig = configRemap(tag.config, {
