@@ -1,23 +1,36 @@
-import { LangTagCLIImportEvent } from "@/config.ts";
-import { join } from "pathe";
-import { CaseType, applyCaseTransform } from "../case-utils";
-import micromatch from "micromatch";
+import micromatch from 'micromatch';
+import { join } from 'pathe';
+
+import { LangTagCLIImportEvent } from '@/type';
+
+import { CaseType, applyCaseTransform } from '../case-utils';
 
 /**
  * Available case transformation options for variable names.
  * Only includes transformations that produce valid JavaScript identifiers.
  */
-export type VariableNameCaseType = 'no' | 'camel' | 'capital' | 'constant' | 'lower' | 'pascal' | 'snake' | 'swap' | 'upper';
+export type VariableNameCaseType =
+    | 'no'
+    | 'camel'
+    | 'capital'
+    | 'constant'
+    | 'lower'
+    | 'pascal'
+    | 'snake'
+    | 'swap'
+    | 'upper';
 
 /**
  * Case transformation configuration for file paths.
  * Can be a string for uniform case transformation, or an object with separate
  * case transformations for directories and files.
  */
-export type FilePathCaseType = CaseType | {
-    directories?: CaseType;
-    files?: CaseType;
-};
+export type FilePathCaseType =
+    | CaseType
+    | {
+          directories?: CaseType;
+          files?: CaseType;
+      };
 
 export interface VariableNameOptions {
     /**
@@ -55,18 +68,26 @@ export interface VariableNameOptions {
      * - Function: Custom function to generate variable names
      * @default 'auto-generate'
      */
-    handleMissingVariableName?: 'skip' | 'auto-generate' | ((tag: any, packageName: string, fileName: string, index: number) => string);
+    handleMissingVariableName?:
+        | 'skip'
+        | 'auto-generate'
+        | ((
+              tag: any,
+              packageName: string,
+              fileName: string,
+              index: number
+          ) => string);
 
     /**
      * Custom function to generate variable names, completely overriding original names from export.
      * When provided, this function will be used instead of the original variableName from the export.
-     * 
+     *
      * Note: The returned custom name will still be processed by all other transformations
      * (case transformation, sanitization, prefixWithPackageName, etc.).
-     * 
+     *
      * @param context - Context information about the import
      * @returns The custom variable name, or null to fall back to original naming logic
-     * 
+     *
      * @example
      * ```typescript
      * customVariableName: (context) => {
@@ -113,7 +134,7 @@ export interface FilePathOptions {
      * Case transformation to apply to file names and path segments.
      * Can be a string for uniform case transformation, or an object with separate
      * case transformations for directories and files.
-     * Available options: 'camel', 'capital', 'constant', 'dot', 'header', 'kebab', 
+     * Available options: 'camel', 'capital', 'constant', 'dot', 'header', 'kebab',
      * 'lower', 'no', 'param', 'pascal', 'path', 'sentence', 'snake', 'swap', 'title', 'upper'
      * @default 'no'
      */
@@ -176,11 +197,11 @@ export interface FlexibleImportAlgorithmOptions {
      * Function to remap/override configs before saving imported tags.
      * Allows modification of namespace, path, and other config properties
      * based on package name, file path, or other context.
-     * 
+     *
      * @param originalConfig - The original config from the imported tag
      * @param context - Context information about the import
      * @returns The modified config object, or null to remove the config from the tag
-     * 
+     *
      * @example
      * ```typescript
      * configRemap: (config, context) => {
@@ -188,17 +209,17 @@ export interface FlexibleImportAlgorithmOptions {
      *   if (context.packageName === 'ui-components') {
      *     return { ...config, namespace: 'ui' };
      *   }
-     *   
+     *
      *   // Remove config for certain packages (tag will be imported without config)
      *   if (context.packageName === 'no-config-package') {
      *     return null;
      *   }
-     *   
+     *
      *   // Add prefix to all paths
      *   if (config.path) {
      *     return { ...config, path: `lib.${config.path}` };
      *   }
-     *   
+     *
      *   return config;
      * }
      * ```
@@ -212,22 +233,21 @@ export interface FlexibleImportAlgorithmOptions {
             tagIndex: number;
         }
     ) => any | null;
-
 }
 
 /**
  * Default import algorithm that imports translations from libraries.
- * 
+ *
  * This algorithm provides flexible options for organizing imported translations
  * while preserving the ability to customize the import process.
- * 
+ *
  * @param options - Configuration options for the import algorithm
  * @returns A function compatible with LangTagCLIConfig.import.onImport
- * 
+ *
  * @example
  * ```typescript
  * import { flexibleImportAlgorithm } from '@lang-tag/cli/algorithms';
- * 
+ *
  * export default {
  *   import: {
  *     onImport: flexibleImportAlgorithm({
@@ -263,23 +283,32 @@ export function flexibleImportAlgorithm(
         filePath = {},
         include,
         exclude = {},
-        configRemap
+        configRemap,
     } = options;
 
-    const { packages: includePackages, namespaces: includeNamespaces } = include || {};
-    const { packages: excludePackages = [], namespaces: excludeNamespaces = [] } = exclude;
+    const { packages: includePackages, namespaces: includeNamespaces } =
+        include || {};
+    const {
+        packages: excludePackages = [],
+        namespaces: excludeNamespaces = [],
+    } = exclude;
 
     return (event: LangTagCLIImportEvent) => {
         const { exports, importManager, logger } = event;
-        
+
         for (const { packageJSON, exportData } of exports) {
             const packageName = packageJSON.name || 'unknown-package';
-            
-            if (includePackages && !matchesAnyPattern(packageName, includePackages)) {
-                logger.debug(`Skipping package not in include list: ${packageName}`);
+
+            if (
+                includePackages &&
+                !matchesAnyPattern(packageName, includePackages)
+            ) {
+                logger.debug(
+                    `Skipping package not in include list: ${packageName}`
+                );
                 continue;
             }
-            
+
             if (matchesAnyPattern(packageName, excludePackages)) {
                 logger.debug(`Skipping excluded package: ${packageName}`);
                 continue;
@@ -289,28 +318,52 @@ export function flexibleImportAlgorithm(
 
             for (const file of exportData.files) {
                 const originalFileName = file.relativeFilePath;
-                
-                const targetFilePath = generateFilePath(packageName, originalFileName, filePath);
+
+                const targetFilePath = generateFilePath(
+                    packageName,
+                    originalFileName,
+                    filePath
+                );
 
                 for (let i = 0; i < file.tags.length; i++) {
                     const tag = file.tags[i];
-                    
+
                     const tagNamespace = (tag.config as any)?.namespace;
-                    
-                    if (includeNamespaces && tagNamespace && !matchesAnyPattern(tagNamespace, includeNamespaces)) {
-                        logger.debug(`Skipping namespace not in include list: ${tagNamespace}`);
-                        continue;
-                    }
-                    
-                    if (tagNamespace && matchesAnyPattern(tagNamespace, excludeNamespaces)) {
-                        logger.debug(`Skipping excluded namespace: ${tagNamespace}`);
+
+                    if (
+                        includeNamespaces &&
+                        tagNamespace &&
+                        !matchesAnyPattern(tagNamespace, includeNamespaces)
+                    ) {
+                        logger.debug(
+                            `Skipping namespace not in include list: ${tagNamespace}`
+                        );
                         continue;
                     }
 
-                    const finalVariableName = generateVariableName(tag.variableName, packageName, originalFileName, i, variableName, tag);
+                    if (
+                        tagNamespace &&
+                        matchesAnyPattern(tagNamespace, excludeNamespaces)
+                    ) {
+                        logger.debug(
+                            `Skipping excluded namespace: ${tagNamespace}`
+                        );
+                        continue;
+                    }
+
+                    const finalVariableName = generateVariableName(
+                        tag.variableName,
+                        packageName,
+                        originalFileName,
+                        i,
+                        variableName,
+                        tag
+                    );
 
                     if (finalVariableName === null) {
-                        logger.debug(`Skipping tag without variableName in ${join(packageName, originalFileName)}`);
+                        logger.debug(
+                            `Skipping tag without variableName in ${join(packageName, originalFileName)}`
+                        );
                         continue;
                     }
 
@@ -320,11 +373,13 @@ export function flexibleImportAlgorithm(
                             packageName,
                             fileName: originalFileName,
                             variableName: finalVariableName,
-                            tagIndex: i
+                            tagIndex: i,
                         });
-                        
+
                         if (remappedConfig === null) {
-                            logger.debug(`Removing config due to configRemap returning null in ${join(packageName, originalFileName)}`);
+                            logger.debug(
+                                `Removing config due to configRemap returning null in ${join(packageName, originalFileName)}`
+                            );
                             finalConfig = null;
                         } else {
                             finalConfig = remappedConfig;
@@ -334,10 +389,12 @@ export function flexibleImportAlgorithm(
                     importManager.importTag(targetFilePath, {
                         variableName: finalVariableName,
                         translations: tag.translations,
-                        config: finalConfig
+                        config: finalConfig,
                     });
 
-                    logger.debug(`Imported: ${finalVariableName} -> ${targetFilePath}`);
+                    logger.debug(
+                        `Imported: ${finalVariableName} -> ${targetFilePath}`
+                    );
                 }
             }
         }
@@ -346,15 +403,15 @@ export function flexibleImportAlgorithm(
 
 function sanitizeVariableName(name: string): string {
     let sanitized = name.replace(/[^a-zA-Z0-9_$]/g, '$');
-    
+
     if (/^[0-9]/.test(sanitized)) {
         sanitized = '$' + sanitized;
     }
-    
+
     if (sanitized === '') {
         sanitized = '$';
     }
-    
+
     return sanitized;
 }
 
@@ -363,41 +420,54 @@ function sanitizeVariableName(name: string): string {
  * If caseType is a string, applies uniform transformation per segment.
  * If caseType is an object, applies separate transformations for directories and files.
  */
-function applyCaseTransformToPath(filePath: string, caseType: FilePathCaseType): string {
+function applyCaseTransformToPath(
+    filePath: string,
+    caseType: FilePathCaseType
+): string {
     if (typeof caseType === 'string') {
         const segments = filePath.split('/');
         const fileName = segments[segments.length - 1];
         const directorySegments = segments.slice(0, -1);
-        
-        const transformedDirectories = directorySegments.map(dir => applyCaseTransform(dir, caseType));
-        
-        const transformedFileName = applyCaseTransformToFileName(fileName, caseType);
-        
+
+        const transformedDirectories = directorySegments.map((dir) =>
+            applyCaseTransform(dir, caseType)
+        );
+
+        const transformedFileName = applyCaseTransformToFileName(
+            fileName,
+            caseType
+        );
+
         if (transformedDirectories.length === 0) {
             return transformedFileName;
         }
-        
+
         return [...transformedDirectories, transformedFileName].join('/');
     }
-    
+
     if (typeof caseType === 'object') {
         const { directories = 'no', files = 'no' } = caseType;
-        
+
         const segments = filePath.split('/');
         const fileName = segments[segments.length - 1];
         const directorySegments = segments.slice(0, -1);
 
-        const transformedDirectories = directorySegments.map(dir => applyCaseTransform(dir, directories));
-        
-        const transformedFileName = applyCaseTransformToFileName(fileName, files);
-        
+        const transformedDirectories = directorySegments.map((dir) =>
+            applyCaseTransform(dir, directories)
+        );
+
+        const transformedFileName = applyCaseTransformToFileName(
+            fileName,
+            files
+        );
+
         if (transformedDirectories.length === 0) {
             return transformedFileName;
         }
-        
+
         return [...transformedDirectories, transformedFileName].join('/');
     }
-    
+
     return filePath;
 }
 
@@ -418,7 +488,9 @@ function normalizePackageName(
             return result;
         case 'replace':
         default:
-            let normalized = packageName.replace(/@/g, '').replace(/\//g, context === 'variableName' ? '_' : '-');
+            let normalized = packageName
+                .replace(/@/g, '')
+                .replace(/\//g, context === 'variableName' ? '_' : '-');
             if (context === 'variableName') {
                 normalized = normalized.replace(/[^a-zA-Z0-9_$]/g, '_');
             }
@@ -437,29 +509,29 @@ function generateVariableName(
     options: VariableNameOptions,
     tag: any
 ): string | null {
-    const { 
-        prefixWithPackageName = false, 
-        scopedPackageHandling = 'replace', 
+    const {
+        prefixWithPackageName = false,
+        scopedPackageHandling = 'replace',
         case: caseType = 'no',
         sanitizeVariableName: shouldSanitize = true,
         handleMissingVariableName = 'auto-generate',
-        customVariableName
+        customVariableName,
     } = options;
-    
+
     if (customVariableName) {
         const customName = customVariableName({
             packageName,
             fileName,
             originalVariableName,
             tagIndex: index,
-            tag
+            tag,
         });
-        
+
         if (customName !== null) {
             originalVariableName = customName;
         }
     }
-    
+
     if (!originalVariableName) {
         switch (handleMissingVariableName) {
             case 'skip':
@@ -469,7 +541,12 @@ function generateVariableName(
                 break;
             default:
                 if (typeof handleMissingVariableName === 'function') {
-                    originalVariableName = handleMissingVariableName({}, packageName, fileName, index);
+                    originalVariableName = handleMissingVariableName(
+                        {},
+                        packageName,
+                        fileName,
+                        index
+                    );
                 } else {
                     return null;
                 }
@@ -479,13 +556,19 @@ function generateVariableName(
     let finalName = originalVariableName;
 
     if (prefixWithPackageName) {
-        const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling, 'variableName');
+        const normalizedPackageName = normalizePackageName(
+            packageName,
+            scopedPackageHandling,
+            'variableName'
+        );
         finalName = `${normalizedPackageName}_${originalVariableName}`;
     }
 
     const transformedName = applyCaseTransform(finalName, caseType);
-    
-    return shouldSanitize ? sanitizeVariableName(transformedName) : transformedName;
+
+    return shouldSanitize
+        ? sanitizeVariableName(transformedName)
+        : transformedName;
 }
 
 /**
@@ -496,22 +579,50 @@ function generateFilePath(
     originalFileName: string,
     options: FilePathOptions
 ): string {
-    const { groupByPackage = false, includePackageInPath = false, scopedPackageHandling = 'replace', case: caseType = 'no' } = options;
+    const {
+        groupByPackage = false,
+        includePackageInPath = false,
+        scopedPackageHandling = 'replace',
+        case: caseType = 'no',
+    } = options;
 
     if (groupByPackage) {
-        const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling, 'filePath');
+        const normalizedPackageName = normalizePackageName(
+            packageName,
+            scopedPackageHandling,
+            'filePath'
+        );
         const fileName = `${normalizedPackageName}.ts`;
-        return applyCaseTransformToFileName(fileName, typeof caseType === 'string' ? caseType : caseType.files || 'no');
+        return applyCaseTransformToFileName(
+            fileName,
+            typeof caseType === 'string' ? caseType : caseType.files || 'no'
+        );
     } else if (includePackageInPath) {
-        const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling, 'filePath');
-        
+        const normalizedPackageName = normalizePackageName(
+            packageName,
+            scopedPackageHandling,
+            'filePath'
+        );
+
         if (typeof caseType === 'string') {
-            const transformedPackageName = applyCaseTransform(normalizedPackageName, caseType);
-            const transformedFilePath = applyCaseTransformToPath(originalFileName, caseType);
+            const transformedPackageName = applyCaseTransform(
+                normalizedPackageName,
+                caseType
+            );
+            const transformedFilePath = applyCaseTransformToPath(
+                originalFileName,
+                caseType
+            );
             return join(transformedPackageName, transformedFilePath);
         } else {
-            const transformedPackageName = applyCaseTransform(normalizedPackageName, caseType.directories || 'no');
-            const transformedFilePath = applyCaseTransformToPath(originalFileName, caseType);
+            const transformedPackageName = applyCaseTransform(
+                normalizedPackageName,
+                caseType.directories || 'no'
+            );
+            const transformedFilePath = applyCaseTransformToPath(
+                originalFileName,
+                caseType
+            );
             return join(transformedPackageName, transformedFilePath);
         }
     } else {
@@ -522,7 +633,10 @@ function generateFilePath(
 /**
  * Applies case transformation to a file name while preserving the extension.
  */
-function applyCaseTransformToFileName(fileName: string, caseType: CaseType): string {
+function applyCaseTransformToFileName(
+    fileName: string,
+    caseType: CaseType
+): string {
     if (caseType === 'no') {
         return fileName;
     }
@@ -531,10 +645,10 @@ function applyCaseTransformToFileName(fileName: string, caseType: CaseType): str
     if (lastDotIndex === -1) {
         return applyCaseTransform(fileName, caseType);
     }
-    
+
     const nameWithoutExt = fileName.substring(0, lastDotIndex);
     const extension = fileName.substring(lastDotIndex);
-    
+
     const transformedName = applyCaseTransform(nameWithoutExt, caseType);
     return transformedName + extension;
 }

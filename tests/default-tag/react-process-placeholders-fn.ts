@@ -1,8 +1,8 @@
-import {ReactNode} from "react";
+import { ReactNode } from 'react';
 
 export function reactProcessPlaceholders(
     translation: string,
-    params?: { [key: string]: ReactNode },
+    params?: { [key: string]: ReactNode }
 ): string {
     if (typeof translation !== 'string') return '';
 
@@ -29,7 +29,7 @@ export function reactProcessPlaceholders(
         parts.push(translation.slice(lastIndex));
     }
 
-    if (parts.every(part => typeof part === 'string')) {
+    if (parts.every((part) => typeof part === 'string')) {
         return parts.join('');
     }
 

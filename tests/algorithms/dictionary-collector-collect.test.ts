@@ -1,9 +1,16 @@
-import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {$LT_CMD_Collect} from '@/commands/cmd-collect';
-import {DictionaryCollector} from '@/algorithms/collector/dictionary-collector';
-import {LangTagCLIConfig, LangTagCLIProcessedTag, LangTagCLIConflictResolutionEvent, LangTagCLICollectFinishEvent, LangTagCLICollectConfigFixEvent} from '@/config';
-import {LangTagCLILogger} from '@/logger';
-import {$LT_TagCandidateFile} from '@/core/collect/collect-tags';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { DictionaryCollector } from '@/algorithms/collector/dictionary-collector';
+import { $LT_CMD_Collect } from '@/commands/cmd-collect';
+import { $LT_TagCandidateFile } from '@/core/collect/collect-tags';
+import { LangTagCLILogger } from '@/logger';
+import {
+    LangTagCLICollectConfigFixEvent,
+    LangTagCLICollectFinishEvent,
+    LangTagCLIConfig,
+    LangTagCLIConflictResolutionEvent,
+    LangTagCLIProcessedTag,
+} from '@/type';
 
 // ============================================================================
 // MOCKS SETUP - configured once at the top
@@ -27,10 +34,18 @@ vi.mock('@/core/io/file.ts', () => ({
     $LT_EnsureDirectoryExists: vi.fn().mockResolvedValue(undefined),
     $LT_RemoveFile: vi.fn().mockResolvedValue(undefined),
     $LT_RemoveDirectory: vi.fn().mockResolvedValue(undefined),
-    $LT_WriteJSON: vi.fn().mockImplementation(async (filePath: string, data: any) => {
-        writtenCollections[filePath] = data;
-    }),
+    $LT_WriteJSON: vi
+        .fn()
+        .mockImplementation(async (filePath: string, data: any) => {
+            writtenCollections[filePath] = data;
+        }),
     $LT_ReadJSON: vi.fn().mockRejectedValue(new Error('File not found')),
+}));
+
+// Mock fs/promises for local implementations
+vi.mock('fs/promises', () => ({
+    mkdir: vi.fn().mockResolvedValue(undefined),
+    rm: vi.fn().mockResolvedValue(undefined),
 }));
 
 // Mock command essentials
@@ -50,18 +65,21 @@ vi.mock('@/core/collect/collect-tags.ts', () => ({
 // HELPER FUNCTIONS
 // ============================================================================
 
-const createTag = (overrides?: Partial<LangTagCLIProcessedTag>): LangTagCLIProcessedTag => ({
-    parameterConfig: {
-        path: 'test',
-        namespace: 'common',
-    },
-    parameterTranslations: {
-        key: 'value',
-    },
-    line: 1,
-    column: 1,
-    ...overrides,
-} as any);
+const createTag = (
+    overrides?: Partial<LangTagCLIProcessedTag>
+): LangTagCLIProcessedTag =>
+    ({
+        parameterConfig: {
+            path: 'test',
+            namespace: 'common',
+        },
+        parameterTranslations: {
+            key: 'value',
+        },
+        line: 1,
+        column: 1,
+        ...overrides,
+    }) as any;
 
 const createFileWithTags = (
     filePath: string,
@@ -71,9 +89,12 @@ const createFileWithTags = (
     tags,
 });
 
-const setupConfig = (collectorOptions?: { appendNamespaceToPath: boolean }, configOverrides?: any) => {
+const setupConfig = (
+    collectorOptions?: { appendNamespaceToPath: boolean },
+    configOverrides?: any
+) => {
     const collector = new DictionaryCollector(collectorOptions);
-    
+
     mockConfig = {
         tagName: 'lang',
         baseLanguageCode: 'en',
@@ -86,8 +107,11 @@ const setupConfig = (collectorOptions?: { appendNamespaceToPath: boolean }, conf
             defaultNamespace: 'common',
             ignoreConflictsWithMatchingValues: true,
             collector,
-            onCollectConfigFix: (event: LangTagCLICollectConfigFixEvent) => event.config,
-            onConflictResolution: async (event: LangTagCLIConflictResolutionEvent) => {
+            onCollectConfigFix: (event: LangTagCLICollectConfigFixEvent) =>
+                event.config,
+            onConflictResolution: async (
+                event: LangTagCLIConflictResolutionEvent
+            ) => {
                 detectedConflicts.push(event.conflict);
             },
             onCollectFinish: (event: LangTagCLICollectFinishEvent) => {
@@ -119,11 +143,17 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/App.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'greeting' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'greeting',
+                        },
                         parameterTranslations: { hello: 'Hello' },
                     }),
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'farewell' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'farewell',
+                        },
                         parameterTranslations: { goodbye: 'Goodbye' },
                     }),
                 ]),
@@ -133,7 +163,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
 
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             // DictionaryCollector writes: path.key structure (no namespace prefix)
             expect(dictFile.greeting.hello).toBe('Hello');
@@ -144,19 +174,28 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/Header.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'nav.home' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'nav.home',
+                        },
                         parameterTranslations: { label: 'Home' },
                     }),
                 ]),
                 createFileWithTags('src/Footer.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'nav.about' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'nav.about',
+                        },
                         parameterTranslations: { label: 'About' },
                     }),
                 ]),
                 createFileWithTags('src/Main.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'admin', path: 'panel.title' },
+                        parameterConfig: {
+                            namespace: 'admin',
+                            path: 'panel.title',
+                        },
                         parameterTranslations: { text: 'Admin Panel' },
                     }),
                 ]),
@@ -167,7 +206,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
             // DictionaryCollector aggregates all to single file
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.nav.home.label).toBe('Home');
             expect(dictFile.nav.about.label).toBe('About');
@@ -178,7 +217,10 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/App.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'app.title' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'app.title',
+                        },
                         parameterTranslations: { heading: 'My Application' },
                     }),
                     createTag({
@@ -186,7 +228,10 @@ describe('DictionaryCollector with CMD_Collect', () => {
                         parameterTranslations: { name: 'Admin Section' },
                     }),
                     createTag({
-                        parameterConfig: { namespace: 'errors', path: 'network' },
+                        parameterConfig: {
+                            namespace: 'errors',
+                            path: 'network',
+                        },
                         parameterTranslations: { message: 'Network Error' },
                     }),
                 ]),
@@ -197,7 +242,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(Object.keys(writtenCollections)[0]).toContain('en.json');
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.app.title.heading).toBe('My Application');
             expect(dictFile.panel.name).toBe('Admin Section');
@@ -212,7 +257,10 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/App.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'greeting' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'greeting',
+                        },
                         parameterTranslations: { hello: 'Hi' },
                     }),
                     createTag({
@@ -226,7 +274,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
 
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.greeting.hello).toBe('Hi');
             expect(dictFile.panel.name).toBe('Admin');
@@ -238,7 +286,10 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/App.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'greeting' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'greeting',
+                        },
                         parameterTranslations: { hello: 'Hi' },
                     }),
                     createTag({
@@ -252,7 +303,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
 
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             // With appendNamespaceToPath, namespace is prepended to path
             expect(dictFile.common.greeting.hello).toBe('Hi');
@@ -265,7 +316,10 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/App.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: undefined },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
                         parameterTranslations: { root: 'Root translation' },
                     }),
                 ]),
@@ -275,7 +329,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
 
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.common.root).toBe('Root translation');
         });
@@ -310,13 +364,19 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/Header.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'app.title' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'app.title',
+                        },
                         parameterTranslations: { title: 'My App' },
                     }),
                 ]),
                 createFileWithTags('src/Footer.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'app.title' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'app.title',
+                        },
                         parameterTranslations: { title: 'My App' }, // same value
                     }),
                 ]),
@@ -332,13 +392,19 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/Header.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'app.title' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'app.title',
+                        },
                         parameterTranslations: { title: 'App One' },
                     }),
                 ]),
                 createFileWithTags('src/Footer.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'app.title' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'app.title',
+                        },
                         parameterTranslations: { title: 'App Two' }, // different value
                     }),
                 ]),
@@ -357,13 +423,19 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/FileA.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'data.item' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'data.item',
+                        },
                         parameterTranslations: { item: 'string value' },
                     }),
                 ]),
                 createFileWithTags('src/FileB.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'data.item' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'data.item',
+                        },
                         parameterTranslations: { item: { nested: 'object' } }, // different type
                     }),
                 ]),
@@ -380,21 +452,33 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/FileA.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'errors.network' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'errors.network',
+                        },
                         parameterTranslations: { message: 'Network Error' },
                     }),
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'errors.timeout' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'errors.timeout',
+                        },
                         parameterTranslations: { message: 'Timeout Error' },
                     }),
                 ]),
                 createFileWithTags('src/FileB.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'errors.network' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'errors.network',
+                        },
                         parameterTranslations: { message: 'Connection Failed' }, // conflict 1
                     }),
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'errors.timeout' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'errors.timeout',
+                        },
                         parameterTranslations: { message: 'Request Timeout' }, // conflict 2
                     }),
                 ]),
@@ -426,8 +510,12 @@ describe('DictionaryCollector with CMD_Collect', () => {
             await $LT_CMD_Collect();
 
             expect(detectedConflicts).toHaveLength(1);
-            expect(detectedConflicts[0].tagA.relativeFilePath).toBe('src/components/Header.tsx');
-            expect(detectedConflicts[0].tagB.relativeFilePath).toBe('src/components/Footer.tsx');
+            expect(detectedConflicts[0].tagA.relativeFilePath).toBe(
+                'src/components/Header.tsx'
+            );
+            expect(detectedConflicts[0].tagB.relativeFilePath).toBe(
+                'src/components/Footer.tsx'
+            );
         });
     });
 
@@ -436,15 +524,24 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/App.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'greeting' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'greeting',
+                        },
                         parameterTranslations: { hello: 'Hi' },
                     }),
                     createTag({
-                        parameterConfig: { namespace: 'common', path: undefined },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
                         parameterTranslations: { root: 'Root level' },
                     }),
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'farewell' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'farewell',
+                        },
                         parameterTranslations: { bye: 'Goodbye' },
                     }),
                 ]),
@@ -454,7 +551,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
 
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.greeting.hello).toBe('Hi');
             expect(dictFile.root).toBe('Root level');
@@ -475,7 +572,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
 
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.empty).toBe('Empty path');
         });
@@ -484,13 +581,19 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/ComponentA.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'ui.layout.header.title' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'ui.layout.header.title',
+                        },
                         parameterTranslations: { text: 'Header A' },
                     }),
                 ]),
                 createFileWithTags('src/ComponentB.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'ui.layout.header.title' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'ui.layout.header.title',
+                        },
                         parameterTranslations: { text: 'Header B' },
                     }),
                 ]),
@@ -499,7 +602,9 @@ describe('DictionaryCollector with CMD_Collect', () => {
             await $LT_CMD_Collect();
 
             expect(detectedConflicts).toHaveLength(1);
-            expect(detectedConflicts[0].path).toBe('ui.layout.header.title.text');
+            expect(detectedConflicts[0].path).toBe(
+                'ui.layout.header.title.text'
+            );
         });
     });
 
@@ -508,32 +613,52 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/components/Header.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'nav.home' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'nav.home',
+                        },
                         parameterTranslations: { label: 'Home' },
                     }),
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'nav.about' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'nav.about',
+                        },
                         parameterTranslations: { label: 'About' },
                     }),
                 ]),
                 createFileWithTags('src/components/LoginForm.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'auth.login.email' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'auth.login.email',
+                        },
                         parameterTranslations: { label: 'Email' },
                     }),
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'auth.login.password' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'auth.login.password',
+                        },
                         parameterTranslations: { label: 'Password' },
                     }),
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'auth.login.submit' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'auth.login.submit',
+                        },
                         parameterTranslations: { button: 'Sign In' },
                     }),
                 ]),
                 createFileWithTags('src/components/ErrorBoundary.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'errors.boundary.title' },
-                        parameterTranslations: { heading: 'Something went wrong' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'errors.boundary.title',
+                        },
+                        parameterTranslations: {
+                            heading: 'Something went wrong',
+                        },
                     }),
                 ]),
             ];
@@ -542,14 +667,16 @@ describe('DictionaryCollector with CMD_Collect', () => {
 
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.nav.home.label).toBe('Home');
             expect(dictFile.nav.about.label).toBe('About');
             expect(dictFile.auth.login.email.label).toBe('Email');
             expect(dictFile.auth.login.password.label).toBe('Password');
             expect(dictFile.auth.login.submit.button).toBe('Sign In');
-            expect(dictFile.errors.boundary.title.heading).toBe('Something went wrong');
+            expect(dictFile.errors.boundary.title.heading).toBe(
+                'Something went wrong'
+            );
         });
 
         it('should handle 20 files with 40 tags without conflicts', async () => {
@@ -558,11 +685,17 @@ describe('DictionaryCollector with CMD_Collect', () => {
                 files.push(
                     createFileWithTags(`src/components/Component${i}.tsx`, [
                         createTag({
-                            parameterConfig: { namespace: 'common', path: `component.${i}.title` },
+                            parameterConfig: {
+                                namespace: 'common',
+                                path: `component.${i}.title`,
+                            },
                             parameterTranslations: { text: `Title ${i}` },
                         }),
                         createTag({
-                            parameterConfig: { namespace: 'common', path: `component.${i}.description` },
+                            parameterConfig: {
+                                namespace: 'common',
+                                path: `component.${i}.description`,
+                            },
                             parameterTranslations: { text: `Desc ${i}` },
                         }),
                     ])
@@ -574,7 +707,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
 
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             // Verify some samples
             expect(dictFile.component[0].title.text).toBe('Title 0');
@@ -601,7 +734,10 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/App.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'greeting' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'greeting',
+                        },
                         parameterTranslations: { hello: 'Hi' },
                     }),
                     createTag({
@@ -609,7 +745,10 @@ describe('DictionaryCollector with CMD_Collect', () => {
                         parameterTranslations: { title: 'Admin' },
                     }),
                     createTag({
-                        parameterConfig: { namespace: 'errors', path: 'network' },
+                        parameterConfig: {
+                            namespace: 'errors',
+                            path: 'network',
+                        },
                         parameterTranslations: { message: 'Error' },
                     }),
                 ]),
@@ -620,7 +759,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
             // All should be in single dictionary
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.common.greeting.hello).toBe('Hi');
             expect(dictFile.admin.panel.title).toBe('Admin');
@@ -631,7 +770,10 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/App.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'messages.welcome' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'messages.welcome',
+                        },
                         parameterTranslations: {
                             title: 'Welcome',
                             subtitle: 'Get started',
@@ -648,7 +790,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
 
             expect(Object.keys(writtenCollections)).toHaveLength(1);
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.messages.welcome.title).toBe('Welcome');
             expect(dictFile.messages.welcome.subtitle).toBe('Get started');
@@ -687,7 +829,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
             const filePath = Object.keys(writtenCollections)[0];
             expect(filePath).toContain('en.json');
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.a.text).toBe('Common A');
             expect(dictFile.b.text).toBe('Admin B');
@@ -702,7 +844,10 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/App.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'greeting' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'greeting',
+                        },
                         parameterTranslations: { hello: 'Hola' },
                     }),
                 ]),
@@ -713,7 +858,7 @@ describe('DictionaryCollector with CMD_Collect', () => {
             const filePath = Object.keys(writtenCollections)[0];
             expect(filePath).toContain('es.json');
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.greeting.hello).toBe('Hola');
         });
@@ -724,7 +869,10 @@ describe('DictionaryCollector with CMD_Collect', () => {
             mockFilesWithTags = [
                 createFileWithTags('src/App.tsx', [
                     createTag({
-                        parameterConfig: { namespace: 'common', path: 'greeting' },
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: 'greeting',
+                        },
                         parameterTranslations: { hello: 'Cześć' },
                     }),
                 ]),
@@ -735,10 +883,9 @@ describe('DictionaryCollector with CMD_Collect', () => {
             const filePath = Object.keys(writtenCollections)[0];
             expect(filePath).toContain('pl.json');
             expect(detectedConflicts).toHaveLength(0);
-            
+
             const dictFile = Object.values(writtenCollections)[0];
             expect(dictFile.greeting.hello).toBe('Cześć');
         });
     });
 });
-

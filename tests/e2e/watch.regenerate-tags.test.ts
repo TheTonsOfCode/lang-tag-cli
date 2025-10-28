@@ -1,19 +1,26 @@
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from 'vitest';
-import {execSync, spawn} from 'child_process';
-import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'fs';
-import {join} from 'path';
+import { mkdirSync, writeFileSync } from 'fs';
+import { join } from 'path';
 import {
+    afterAll,
+    afterEach,
+    beforeAll,
+    beforeEach,
+    describe,
+    it,
+} from 'vitest';
+
+import { CONFIG_FILE_NAME } from '@/core/constants';
+
+import {
+    TESTS_TEST_DIR as _TESTS_TEST_DIR,
     clearPreparedMainProjectBase,
     clearTestsEnvironment,
     copyPreparedMainProjectBase,
     prepareMainProjectBase,
-    TESTS_TEST_DIR as _TESTS_TEST_DIR
-} from "./utils.ts";
-import {CONFIG_FILE_NAME} from '@/core/constants.ts';
-import process from "node:process";
+} from './utils';
 
 const SUFFIX = 'watch-regenerate-tags';
-const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
+const TESTS_TEST_DIR = _TESTS_TEST_DIR + '-' + SUFFIX;
 
 describe('watch command e2e tests', () => {
     beforeAll(() => {
@@ -22,7 +29,7 @@ describe('watch command e2e tests', () => {
 
     beforeEach(() => {
         clearTestsEnvironment(SUFFIX);
-        mkdirSync(TESTS_TEST_DIR, {recursive: true});
+        mkdirSync(TESTS_TEST_DIR, { recursive: true });
         copyPreparedMainProjectBase(SUFFIX);
 
         // Create basic configuration
@@ -42,7 +49,7 @@ module.exports = config;`;
 
         // Create source directory and lang tag definition
         const srcDir = join(TESTS_TEST_DIR, 'src');
-        mkdirSync(srcDir, {recursive: true});
+        mkdirSync(srcDir, { recursive: true });
 
         const langTagDefinition = `
     export function lang(translations: any, options: any) {
@@ -60,7 +67,5 @@ module.exports = config;`;
         clearPreparedMainProjectBase(SUFFIX);
     });
 
-
-    it('should', async () => {
-    })
+    it('should', async () => {});
 });

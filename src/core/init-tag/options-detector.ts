@@ -1,7 +1,8 @@
-import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { InitTagRenderOptions } from './renderer.ts';
+
+import { InitTagRenderOptions } from './renderer';
 
 export interface InitTagOptions {
     name?: string;
@@ -18,11 +19,11 @@ interface Config {
 
 async function readPackageJson(): Promise<any> {
     const packageJsonPath = join(process.cwd(), 'package.json');
-    
+
     if (!existsSync(packageJsonPath)) {
         return null;
     }
-    
+
     try {
         const content = await readFile(packageJsonPath, 'utf-8');
         return JSON.parse(content);
@@ -33,23 +34,24 @@ async function readPackageJson(): Promise<any> {
 
 function detectTypeScript(packageJson: any): boolean {
     if (!packageJson) return false;
-    
-    const hasTypeScript = packageJson.devDependencies?.typescript || 
-                         packageJson.dependencies?.typescript;
-    
+
+    const hasTypeScript =
+        packageJson.devDependencies?.typescript ||
+        packageJson.dependencies?.typescript;
+
     const hasTsConfig = existsSync(join(process.cwd(), 'tsconfig.json'));
-    
+
     return Boolean(hasTypeScript || hasTsConfig);
 }
 
 function detectReact(packageJson: any): boolean {
     if (!packageJson) return false;
-    
+
     return Boolean(
-        packageJson.dependencies?.react || 
-        packageJson.devDependencies?.react ||
-        packageJson.dependencies?.['@types/react'] ||
-        packageJson.devDependencies?.['@types/react']
+        packageJson.dependencies?.react ||
+            packageJson.devDependencies?.react ||
+            packageJson.dependencies?.['@types/react'] ||
+            packageJson.devDependencies?.['@types/react']
     );
 }
 
@@ -58,16 +60,26 @@ export async function detectInitTagOptions(
     config: Config
 ): Promise<InitTagRenderOptions> {
     const packageJson = await readPackageJson();
-    
-    const isTypeScript = options.typescript !== undefined ? options.typescript : detectTypeScript(packageJson);
-    const isReact = options.react !== undefined ? options.react : detectReact(packageJson);
-    const isLibrary = options.library !== undefined ? options.library : config.isLibrary;
-    
+
+    const isTypeScript =
+        options.typescript !== undefined
+            ? options.typescript
+            : detectTypeScript(packageJson);
+    const isReact =
+        options.react !== undefined ? options.react : detectReact(packageJson);
+    const isLibrary =
+        options.library !== undefined ? options.library : config.isLibrary;
+
     const tagName = options.name || config.tagName || 'lang';
-    const fileExtension = isLibrary && isReact 
-        ? (isTypeScript ? 'tsx' : 'jsx')
-        : (isTypeScript ? 'ts' : 'js');
-    
+    const fileExtension =
+        isLibrary && isReact
+            ? isTypeScript
+                ? 'tsx'
+                : 'jsx'
+            : isTypeScript
+              ? 'ts'
+              : 'js';
+
     return {
         tagName,
         isLibrary,

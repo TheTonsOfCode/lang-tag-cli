@@ -1,20 +1,36 @@
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from 'vitest';
-import {execSync} from 'child_process';
-import {existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync} from 'fs';
-import {join} from 'path';
+import { execSync } from 'child_process';
 import {
+    existsSync,
+    mkdirSync,
+    readFileSync,
+    unlinkSync,
+    writeFileSync,
+} from 'fs';
+import { LangTagTranslationsConfig } from 'lang-tag';
+import { join } from 'path';
+import {
+    afterAll,
+    afterEach,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+} from 'vitest';
+
+import { CONFIG_FILE_NAME } from '@/core/constants';
+import { $LT_TagProcessor } from '@/core/processor';
+
+import {
+    TESTS_TEST_DIR as _TESTS_TEST_DIR,
     clearPreparedMainProjectBase,
     clearTestsEnvironment,
     copyPreparedMainProjectBase,
     prepareMainProjectBase,
-    TESTS_TEST_DIR as _TESTS_TEST_DIR,
-} from "./utils.ts";
-import {LangTagTranslationsConfig} from "lang-tag";
-import {CONFIG_FILE_NAME} from "@/core/constants.ts";
-import {$LT_TagProcessor} from "@/core/processor.ts";
+} from './utils';
 
 const SUFFIX = 'regenerate';
-const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
+const TESTS_TEST_DIR = _TESTS_TEST_DIR + '-' + SUFFIX;
 
 // language=typescript jsx
 const LANG_TAG_DEFINITION = `
@@ -97,7 +113,6 @@ const FILE_WITH_LANG_TAGS_DIFFERENT_ORDER = `
 `;
 
 describe('regenerate-tags command e2e tests', () => {
-
     // Functions cannot be stringified
     const testConfigImportFunction = `({packageName, originalExportName}) => {
         return {
@@ -158,9 +173,9 @@ describe('regenerate-tags command e2e tests', () => {
         import: {
             dir: 'src/lang-libraries',
             tagImportPath: 'import { lang } from "../lang-tag"',
-            onImport: '$onImport$'
+            onImport: '$onImport$',
         },
-        onConfigGeneration: '$onConfigGeneration$'
+        onConfigGeneration: '$onConfigGeneration$',
     };
 
     function writeConfig(config: any) {
@@ -182,12 +197,14 @@ describe('regenerate-tags command e2e tests', () => {
         config: LocalConfig;
     }
 
-    function parseContent(content: string, config: any = testConfig): ContentMatch[] {
-
+    function parseContent(
+        content: string,
+        config: any = testConfig
+    ): ContentMatch[] {
         const processor = new $LT_TagProcessor(config);
         const tags = processor.extractTags(content);
 
-        return tags.map(t => ({
+        return tags.map((t) => ({
             translations: t.parameterTranslations,
             config: t.parameterConfig,
         }));
@@ -213,18 +230,18 @@ describe('regenerate-tags command e2e tests', () => {
     beforeEach(() => {
         clearTestsEnvironment(SUFFIX);
 
-        mkdirSync(TESTS_TEST_DIR, {recursive: true});
+        mkdirSync(TESTS_TEST_DIR, { recursive: true });
 
         copyPreparedMainProjectBase(SUFFIX);
 
         writeConfig(testConfig);
 
-        mkdirSync(srcDir, {recursive: true});
+        mkdirSync(srcDir, { recursive: true });
 
         // Create the lang tag implementation
         writeFileSync(join(srcDir, 'lang-tag.ts'), LANG_TAG_DEFINITION);
 
-        mkdirSync(testDir, {recursive: true});
+        mkdirSync(testDir, { recursive: true });
         // Create a test file with translations
         writeFileSync(testFile, FILE_WITH_LANG_TAGS);
     });
@@ -239,7 +256,7 @@ describe('regenerate-tags command e2e tests', () => {
 
     it('should not modify files when no changes are needed', () => {
         // Run the regenerate-tags command
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
 
         // Read the file content after running the command
         const fileContent = readFileSync(testFile, 'utf-8');
@@ -250,13 +267,19 @@ describe('regenerate-tags command e2e tests', () => {
 
     it('should apply onConfigGeneration to tags without namespace/multiple lang tags', () => {
         // Create a test file with translations without namespace
-        writeFileSync(join(TESTS_TEST_DIR, 'src/no-namespace.ts'), FILE_WITH_LANG_TAGS_NO_NAMESPACE);
+        writeFileSync(
+            join(TESTS_TEST_DIR, 'src/no-namespace.ts'),
+            FILE_WITH_LANG_TAGS_NO_NAMESPACE
+        );
 
         // Run the regenerate-tags command
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
 
         // Read the file content after running the command
-        const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/no-namespace.ts'), 'utf-8');
+        const fileContent = readFileSync(
+            join(TESTS_TEST_DIR, 'src/no-namespace.ts'),
+            'utf-8'
+        );
 
         // Verify the file content has been updated with the correct namespace
 
@@ -270,13 +293,19 @@ describe('regenerate-tags command e2e tests', () => {
 
     it('should not modify tags with manual override', () => {
         // Create a test file with translations with manual override
-        writeFileSync(join(TESTS_TEST_DIR, 'src/manual-override.ts'), FILE_WITH_LANG_TAGS_MANUAL_OVERRIDE);
+        writeFileSync(
+            join(TESTS_TEST_DIR, 'src/manual-override.ts'),
+            FILE_WITH_LANG_TAGS_MANUAL_OVERRIDE
+        );
 
         // Run the regenerate-tags command
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
 
         // Read the file content after running the command
-        const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/manual-override.ts'), 'utf-8');
+        const fileContent = readFileSync(
+            join(TESTS_TEST_DIR, 'src/manual-override.ts'),
+            'utf-8'
+        );
 
         // Verify the file content is unchanged
         expect(fileContent).toBe(FILE_WITH_LANG_TAGS_MANUAL_OVERRIDE);
@@ -284,13 +313,19 @@ describe('regenerate-tags command e2e tests', () => {
 
     it('should not modify tags with exclamation prefix in path', () => {
         // Create a test file with translations with exclamation prefix in path
-        writeFileSync(join(TESTS_TEST_DIR, 'src/exclamation-prefix.ts'), FILE_WITH_LANG_TAGS_EXCLAMATION_PREFIX);
+        writeFileSync(
+            join(TESTS_TEST_DIR, 'src/exclamation-prefix.ts'),
+            FILE_WITH_LANG_TAGS_EXCLAMATION_PREFIX
+        );
 
         // Run the regenerate-tags command
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
 
         // Read the file content after running the command
-        const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/exclamation-prefix.ts'), 'utf-8');
+        const fileContent = readFileSync(
+            join(TESTS_TEST_DIR, 'src/exclamation-prefix.ts'),
+            'utf-8'
+        );
 
         // Verify the file content is unchanged
         expect(fileContent).toBe(FILE_WITH_LANG_TAGS_EXCLAMATION_PREFIX);
@@ -299,7 +334,7 @@ describe('regenerate-tags command e2e tests', () => {
     it('should handle nested directory structure correctly', () => {
         // Create a nested directory structure
         const nestedDir = join(TESTS_TEST_DIR, 'src/components/user/profile');
-        mkdirSync(nestedDir, {recursive: true});
+        mkdirSync(nestedDir, { recursive: true });
 
         // Create a test file with translations in the nested directory
         const nestedFile = `
@@ -315,7 +350,7 @@ describe('regenerate-tags command e2e tests', () => {
         writeFileSync(join(nestedDir, 'index.ts'), nestedFile);
 
         // Run the regenerate-tags command
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
 
         // Read the file content after running the command
         const fileContent = readFileSync(join(nestedDir, 'index.ts'), 'utf-8');
@@ -348,14 +383,14 @@ describe('regenerate-tags command e2e tests', () => {
         `;
 
         const jsxDir = join(TESTS_TEST_DIR, 'src/jsx');
-        mkdirSync(jsxDir, {recursive: true});
+        mkdirSync(jsxDir, { recursive: true });
         const tsxDir = join(TESTS_TEST_DIR, 'src/tsx');
-        mkdirSync(tsxDir, {recursive: true});
+        mkdirSync(tsxDir, { recursive: true });
         writeFileSync(join(jsxDir, 'test.jsx'), jsxFile);
         writeFileSync(join(tsxDir, 'test.tsx'), tsxFile);
 
         // Run the regenerate-tags command
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
 
         // Read the file content after running the command
         const jsxContent = readFileSync(join(jsxDir, 'test.jsx'), 'utf-8');
@@ -405,17 +440,33 @@ describe('regenerate-tags command e2e tests', () => {
             const translations = lang({"farewell": "Goodbye"}, {"namespace": "common"});
         `;
 
-        mkdirSync(join(TESTS_TEST_DIR, 'src/namespace1/foo'), {recursive: true});
-        mkdirSync(join(TESTS_TEST_DIR, 'src/namespace2/bar'), {recursive: true});
-        writeFileSync(join(TESTS_TEST_DIR, 'src/namespace1/foo/file1.ts'), file1);
-        writeFileSync(join(TESTS_TEST_DIR, 'src/namespace2/bar/file2.ts'), file2);
+        mkdirSync(join(TESTS_TEST_DIR, 'src/namespace1/foo'), {
+            recursive: true,
+        });
+        mkdirSync(join(TESTS_TEST_DIR, 'src/namespace2/bar'), {
+            recursive: true,
+        });
+        writeFileSync(
+            join(TESTS_TEST_DIR, 'src/namespace1/foo/file1.ts'),
+            file1
+        );
+        writeFileSync(
+            join(TESTS_TEST_DIR, 'src/namespace2/bar/file2.ts'),
+            file2
+        );
 
         // Run the regenerate-tags command
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
 
         // Read the file content after running the command
-        const file1Content = readFileSync(join(TESTS_TEST_DIR, 'src/namespace1/foo/file1.ts'), 'utf-8');
-        const file2Content = readFileSync(join(TESTS_TEST_DIR, 'src/namespace2/bar/file2.ts'), 'utf-8');
+        const file1Content = readFileSync(
+            join(TESTS_TEST_DIR, 'src/namespace1/foo/file1.ts'),
+            'utf-8'
+        );
+        const file2Content = readFileSync(
+            join(TESTS_TEST_DIR, 'src/namespace2/bar/file2.ts'),
+            'utf-8'
+        );
 
         // Verify the file content has been updated with the correct namespace
         const matches1 = parseContent(file1Content);
@@ -440,10 +491,13 @@ describe('regenerate-tags command e2e tests', () => {
         writeFileSync(join(TESTS_TEST_DIR, 'src/no-tags.ts'), noTagsFile);
 
         // Run the regenerate-tags command
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
 
         // Read the file content after running the command
-        const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/no-tags.ts'), 'utf-8');
+        const fileContent = readFileSync(
+            join(TESTS_TEST_DIR, 'src/no-tags.ts'),
+            'utf-8'
+        );
 
         // Verify the file content is unchanged
         expect(fileContent).toBe(noTagsFile);
@@ -451,13 +505,19 @@ describe('regenerate-tags command e2e tests', () => {
 
     it('should handle nested translation objects correctly', () => {
         // Create a test file with nested translation objects
-        writeFileSync(join(TESTS_TEST_DIR, 'src/nested-objects.ts'), FILE_WITH_LANG_TAGS_NESTED_OBJECTS);
+        writeFileSync(
+            join(TESTS_TEST_DIR, 'src/nested-objects.ts'),
+            FILE_WITH_LANG_TAGS_NESTED_OBJECTS
+        );
 
         // Run the regenerate-tags command
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
 
         // Read the file content after running the command
-        const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/nested-objects.ts'), 'utf-8');
+        const fileContent = readFileSync(
+            join(TESTS_TEST_DIR, 'src/nested-objects.ts'),
+            'utf-8'
+        );
 
         // Verify the file content has been updated with the correct namespace
         const matches = parseContent(fileContent);
@@ -467,18 +527,23 @@ describe('regenerate-tags command e2e tests', () => {
     });
 
     it('should handle different argument order correctly', () => {
-        const configPos2 = {...testConfig, translationArgPosition: 2};
+        const configPos2 = { ...testConfig, translationArgPosition: 2 };
         writeConfig(configPos2);
 
         // Create a test file with different argument order
-        writeFileSync(join(TESTS_TEST_DIR, 'src/config-at-1-arg-pos.ts'), FILE_WITH_LANG_TAGS_DIFFERENT_ORDER);
+        writeFileSync(
+            join(TESTS_TEST_DIR, 'src/config-at-1-arg-pos.ts'),
+            FILE_WITH_LANG_TAGS_DIFFERENT_ORDER
+        );
 
         // Run the regenerate-tags command
-        execSync('npm run rt', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
 
         // Read the file content after running the command
-        const fileContent = readFileSync(join(TESTS_TEST_DIR, 'src/config-at-1-arg-pos.ts'), 'utf-8');
-
+        const fileContent = readFileSync(
+            join(TESTS_TEST_DIR, 'src/config-at-1-arg-pos.ts'),
+            'utf-8'
+        );
 
         const processor = new $LT_TagProcessor(testConfig);
         const rawMatches = processor.extractTags(fileContent);
@@ -494,8 +559,12 @@ describe('regenerate-tags command e2e tests', () => {
 
         const matchesWithConfigTranslationArgPos1 = parseContent(fileContent);
         expect(matchesWithConfigTranslationArgPos1.length).toBe(1);
-        expect(matchesWithConfigTranslationArgPos1[0].config.namespace).toBeUndefined();
-        expect(matchesWithConfigTranslationArgPos1[0].config.path).toBeUndefined();
+        expect(
+            matchesWithConfigTranslationArgPos1[0].config.namespace
+        ).toBeUndefined();
+        expect(
+            matchesWithConfigTranslationArgPos1[0].config.path
+        ).toBeUndefined();
     });
 
     it('should handle errors gracefully when config file is missing', () => {
@@ -510,13 +579,13 @@ describe('regenerate-tags command e2e tests', () => {
             execSync('npm run rt', {
                 cwd: TESTS_TEST_DIR,
                 encoding: 'utf8',
-                stdio: ['pipe', 'ignore', 'pipe']
+                stdio: ['pipe', 'ignore', 'pipe'],
             });
 
             // If we get here, the test should fail
             expect(true).toBe(false);
         } catch (error: any) {
-            expect(error.message).toContain("No \".lang-tag.config.js\" detected")
+            expect(error.message).toContain('No "lang-tag.config.js" detected');
         }
     });
 
@@ -529,17 +598,18 @@ describe('regenerate-tags command e2e tests', () => {
 
         // Run the regenerate-tags command and expect it to fail gracefully
         try {
-
             execSync('npm run rt', {
                 cwd: TESTS_TEST_DIR,
                 encoding: 'utf8',
-                stdio: ['inherit']
+                stdio: ['inherit'],
             });
 
             // If we get here, the test should fail
             expect(true).toBe(false);
         } catch (error: any) {
-            expect(error.message).toContain("Config found, but default export is undefined")
+            expect(error.message).toContain(
+                'Config found, but default export is undefined'
+            );
         }
     });
-}); 
+});

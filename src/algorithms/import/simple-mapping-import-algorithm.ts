@@ -1,4 +1,4 @@
-import { LangTagCLIImportEvent } from "@/config.ts";
+import { LangTagCLIImportEvent } from '@/type';
 
 /**
  * Mapping for a specific file within a package.
@@ -51,36 +51,38 @@ export interface SimpleMappingImportAlgorithmOptions {
      */
     mappings: PackageMapping[];
 
-
     /**
      * Global config remapping function applied to all imported tags
      */
-    configRemap?: (originalConfig: any, context: {
-        packageName: string;
-        sourceFile: string;
-        targetFile: string;
-        variableName: string;
-        originalVariableName: string;
-    }) => any | null;
+    configRemap?: (
+        originalConfig: any,
+        context: {
+            packageName: string;
+            sourceFile: string;
+            targetFile: string;
+            variableName: string;
+            originalVariableName: string;
+        }
+    ) => any | null;
 }
 
 /**
  * Simple mapping import algorithm that provides straightforward control over
  * how library translations are imported based on explicit package->file->variable mappings.
- * 
+ *
  * This algorithm allows you to:
  * - Specify exactly which packages to import from
  * - Map specific files from packages to target files
  * - Select which variables to import and optionally rename them
  * - Skip packages/files/variables not explicitly mapped
- * 
+ *
  * @param options - Configuration options for the simple mapping algorithm
  * @returns A function compatible with LangTagCLIConfig.import.onImport
- * 
+ *
  * @example
  * ```typescript
  * import { simpleMappingImportAlgorithm } from '@lang-tag/cli/algorithms';
- * 
+ *
  * export default {
  *   import: {
  *     onImport: simpleMappingImportAlgorithm({
@@ -145,10 +147,10 @@ export function simpleMappingImportAlgorithm(
 
     return (event: LangTagCLIImportEvent) => {
         const { exports, importManager, logger } = event;
-        
+
         for (const { packageJSON, exportData } of exports) {
             const packageName = packageJSON.name || 'unknown-package';
-        
+
             const packageMapping = packageMap.get(packageName);
             if (!packageMapping) {
                 logger.debug(`Skipping unmapped package: ${packageName}`);
@@ -159,27 +161,38 @@ export function simpleMappingImportAlgorithm(
 
             for (const file of exportData.files) {
                 const sourceFile = file.relativeFilePath;
-                
+
                 const packageFiles = fileMap.get(packageName);
                 if (!packageFiles) continue;
-                
+
                 const fileMapping = packageFiles.get(sourceFile);
                 if (!fileMapping) {
-                    logger.debug(`Skipping unmapped file: ${packageName}/${sourceFile}`);
+                    logger.debug(
+                        `Skipping unmapped file: ${packageName}/${sourceFile}`
+                    );
                     continue;
                 }
 
-                logger.debug(`Processing mapped file: ${packageName}/${sourceFile} -> ${fileMapping.targetFile}`);
+                logger.debug(
+                    `Processing mapped file: ${packageName}/${sourceFile} -> ${fileMapping.targetFile}`
+                );
 
                 for (const tag of file.tags) {
                     const originalVariableName = tag.variableName;
-                    
-                    if (!originalVariableName || !(originalVariableName in fileMapping.variables)) {
-                        logger.debug(`Skipping unmapped variable: ${originalVariableName} in ${packageName}/${sourceFile}`);
+
+                    if (
+                        !originalVariableName ||
+                        !(originalVariableName in fileMapping.variables)
+                    ) {
+                        logger.debug(
+                            `Skipping unmapped variable: ${originalVariableName} in ${packageName}/${sourceFile}`
+                        );
                         continue;
                     }
 
-                    const newVariableName = fileMapping.variables[originalVariableName] || originalVariableName;
+                    const newVariableName =
+                        fileMapping.variables[originalVariableName] ||
+                        originalVariableName;
 
                     const targetFilePath = fileMapping.targetFile;
 
@@ -190,20 +203,21 @@ export function simpleMappingImportAlgorithm(
                             sourceFile,
                             targetFile: targetFilePath,
                             variableName: newVariableName,
-                            originalVariableName
+                            originalVariableName,
                         });
                     }
 
                     importManager.importTag(targetFilePath, {
                         variableName: newVariableName,
                         translations: tag.translations,
-                        config: finalConfig
+                        config: finalConfig,
                     });
 
-                    logger.debug(`Imported: ${originalVariableName} -> ${newVariableName} in ${targetFilePath}`);
+                    logger.debug(
+                        `Imported: ${originalVariableName} -> ${newVariableName} in ${targetFilePath}`
+                    );
                 }
             }
         }
     };
 }
-

@@ -1,10 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { $LT_ReadConfig } from '@/core/io/read-config.ts';
-import { CONFIG_FILE_NAME } from '@/core/constants.ts';
-import { resolve } from 'pathe';
 import * as fs from 'fs';
+import { resolve } from 'pathe';
 import { pathToFileURL } from 'url';
-import {LANG_TAG_DEFAULT_CONFIG} from "@/config.ts";
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { CONFIG_FILE_NAME } from '@/core/constants';
+import { LANG_TAG_DEFAULT_CONFIG } from '@/core/default-config';
+import { $LT_ReadConfig } from '@/core/io/read-config';
 
 const defaultConfig = LANG_TAG_DEFAULT_CONFIG;
 
@@ -15,15 +16,19 @@ vi.mock('url');
 
 describe('readConfig', () => {
     const projectPath = '/fake/project';
-    const expectedConfigPath = '/fake/project/.lang-tag.config.js';
-    const configUrl = 'file:///fake/project/.lang-tag.config.js';
+    const expectedConfigPath = '/fake/project/lang-tag.config.js';
+    const configUrl = 'file:///fake/project/lang-tag.config.js';
 
     beforeEach(() => {
         vi.resetAllMocks();
 
         // Setup mocks for path resolution and URL conversion
-        vi.mocked(resolve).mockImplementation((...args) => args.join('/').replace(/\/\/+/g, '/'));
-        vi.mocked(pathToFileURL).mockImplementation((path) => ({ href: configUrl }) as any);
+        vi.mocked(resolve).mockImplementation((...args) =>
+            args.join('/').replace(/\/\/+/g, '/')
+        );
+        vi.mocked(pathToFileURL).mockImplementation(
+            (path) => ({ href: configUrl }) as any
+        );
     });
 
     afterEach(() => {
@@ -43,12 +48,12 @@ describe('readConfig', () => {
         const userConfig = {
             tagName: 'myLang',
             outputDir: 'custom/locales',
-            import: { dir: 'custom/imports' }
+            import: { dir: 'custom/imports' },
         };
         vi.mocked(fs.existsSync).mockReturnValue(true);
-        
+
         await vi.doMock(configUrl, () => ({
-            default: userConfig
+            default: userConfig,
         }));
 
         const config = await $LT_ReadConfig(projectPath);
@@ -60,16 +65,16 @@ describe('readConfig', () => {
             import: {
                 ...defaultConfig.import,
                 ...userConfig.import,
-            }
+            },
         });
     });
 
     it('should throw error if config file exists but has no default export', async () => {
         vi.mocked(fs.existsSync).mockReturnValue(true);
-        
+
         // Mock the module to have a default export that is undefined
         await vi.doMock(configUrl, () => ({
-            default: undefined
+            default: undefined,
         }));
 
         await expect($LT_ReadConfig(projectPath)).rejects.toThrow(
@@ -84,9 +89,9 @@ describe('readConfig', () => {
             // Missing other fields like tagName, includes, excludes, outputDir, etc.
         };
         vi.mocked(fs.existsSync).mockReturnValue(true);
-        
+
         await vi.doMock(configUrl, () => ({
-            default: partialUserConfig
+            default: partialUserConfig,
         }));
 
         const config = await $LT_ReadConfig(projectPath);
@@ -102,18 +107,20 @@ describe('readConfig', () => {
             import: {
                 tagImportPath: 'import { customTag } from "custom/path"',
                 // Missing 'dir' and 'onImport'
-            }
+            },
         };
         vi.mocked(fs.existsSync).mockReturnValue(true);
-        
+
         await vi.doMock(configUrl, () => ({
-            default: partialImportConfig
+            default: partialImportConfig,
         }));
 
         const config = await $LT_ReadConfig(projectPath);
 
-        expect(config.import.tagImportPath).toBe('import { customTag } from "custom/path"');
+        expect(config.import.tagImportPath).toBe(
+            'import { customTag } from "custom/path"'
+        );
         expect(config.import.dir).toBe(defaultConfig.import.dir);
         expect(config.import.onImport).toBe(defaultConfig.import.onImport);
     });
-}); 
+});

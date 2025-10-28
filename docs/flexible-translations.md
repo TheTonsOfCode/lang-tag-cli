@@ -1,8 +1,8 @@
 # Flexible Translation Definitions
 
-`lang-tag` primarily helps you create `CallableTranslations` where each leaf node is a `ParameterizedTranslation` function (e.g., `(params) => \`Hello \${params.name}\``). This is typically achieved using the `createCallableTranslations` function, often wrapped in your custom tag function (e.g., `i18n` or `lang`).
+`lang-tag` primarily helps you create `CallableTranslations` where each leaf node is a `ParameterizedTranslation` function (e.g., `(params) => \`Hello \${params.name}\``). This is typically achieved using the `createCallableTranslations`function, often wrapped in your custom tag function (e.g.,`i18n`or`lang`).
 
-However, when defining translations, especially static ones, or when designing components that *receive* translations, it can be verbose to always pre-define everything as a function. `FlexibleTranslations<T>` and `normalizeTranslations` offer a more lenient way to handle these inputs.
+However, when defining translations, especially static ones, or when designing components that _receive_ translations, it can be verbose to always pre-define everything as a function. `FlexibleTranslations<T>` and `normalizeTranslations` offer a more lenient way to handle these inputs.
 
 ## `FlexibleTranslations<T>` Type
 
@@ -17,69 +17,75 @@ This utility type allows you to define translation input objects where leaf node
 
 This function takes an object of type `FlexibleTranslations<T>` and converts it into a `CallableTranslations<T>` object. This ensures that:
 
-*   Plain strings are converted into parameter-less `ParameterizedTranslation` functions (e.g., `"text"` becomes `() => "text"`).
-*   Existing `ParameterizedTranslation` functions (or compatible ones) are preserved.
-*   Nested objects are recursively normalized.
+- Plain strings are converted into parameter-less `ParameterizedTranslation` functions (e.g., `"text"` becomes `() => "text"`).
+- Existing `ParameterizedTranslation` functions (or compatible ones) are preserved.
+- Nested objects are recursively normalized.
 
 ## Core Use Case: Library Components Accepting Flexible Translations
 
-A common scenario for `FlexibleTranslations` is when creating reusable components (e.g., in a UI library) that need to be internationalized. The component can define the *shape* of translations it expects and accept a more flexible input from its consumers.
+A common scenario for `FlexibleTranslations` is when creating reusable components (e.g., in a UI library) that need to be internationalized. The component can define the _shape_ of translations it expects and accept a more flexible input from its consumers.
 
 ```tsx
 // --- Library: src/components/ProfileCard.tsx ---
-import React from 'react';
 import {
-  FlexibleTranslations,
-  normalizeTranslations,
-  CallableTranslations,
-  ParameterizedTranslation,
-  InterpolationParams
-} from 'lang-tag'; // Assuming lang-tag is a dependency of the library
+    CallableTranslations,
+    FlexibleTranslations,
+    InterpolationParams,
+    ParameterizedTranslation,
+    normalizeTranslations,
+} from 'lang-tag';
+import React from 'react';
+
+// Assuming lang-tag is a dependency of the library
 
 // 1. Define the SHAPE of translations your component expects.
 // This object's structure will be used with typeof.
-const profileCardTranslation = lang({
-    title: "Member profile",
-    description: "Some description",
-    welcomeMessage: "Hello, {{name}}!",
-    footer: {
-        copyright: "© 2024 Company",
-        contact: "Contact us at {{email}}"
-    }
-}, { namespace: 'profile' });
+const profileCardTranslation = lang(
+    {
+        title: 'Member profile',
+        description: 'Some description',
+        welcomeMessage: 'Hello, {{name}}!',
+        footer: {
+            copyright: '© 2024 Company',
+            contact: 'Contact us at {{email}}',
+        },
+    },
+    { namespace: 'profile' }
+);
 
 // 2. Define Prop types for your component
 export interface ProfileCardProps {
-  userName?: string;
-  lastUpdateDate: string;
-  // The component accepts FlexibleTranslations based on the defined shape
-  translations: FlexibleTranslations<typeof profileCardTranslation>;
+    userName?: string;
+    lastUpdateDate: string;
+    // The component accepts FlexibleTranslations based on the defined shape
+    translations: FlexibleTranslations<typeof profileCardTranslation>;
 }
 
 export const ProfileCard: React.FC<ProfileCardProps> = ({
-  userName,
-  email,
-  translations
+    userName,
+    email,
+    translations,
 }) => {
-  // 3. Normalize translations internally before use
-  const t = normalizeTranslations(translations);
+    // 3. Normalize translations internally before use
+    const t = normalizeTranslations(translations);
 
-  return (
-    <div className="profile-card">
-      <h1>{t.title()}</h1>
-      <p>{t.welcomeMessage({ name: userName })}</p>
-      <footer>
-        <p>{t.footer.contact({ email })}</p>
-      </footer>
-    </div>
-  );
+    return (
+        <div className="profile-card">
+            <h1>{t.title()}</h1>
+            <p>{t.welcomeMessage({ name: userName })}</p>
+            <footer>
+                <p>{t.footer.contact({ email })}</p>
+            </footer>
+        </div>
+    );
 };
 ```
 
 In this example:
-*   `profileCardTranslationShape` is a plain object defining the keys and the type of values (string or function) the `ProfileCard` component expects for its translations.
-*   `ProfileCardProps` uses `FlexibleTranslations<typeof profileCardTranslationShape>` for its `translations` prop. This tells consumers that they can provide an object matching this shape, where individual translations can be strings or functions.
-*   Internally, `ProfileCard` calls `normalizeTranslations` to ensure all translation leaves are callable functions before rendering.
+
+- `profileCardTranslationShape` is a plain object defining the keys and the type of values (string or function) the `ProfileCard` component expects for its translations.
+- `ProfileCardProps` uses `FlexibleTranslations<typeof profileCardTranslationShape>` for its `translations` prop. This tells consumers that they can provide an object matching this shape, where individual translations can be strings or functions.
+- Internally, `ProfileCard` calls `normalizeTranslations` to ensure all translation leaves are callable functions before rendering.
 
 ### How It Works Internally
 
@@ -90,9 +96,9 @@ import { normalizeTranslations } from 'lang-tag';
 
 // A translation object with mixed strings and functions
 const flexibleTranslations = {
-    title: "Member profile",
-    description: "Some description",
-    welcomeMessage: (params) => `Hello, ${params.name}!`
+    title: 'Member profile',
+    description: 'Some description',
+    welcomeMessage: (params) => `Hello, ${params.name}!`,
 };
 
 // Normalize converts strings to functions
@@ -116,37 +122,44 @@ If the consuming project also uses `lang-tag` with its own tag function (e.g., `
 
 ```tsx
 // --- Consuming App: src/pages/UserProfilePage.tsx ---
+import { ProfileCard } from 'my-ui-library';
 import React from 'react';
-import { ProfileCard } from 'my-ui-library'; // Your library component
-import { app_i18n } from '../utils/app_i18n'; // App's own lang-tag setup
+
+// Your library component
+import { app_i18n } from '../utils/app_i18n';
+
+// App's own lang-tag setup
 
 // Define translations for the ProfileCard, matching its expected shape.
 // This `cardTranslations` object will be of type CallableTranslations<typeof profileCardTranslationShape>
-const cardTranslations = app_i18n({
-  // These keys must match 'profileCardTranslationShape'
-  title: "My Application Profile",
-  greeting: (params) => `Welcome back, ${params.name}!`,
-  description: "Tell us about yourself...",
-  footer: {
-    contact: "Constact us at: {{email}}"
-  }
-}, { namespace: 'userViews', path: 'profilePage.card' });
-
+const cardTranslations = app_i18n(
+    {
+        // These keys must match 'profileCardTranslationShape'
+        title: 'My Application Profile',
+        greeting: (params) => `Welcome back, ${params.name}!`,
+        description: 'Tell us about yourself...',
+        footer: {
+            contact: 'Constact us at: {{email}}',
+        },
+    },
+    { namespace: 'userViews', path: 'profilePage.card' }
+);
 
 export function UserProfilePage() {
-  const currentUser = { name: "Alice", lastSeen: "2024-03-10" };
+    const currentUser = { name: 'Alice', lastSeen: '2024-03-10' };
 
-  // The output of app_i18n (cardTranslations) is already CallableTranslations.
-  // normalizeTranslations inside ProfileCard will handle this fine.
-  return (
-    <ProfileCard
-      userName={currentUser.name}
-      lastUpdateDate={currentUser.lastSeen}
-      translations={cardTranslations} // Pass the fully callable translations
-    />
-  );
+    // The output of app_i18n (cardTranslations) is already CallableTranslations.
+    // normalizeTranslations inside ProfileCard will handle this fine.
+    return (
+        <ProfileCard
+            userName={currentUser.name}
+            lastUpdateDate={currentUser.lastSeen}
+            translations={cardTranslations} // Pass the fully callable translations
+        />
+    );
 }
 ```
+
 In this case, `cardTranslations` (output of `app_i18n`) is already a `CallableTranslations` object. When passed to `ProfileCard`, the internal `normalizeTranslations` will essentially be a no-op for the already callable functions, ensuring consistency.
 
 ### 2. Consuming Project Provides Raw Translations (Does Not Use `lang-tag` Tags)
@@ -155,38 +168,41 @@ If the consuming project doesn't use `lang-tag`'s tag system for this specific c
 
 ```tsx
 // --- Consuming App: src/pages/AnotherProfilePage.tsx ---
-import React from 'react';
 import { ProfileCard } from 'my-ui-library';
+import React from 'react';
+
 // No lang-tag import needed here if providing raw translations
 
 export function AnotherProfilePage() {
-  const currentUser = { name: "Bob", email: "2024-03-11" };
+    const currentUser = { name: 'Bob', email: '2024-03-11' };
 
-  return (
-    <ProfileCard
-      userName={currentUser.name}
-      lastUpdateDate={currentUser.lastSeen}
-      translations={{ // This is a FlexibleTranslations object
-        title: "Bob's View", // string
-        welcomeMessage: (params) => `Hey ${params.name}, what's up?`, // function
-        description: "Some description", // string
-        footer: {
-          // Can mix strings and functions even in nested objects
-          contact: "Contact at: {{email}}"
-        }
-      }}
-    />
-  );
+    return (
+        <ProfileCard
+            userName={currentUser.name}
+            lastUpdateDate={currentUser.lastSeen}
+            translations={{
+                // This is a FlexibleTranslations object
+                title: "Bob's View", // string
+                welcomeMessage: (params) => `Hey ${params.name}, what's up?`, // function
+                description: 'Some description', // string
+                footer: {
+                    // Can mix strings and functions even in nested objects
+                    contact: 'Contact at: {{email}}',
+                },
+            }}
+        />
+    );
 }
 ```
+
 Here, `ProfileCard` receives a mix of strings and functions. Its internal `normalizeTranslations` call will convert the strings (`title`, `description`, `footer.contact`) into callable functions, making the component work as expected.
 
 ## Summary of `FlexibleTranslations` Usage
 
-*   **Define Expected Shape:** When creating a reusable component that needs translations, define a constant object representing the *shape* and default/example values for its translations (e.g., `myComponentTranslationShape as const`).
-*   **Type Component Props:** Use `FlexibleTranslations<typeof myComponentTranslation>` for the prop that accepts translations.
-*   **Normalize Internally:** Inside your component, call `normalizeTranslations` on the received prop before using the translations.
-*   **Consumer Flexibility:** This allows consumers of your component to provide translations either as fully `CallableTranslations` (e.g., from their own `lang-tag` setup) or as more lenient `FlexibleTranslations` objects (plain strings mixed with functions).
+- **Define Expected Shape:** When creating a reusable component that needs translations, define a constant object representing the _shape_ and default/example values for its translations (e.g., `myComponentTranslationShape as const`).
+- **Type Component Props:** Use `FlexibleTranslations<typeof myComponentTranslation>` for the prop that accepts translations.
+- **Normalize Internally:** Inside your component, call `normalizeTranslations` on the received prop before using the translations.
+- **Consumer Flexibility:** This allows consumers of your component to provide translations either as fully `CallableTranslations` (e.g., from their own `lang-tag` setup) or as more lenient `FlexibleTranslations` objects (plain strings mixed with functions).
 
 This approach decouples your reusable component from the specific translation management strategy of its consuming applications, while still ensuring type safety and a consistent internal API via `CallableTranslations`.
 
@@ -202,29 +218,35 @@ This is useful when you want to provide only a subset of translations for a give
 
 **Type Parameter:**
 
-*   `T`: The original, un-transformed, structure of the translations. This is the same kind of type argument that `FlexibleTranslations<T>` expects. It defines the shape and types of the translations *before* they are made flexible or partial.
+- `T`: The original, un-transformed, structure of the translations. This is the same kind of type argument that `FlexibleTranslations<T>` expects. It defines the shape and types of the translations _before_ they are made flexible or partial.
 
 **Usage Example:**
 
 ```typescript
-import { PartialFlexibleTranslations, normalizeTranslations } from './src/index'; // Assuming the path is correct
+import {
+    PartialFlexibleTranslations,
+    normalizeTranslations,
+} from './src/index';
+
+// Assuming the path is correct
 
 interface MyTranslations {
-  greeting: string;
-  farewell: string;
-  user: {
-    name: string;
-    age: string; // Represented as a string for translation purposes
-  };
+    greeting: string;
+    farewell: string;
+    user: {
+        name: string;
+        age: string; // Represented as a string for translation purposes
+    };
 }
 
 const partialMsgs: PartialFlexibleTranslations<MyTranslations> = {
-  greeting: "Hi there!", // string becomes ParameterizedTranslation | string
-  user: { // user itself is optional, and its properties are also optional
-    age: (params) => `Age: ${params?.years}` // can be a ParameterizedTranslation directly
-  }
-  // farewell is omitted, which is allowed
-  // user.name is omitted, also allowed
+    greeting: 'Hi there!', // string becomes ParameterizedTranslation | string
+    user: {
+        // user itself is optional, and its properties are also optional
+        age: (params) => `Age: ${params?.years}`, // can be a ParameterizedTranslation directly
+    },
+    // farewell is omitted, which is allowed
+    // user.name is omitted, also allowed
 };
 
 // This can then be passed to normalizeTranslations:

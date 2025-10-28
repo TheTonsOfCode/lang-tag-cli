@@ -1,8 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { i18nConfig } from './[locale]/layout'; // Import config from layout
+import { useEffect } from 'react';
+
+import { i18nConfig } from './[locale]/layout';
+
+// Import config from layout
 
 export default function RootPage() {
   const router = useRouter();
@@ -14,4 +17,4 @@ export default function RootPage() {
 
   // Render nothing or a loading indicator while redirecting
   return null;
-} 
+}

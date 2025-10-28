@@ -1,6 +1,12 @@
 import * as acorn from 'acorn';
 
-export type ASTNodeType = 'key' | 'bracket' | 'colon' | 'value' | 'comment' | 'error';
+export type ASTNodeType =
+    | 'key'
+    | 'bracket'
+    | 'colon'
+    | 'value'
+    | 'comment'
+    | 'error';
 
 export interface ASTNode {
     type: ASTNodeType;
@@ -17,22 +23,26 @@ export interface ASTNode {
  */
 export function parseObjectAST(code: string): ASTNode[] {
     const nodes: ASTNode[] = [];
-    
+
     try {
-        const ast = acorn.parse(`(${code})`, { 
-            ecmaVersion: 'latest', 
-            locations: true 
+        const ast = acorn.parse(`(${code})`, {
+            ecmaVersion: 'latest',
+            locations: true,
         });
-        
+
         // Walk AST and collect nodes
         function walk(node: any, path: string[] = []) {
             if (node.type === 'Property' && node.key) {
-                const keyName = node.key.type === 'Identifier' ? node.key.name : 
-                               node.key.type === 'Literal' ? node.key.value : null;
-                
+                const keyName =
+                    node.key.type === 'Identifier'
+                        ? node.key.name
+                        : node.key.type === 'Literal'
+                          ? node.key.value
+                          : null;
+
                 if (keyName) {
                     const currentPath = [...path, keyName];
-                    
+
                     // Add key node
                     nodes.push({
                         type: 'key',
@@ -41,9 +51,9 @@ export function parseObjectAST(code: string): ASTNode[] {
                         value: keyName,
                         line: node.key.loc.start.line,
                         column: node.key.loc.start.column,
-                        path: currentPath
+                        path: currentPath,
                     });
-                    
+
                     // Add value node if it's a literal
                     if (node.value && node.value.type === 'Literal') {
                         nodes.push({
@@ -55,7 +65,7 @@ export function parseObjectAST(code: string): ASTNode[] {
                             column: node.value.loc.start.column,
                         });
                     }
-                    
+
                     // Continue walking with updated path
                     if (node.value && node.value.type === 'ObjectExpression') {
                         walk(node.value, currentPath);
@@ -63,7 +73,7 @@ export function parseObjectAST(code: string): ASTNode[] {
                     }
                 }
             }
-            
+
             // Recursively walk all properties
             for (const key in node) {
                 if (node[key] && typeof node[key] === 'object') {
@@ -75,15 +85,15 @@ export function parseObjectAST(code: string): ASTNode[] {
                 }
             }
         }
-        
+
         walk(ast);
-        
+
         // Add brackets, colons, commas
         for (let i = 0; i < code.length; i++) {
             const char = code[i];
             if (/[{}[\](),:]/.test(char)) {
                 // Check if this position is already covered by a key
-                const isCovered = nodes.some(n => i >= n.start && i < n.end);
+                const isCovered = nodes.some((n) => i >= n.start && i < n.end);
                 if (!isCovered) {
                     const nodeType = char === ':' ? 'colon' : 'bracket';
                     nodes.push({
@@ -92,15 +102,14 @@ export function parseObjectAST(code: string): ASTNode[] {
                         end: i + 1,
                         value: char,
                         line: 1, // Will be calculated properly
-                        column: i + 1
+                        column: i + 1,
                     });
                 }
             }
         }
-        
+
         // Sort by position
         nodes.sort((a, b) => a.start - b.start);
-        
     } catch (error) {
         // If parsing fails, mark as error
         nodes.push({
@@ -109,26 +118,30 @@ export function parseObjectAST(code: string): ASTNode[] {
             end: code.length,
             value: code,
             line: 1,
-            column: 1
+            column: 1,
         });
     }
-    
+
     return nodes;
 }
 
 /**
  * Marks nodes as error based on conflict path
  */
-export function markConflictNodes(nodes: ASTNode[], conflictPath: string): ASTNode[] {
+export function markConflictNodes(
+    nodes: ASTNode[],
+    conflictPath: string
+): ASTNode[] {
     const conflictKeys = conflictPath.split('.');
-    
-    return nodes.map(node => {
+
+    return nodes.map((node) => {
         if (node.type === 'key' && node.path) {
             // Check if this key is part of the conflict path
-            const isConflict = conflictKeys.length > 0 && 
-                              node.path.length <= conflictKeys.length &&
-                              node.path.every((key, idx) => key === conflictKeys[idx]);
-            
+            const isConflict =
+                conflictKeys.length > 0 &&
+                node.path.length <= conflictKeys.length &&
+                node.path.every((key, idx) => key === conflictKeys[idx]);
+
             if (isConflict) {
                 return { ...node, type: 'error' };
             }

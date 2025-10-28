@@ -1,6 +1,8 @@
-import {LangTagTranslationsConfig} from "lang-tag";
-import {LangTagCLILogger} from "./logger.ts";
-import {TranslationsCollector, NamespaceCollector, flexibleImportAlgorithm} from "@/algorithms";
+import { LangTagTranslationsConfig } from 'lang-tag';
+
+import { TranslationsCollector } from '@/algorithms/collector/type';
+
+import { LangTagCLILogger } from './logger';
 
 export interface LangTagCLIConfig {
     /**
@@ -22,7 +24,7 @@ export interface LangTagCLIConfig {
     excludes: string[];
 
     /**
-     * Root directory for translation files. 
+     * Root directory for translation files.
      * The actual file structure depends on the collector implementation used.
      * @default 'locales'
      * @example With baseLanguageCode='en' and localesDirectory='locales':
@@ -73,14 +75,18 @@ export interface LangTagCLIConfig {
          * A function called when the collected translation configuration needs to be fixed or validated.
          * Allows modification of the configuration before it's saved to the output files.
          */
-        onCollectConfigFix?: (event: LangTagCLICollectConfigFixEvent) => LangTagTranslationsConfig;
+        onCollectConfigFix?: (
+            event: LangTagCLICollectConfigFixEvent
+        ) => LangTagTranslationsConfig;
 
         /**
          * A function called when a single conflict is detected between translation tags.
          * Allows custom resolution logic for handling individual conflicts.
          * Return true to continue processing, false to stop execution.
          */
-        onConflictResolution?: (event: LangTagCLIConflictResolutionEvent) => Promise<void>;
+        onConflictResolution?: (
+            event: LangTagCLIConflictResolutionEvent
+        ) => Promise<void>;
 
         /**
          * A function called after all conflicts have been collected and processed.
@@ -88,7 +94,7 @@ export interface LangTagCLIConfig {
          * Return true to continue processing, false to stop execution.
          */
         onCollectFinish?: (event: LangTagCLICollectFinishEvent) => void;
-    }
+    };
 
     /**
      * A function called for each found lang tag before processing.
@@ -118,7 +124,9 @@ export interface LangTagCLIConfig {
      * }
      * ```
      */
-    onConfigGeneration: (event: LangTagCLIConfigGenerationEvent) => Promise<void>;
+    onConfigGeneration: (
+        event: LangTagCLIConfigGenerationEvent
+    ) => Promise<void>;
 
     import: {
         /**
@@ -143,7 +151,7 @@ export interface LangTagCLIConfig {
          * A function called after all lang-tags were imported
          */
         onImportFinish?: () => void;
-    }
+    };
 
     /**
      * Determines the position of the translation argument in the `lang()` function.
@@ -162,7 +170,11 @@ export interface LangTagCLIConfig {
     debug?: boolean;
 }
 
-type Validity = 'ok' | 'invalid-param-1' | 'invalid-param-2' | 'translations-not-found';
+type Validity =
+    | 'ok'
+    | 'invalid-param-1'
+    | 'invalid-param-2'
+    | 'translations-not-found';
 
 export interface LangTagCLIProcessedTag {
     fullMatch: string;
@@ -202,7 +214,10 @@ export interface LangTagCLIConflict {
  */
 
 export interface LangTagCLIImportManager {
-    importTag(pathRelativeToImportDir: string, tag: LangTagCLIImportedTag): void;
+    importTag(
+        pathRelativeToImportDir: string,
+        tag: LangTagCLIImportedTag
+    ): void;
     getImportedFiles(): LangTagCLIImportedTagsFile[];
     getImportedFilesCount(): number;
     hasImportedFiles(): boolean;
@@ -219,11 +234,10 @@ export interface LangTagCLIImportedTag {
 export interface LangTagCLIImportedTagsFile {
     pathRelativeToImportDir: string;
 
-    tags: LangTagCLIImportedTag[]
+    tags: LangTagCLIImportedTag[];
 }
 
 export interface LangTagCLIExportData {
-
     baseLanguageCode: string;
 
     files: LangTagCLIExportDataFile[];
@@ -232,13 +246,13 @@ export interface LangTagCLIExportData {
 export interface LangTagCLIExportDataFile {
     relativeFilePath: string;
 
-    tags: LangTagCLIExportDataTag[]
+    tags: LangTagCLIExportDataTag[];
 }
 
 export interface LangTagCLIExportDataTag {
-    variableName: string | undefined,
-    translations: object,
-    config: object | undefined,
+    variableName: string | undefined;
+    translations: object;
+    config: object | undefined;
 }
 
 /*
@@ -251,8 +265,8 @@ export interface LangTagCLIImportEvent {
         exportData: LangTagCLIExportData;
     }[];
 
-    langTagConfig: LangTagCLIConfig,
-    logger: LangTagCLILogger,
+    langTagConfig: LangTagCLIConfig;
+    logger: LangTagCLILogger;
 
     importManager: LangTagCLIImportManager;
 }
@@ -267,15 +281,17 @@ export interface LangTagCLIConfigGenerationEvent {
     /** True if the file being processed is located within the configured library import directory (`config.import.dir`). */
     readonly isImportedLibrary: boolean;
 
-    /** 
+    /**
      * The configuration object extracted from the lang tag's options argument (e.g., `{ namespace: 'common', path: 'my.path' }`).
-     * 
+     *
      * **This object is deeply frozen and immutable.** Any attempt to modify it will throw an error in strict mode.
      * To update the configuration, use the `save()` method with a new configuration object.
      */
     readonly config: Readonly<LangTagTranslationsConfig> | undefined;
 
-    readonly langTagConfig: LangTagCLIConfig
+    readonly logger: LangTagCLILogger;
+
+    readonly langTagConfig: LangTagCLIConfig;
 
     /**
      * Indicates whether the `save()` method has been called during this event.
@@ -298,70 +314,22 @@ export interface LangTagCLIConfigGenerationEvent {
 }
 
 export interface LangTagCLICollectConfigFixEvent {
-    config: LangTagTranslationsConfig,
-    langTagConfig: LangTagCLIConfig
+    config: LangTagTranslationsConfig;
+    langTagConfig: LangTagCLIConfig;
 }
 
 export interface LangTagCLIConflictResolutionEvent {
-    conflict: LangTagCLIConflict,
-    logger: LangTagCLILogger,
+    conflict: LangTagCLIConflict;
+    logger: LangTagCLILogger;
     /** Breaks translation collection process */
     exit(): void;
 }
 
 export interface LangTagCLICollectFinishEvent {
     totalTags: number;
-    namespaces: Record<string, Record<string, any>>
-    conflicts: LangTagCLIConflict[]
-    logger: LangTagCLILogger
+    namespaces: Record<string, Record<string, any>>;
+    conflicts: LangTagCLIConflict[];
+    logger: LangTagCLILogger;
     /** Breaks translation collection process */
     exit(): void;
 }
-
-export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
-    tagName: 'lang',
-    isLibrary: false,
-    includes: ['src/**/*.{js,ts,jsx,tsx}'],
-    excludes: ['node_modules', 'dist', 'build'],
-    localesDirectory: 'locales',
-    baseLanguageCode: 'en',
-    collect: {
-        collector: new NamespaceCollector(),
-        defaultNamespace: 'common',
-        ignoreConflictsWithMatchingValues: true,
-        onCollectConfigFix: ({config, langTagConfig}) => {
-            if (langTagConfig.isLibrary) return config;
-
-            if (!config) return { path: '', namespace: langTagConfig.collect!.defaultNamespace!};
-            if (!config.path) config.path = '';
-            if (!config.namespace) config.namespace = langTagConfig.collect!.defaultNamespace!;
-            return config;
-        },
-        onConflictResolution: async event => {
-            await event.logger.conflict(event.conflict, true);
-            // By default, continue processing even if conflicts occur
-            // Call event.exit(); to terminate the process upon the first conflict
-        },
-        onCollectFinish: event => {
-            if (event.conflicts.length) event.exit(); // Stop the process to avoid merging on conflict
-        }
-    },
-    import: {
-        dir: 'src/lang-libraries',
-        tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
-        onImport: flexibleImportAlgorithm({
-            filePath: {
-                includePackageInPath: true,
-            }
-        })
-        // onImport: ({importedRelativePath, fileGenerationData}: LangTagCLIOnImportParams, actions)=> {
-        //     const exportIndex = (fileGenerationData.index || 0) + 1;
-        //     fileGenerationData.index = exportIndex;
-        //
-        //     actions.setFile(path.basename(importedRelativePath));
-        //     actions.setExportName(`translations${exportIndex}`);
-        // }
-    },
-    translationArgPosition: 1,
-    onConfigGeneration: async event => {},
-};

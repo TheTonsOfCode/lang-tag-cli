@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import mustache from 'mustache';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 export interface InitTagRenderOptions {
     tagName: string;
@@ -28,8 +28,13 @@ function renderTemplate(template: string, data: Record<string, any>): string {
 function loadTemplate(templateName: string): string {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    const templatePath = join(__dirname, 'templates', 'tag', `${templateName}.mustache`);
-    
+    const templatePath = join(
+        __dirname,
+        'templates',
+        'tag',
+        `${templateName}.mustache`
+    );
+
     try {
         return readFileSync(templatePath, 'utf-8');
     } catch (error) {
@@ -44,7 +49,7 @@ function prepareTemplateData(options: InitTagRenderOptions): TemplateData {
             key: '{{key}}',
             username: '{{username}}',
             processRegex: '{{(.*?)}}',
-        }
+        },
     };
 }
 
@@ -53,9 +58,12 @@ export function renderInitTagTemplates(options: InitTagRenderOptions): string {
     const baseTemplate = loadTemplate(baseTemplateName);
     const placeholderTemplate = loadTemplate('placeholder');
     const templateData = prepareTemplateData(options);
-    
+
     const renderedBase = renderTemplate(baseTemplate, templateData);
-    const renderedPlaceholders = renderTemplate(placeholderTemplate, templateData);
-    
+    const renderedPlaceholders = renderTemplate(
+        placeholderTemplate,
+        templateData
+    );
+
     return renderedBase + '\n\n' + renderedPlaceholders;
 }

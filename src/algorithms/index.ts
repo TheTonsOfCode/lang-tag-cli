@@ -1,6 +1,6 @@
 /**
  * Algorithm modules for lang-tag-cli.
- * 
+ *
  * This module provides access to all available algorithms organized by category:
  * - Collectors: Define how translation tags are organized into output files
  * - Config Generation: Customize tag configuration generation
@@ -12,11 +12,10 @@
 export * from './case-utils';
 
 // Collectors Algorithms
-export * from './collector/index.ts';
+export * from './collector/index';
 
 // Config Generation Algorithms
-export * from './config-generation/index.ts';
+export * from './config-generation/index';
 
 // Import Algorithms
-export * from './import/index.ts';
-
+export * from './import/index';

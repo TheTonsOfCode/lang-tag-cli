@@ -1,4 +1,4 @@
-import { ASTNode, ASTNodeType } from './ast-parser.ts';
+import { ASTNode, ASTNodeType } from './ast-parser';
 
 const ANSI = {
     reset: '\x1b[0m',
@@ -18,26 +18,31 @@ const ANSI = {
  */
 export function colorizeFromAST(code: string, nodes: ASTNode[]): string {
     // Create ranges to colorize
-    const ranges: Array<{start: number, end: number, color: string, priority: number}> = [];
-    
+    const ranges: Array<{
+        start: number;
+        end: number;
+        color: string;
+        priority: number;
+    }> = [];
+
     for (const node of nodes) {
         const color = getColorForNodeType(node.type);
         const priority = getPriorityForNodeType(node.type);
-        
+
         ranges.push({
             start: node.start,
             end: node.end,
             color,
-            priority
+            priority,
         });
     }
-    
+
     // Sort by position (reverse) and priority
     ranges.sort((a, b) => {
         if (b.start !== a.start) return b.start - a.start;
         return b.priority - a.priority;
     });
-    
+
     // Apply colors in reverse order to preserve positions
     let colorized = code;
     for (const range of ranges) {
@@ -46,7 +51,7 @@ export function colorizeFromAST(code: string, nodes: ASTNode[]): string {
         const after = colorized.substring(range.end);
         colorized = before + range.color + text + ANSI.reset + after;
     }
-    
+
     return colorized;
 }
 

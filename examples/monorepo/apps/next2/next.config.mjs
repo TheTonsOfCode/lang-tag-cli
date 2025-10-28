@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['lib2']
+  transpilePackages: ['lib2'],
 };
 
-export default nextConfig; 
+export default nextConfig;

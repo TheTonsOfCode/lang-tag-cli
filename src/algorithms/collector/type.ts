@@ -1,8 +1,7 @@
-import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/config.ts";
-import {LangTagCLILogger} from "@/logger.ts";
+import { LangTagCLILogger } from '@/logger';
+import { LangTagCLIConfig, LangTagCLIProcessedTag } from '@/type';
 
 export abstract class TranslationsCollector {
-
     public config!: LangTagCLIConfig;
     public logger!: LangTagCLILogger;
 
@@ -17,5 +16,4 @@ export abstract class TranslationsCollector {
     abstract onMissingCollection(collectionName: string): Promise<void>;
 
     abstract postWrite(changedCollections: string[]): Promise<void>;
-
 }

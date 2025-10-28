@@ -1,11 +1,15 @@
-import {LangTagCLIConfig} from "@/config.ts";
-import {describe, expect, it} from 'vitest';
-import {$LT_TagProcessor} from '@/core/processor.ts';
+import { describe, expect, it } from 'vitest';
 
-const commonConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
+import { $LT_TagProcessor } from '@/core/processor';
+import { LangTagCLIConfig } from '@/type';
+
+const commonConfig: Pick<
+    LangTagCLIConfig,
+    'tagName' | 'translationArgPosition'
+> = {
     tagName: 'lang',
-    translationArgPosition: 1
-}
+    translationArgPosition: 1,
+};
 const processor = new $LT_TagProcessor(commonConfig);
 
 describe('Commented lang-tags should be ignored', () => {
@@ -38,14 +42,16 @@ const active = lang({ key: 'active' });`;
 
 describe('Template strings with interpolation are not allowed', () => {
     it('should reject lang tag with template string interpolation in translations', () => {
-        const content = "const x = 'test';\nconst text = lang({ hello: `Hello ${x}` });";
+        const content =
+            "const x = 'test';\nconst text = lang({ hello: `Hello ${x}` });";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(0); // Should be rejected
     });
 
     it('should reject lang tag with template string interpolation in config', () => {
-        const content = "const ns = 'common';\nconst text = lang({ key: 'hello' }, { namespace: `${ns}` });";
+        const content =
+            "const ns = 'common';\nconst text = lang({ key: 'hello' }, { namespace: `${ns}` });";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(0); // Should be rejected
@@ -90,4 +96,3 @@ const active2 = lang({ key: 'active2' }); // inline comment`;
         expect(tags[1].parameterTranslations.key).toBe('active2');
     });
 });
-

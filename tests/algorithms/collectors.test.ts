@@ -1,8 +1,9 @@
-import {describe, it, expect, beforeEach, vi} from 'vitest';
-import {DictionaryCollector} from '@/algorithms/collector/dictionary-collector';
-import {NamespaceCollector} from '@/algorithms/collector/namespace-collector';
-import {LangTagCLIConfig, LangTagCLIProcessedTag} from '@/config';
-import {LangTagCLILogger} from '@/logger';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { DictionaryCollector } from '@/algorithms/collector/dictionary-collector';
+import { NamespaceCollector } from '@/algorithms/collector/namespace-collector';
+import { LangTagCLILogger } from '@/logger';
+import { LangTagCLIConfig, LangTagCLIProcessedTag } from '@/type';
 
 const mockConfig: LangTagCLIConfig = {
     baseLanguageCode: 'en',
@@ -44,7 +45,9 @@ describe('DictionaryCollector', () => {
     });
 
     it('should append namespace to path when option enabled', () => {
-        const collectorWithOption = new DictionaryCollector({ appendNamespaceToPath: true });
+        const collectorWithOption = new DictionaryCollector({
+            appendNamespaceToPath: true,
+        });
         collectorWithOption.config = mockConfig;
 
         const result = collectorWithOption.transformTag(mockTag);
@@ -53,10 +56,14 @@ describe('DictionaryCollector', () => {
     });
 
     it('should append namespace as path', () => {
-        const collectorWithOption = new DictionaryCollector({ appendNamespaceToPath: true });
+        const collectorWithOption = new DictionaryCollector({
+            appendNamespaceToPath: true,
+        });
         collectorWithOption.config = mockConfig;
 
-        const tagWithoutPath = { parameterConfig: { namespace: 'admin' } } as any;
+        const tagWithoutPath = {
+            parameterConfig: { namespace: 'admin' },
+        } as any;
         const result = collectorWithOption.transformTag(tagWithoutPath);
         expect(result.parameterConfig.path).toBe('admin');
     });
@@ -74,9 +81,9 @@ describe('DictionaryCollector', () => {
     });
 
     it('should throw error when multiple collections changed', async () => {
-        await expect(
-            collector.postWrite(['en', 'extra'])
-        ).rejects.toThrow('Should not write more than 1 collection');
+        await expect(collector.postWrite(['en', 'extra'])).rejects.toThrow(
+            'Should not write more than 1 collection'
+        );
     });
 
     it('should log success when single collection updated', async () => {
@@ -93,45 +100,63 @@ describe('DictionaryCollector', () => {
 
     describe('Edge Cases - transformTag', () => {
         it('should handle tag with undefined path', () => {
-            const tagNoPath = { parameterConfig: { namespace: 'admin' } } as any;
+            const tagNoPath = {
+                parameterConfig: { namespace: 'admin' },
+            } as any;
             const result = collector.transformTag(tagNoPath);
             expect(result).toEqual(tagNoPath);
         });
 
         it('should handle tag with undefined namespace', () => {
-            const tagNoNamespace = { parameterConfig: { path: 'greeting' } } as any;
+            const tagNoNamespace = {
+                parameterConfig: { path: 'greeting' },
+            } as any;
             const result = collector.transformTag(tagNoNamespace);
             expect(result).toEqual(tagNoNamespace);
         });
 
         it('should handle both namespace and path when appendNamespaceToPath is true', () => {
-            const collectorWithOption = new DictionaryCollector({ appendNamespaceToPath: true });
+            const collectorWithOption = new DictionaryCollector({
+                appendNamespaceToPath: true,
+            });
             collectorWithOption.config = mockConfig;
 
-            const tag = { parameterConfig: { namespace: 'messages', path: 'welcome' } } as any;
+            const tag = {
+                parameterConfig: { namespace: 'messages', path: 'welcome' },
+            } as any;
             const result = collectorWithOption.transformTag(tag);
             expect(result.parameterConfig.path).toBe('messages.welcome');
             expect(result.parameterConfig.namespace).toBeUndefined();
         });
 
         it('should not mutate original tag object', () => {
-            const collectorWithOption = new DictionaryCollector({ appendNamespaceToPath: true });
+            const collectorWithOption = new DictionaryCollector({
+                appendNamespaceToPath: true,
+            });
             collectorWithOption.config = mockConfig;
-            const originalTag = { parameterConfig: { namespace: 'admin', path: 'panel' } } as any;
+            const originalTag = {
+                parameterConfig: { namespace: 'admin', path: 'panel' },
+            } as any;
             const originalNamespace = originalTag.parameterConfig.namespace;
 
             collectorWithOption.transformTag(originalTag);
-            expect(originalTag.parameterConfig.namespace).toBe(originalNamespace);
+            expect(originalTag.parameterConfig.namespace).toBe(
+                originalNamespace
+            );
         });
     });
 
     describe('Edge Cases - postWrite', () => {
         it('should handle null changedCollections', async () => {
-            await expect(collector.postWrite(null as any)).resolves.not.toThrow();
+            await expect(
+                collector.postWrite(null as any)
+            ).resolves.not.toThrow();
         });
 
         it('should handle undefined changedCollections', async () => {
-            await expect(collector.postWrite(undefined as any)).resolves.not.toThrow();
+            await expect(
+                collector.postWrite(undefined as any)
+            ).resolves.not.toThrow();
         });
     });
 
@@ -227,7 +252,9 @@ describe('NamespaceCollector', () => {
 
         it('should handle special characters in namespace', () => {
             expect(collector.aggregateCollection('en-US')).toBe('en-US');
-            expect(collector.aggregateCollection('ui_components')).toBe('ui_components');
+            expect(collector.aggregateCollection('ui_components')).toBe(
+                'ui_components'
+            );
         });
 
         it('should handle empty string', () => {
@@ -252,11 +279,15 @@ describe('NamespaceCollector', () => {
         });
 
         it('should handle null changedCollections', async () => {
-            await expect(collector.postWrite(null as any)).resolves.not.toThrow();
+            await expect(
+                collector.postWrite(null as any)
+            ).resolves.not.toThrow();
         });
 
         it('should handle undefined changedCollections', async () => {
-            await expect(collector.postWrite(undefined as any)).resolves.not.toThrow();
+            await expect(
+                collector.postWrite(undefined as any)
+            ).resolves.not.toThrow();
         });
 
         it('should handle empty array', async () => {
@@ -267,7 +298,8 @@ describe('NamespaceCollector', () => {
 
     describe('Edge Cases - resolveCollectionFilePath', () => {
         it('should return correct file path for collection', async () => {
-            const filePath = await collector.resolveCollectionFilePath('common');
+            const filePath =
+                await collector.resolveCollectionFilePath('common');
             expect(filePath).toContain('common.json');
         });
 

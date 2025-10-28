@@ -1,36 +1,43 @@
-import path from "path";
-import process from "node:process";
-import {readFileSync} from "fs";
+import process from 'node:process';
 
-import {globby} from "globby";
+import { readFileSync } from 'fs';
+import { globby } from 'globby';
+import path from 'path';
 
-import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/config.ts";
-import {LangTagCLILogger} from "@/logger.ts";
-import {$LT_TagProcessor} from "@/core/processor.ts";
-import {$LT_FilterEmptyNamespaceTags, $LT_FilterInvalidTags} from "@/core/collect/fillters.ts";
+import {
+    $LT_FilterEmptyNamespaceTags,
+    $LT_FilterInvalidTags,
+} from '@/core/collect/fillters';
+import { $LT_TagProcessor } from '@/core/processor';
+import { LangTagCLILogger } from '@/logger';
+import { LangTagCLIConfig, LangTagCLIProcessedTag } from '@/type';
 
 export interface $LT_TagCandidateFile {
-
     relativeFilePath: string;
-    tags: LangTagCLIProcessedTag[]
+    tags: LangTagCLIProcessedTag[];
 }
 
 interface Props {
-
     config: LangTagCLIConfig;
     logger: LangTagCLILogger;
-    filesToScan?: string[]
+    filesToScan?: string[];
 }
 
-export async function $LT_CollectCandidateFilesWithTags(props: Props): Promise<$LT_TagCandidateFile[]> {
-    const {config, logger} = props;
+export async function $LT_CollectCandidateFilesWithTags(
+    props: Props
+): Promise<$LT_TagCandidateFile[]> {
+    const { config, logger } = props;
     const processor = new $LT_TagProcessor(config);
 
     const cwd = process.cwd();
 
     let filesToScan = props.filesToScan;
     if (!filesToScan) {
-        filesToScan = await globby(config.includes, {cwd, ignore: config.excludes, absolute: true});
+        filesToScan = await globby(config.includes, {
+            cwd,
+            ignore: config.excludes,
+            absolute: true,
+        });
     }
 
     const candidates: $LT_TagCandidateFile[] = [];
@@ -51,15 +58,18 @@ export async function $LT_CollectCandidateFilesWithTags(props: Props): Promise<$
         }
 
         for (let tag of tags) {
-            tag.parameterConfig = config.collect!.onCollectConfigFix!({config: tag.parameterConfig, langTagConfig: config});
+            tag.parameterConfig = config.collect!.onCollectConfigFix!({
+                config: tag.parameterConfig,
+                langTagConfig: config,
+            });
         }
 
         // Note: onCollectConfigFix should always fix empty namespace tags to be directed to default namespace
         tags = $LT_FilterEmptyNamespaceTags(tags, logger);
 
-        const relativeFilePath = path.relative(cwd, filePath)
+        const relativeFilePath = path.relative(cwd, filePath);
 
-        candidates.push({relativeFilePath, tags});
+        candidates.push({ relativeFilePath, tags });
     }
 
     return candidates;

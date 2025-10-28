@@ -1,8 +1,10 @@
-import { LangTagCLIConfigGenerationEvent } from "@/config.ts";
-import { sep } from "pathe";
-import { CaseType, applyCaseTransform } from "../case-utils";
+import { sep } from 'pathe';
 
-const TRIGGER_NAME = "path-based-config-generator";
+import { LangTagCLIConfigGenerationEvent } from '@/type';
+
+import { CaseType, applyCaseTransform } from '../case-utils';
+
+const TRIGGER_NAME = 'path-based-config-generator';
 
 export interface PathBasedConfigGeneratorOptions {
     /**
@@ -15,7 +17,7 @@ export interface PathBasedConfigGeneratorOptions {
      * Whether to completely remove directories wrapped in brackets () or [].
      * If false, only the brackets are removed from directory names.
      * @default true
-     * 
+     *
      * @example
      * - true: 'app/(admin)/users' -> 'app/users'
      * - false: 'app/(admin)/users' -> 'app/admin/users'
@@ -26,7 +28,7 @@ export interface PathBasedConfigGeneratorOptions {
      * List of directory names to completely ignore globally.
      * These will be removed from all paths regardless of their position.
      * @default []
-     * 
+     *
      * @example ['src', 'app', 'components']
      */
     ignoreDirectories?: string[];
@@ -35,17 +37,17 @@ export interface PathBasedConfigGeneratorOptions {
      * When true, automatically removes the root directory from the path if it matches
      * one of the root directories extracted from config.includes patterns.
      * Unlike ignoreDirectories, this only removes the FIRST occurrence if the path starts with it.
-     * 
+     *
      * @default false
-     * 
+     *
      * @example
      * // With includes: ['src/**\/*.{js,ts,jsx,tsx}']
      * // Path: 'src/components/Button.tsx' → removes root 'src' → 'components/Button.tsx'
-     * 
+     *
      * // With includes: ['app/**\/*.{js,ts,jsx,tsx}', 'components/**\/*.{jsx,tsx}']
      * // Path: 'app/dashboard/components/utils.tsx' → removes root 'app' → 'dashboard/components/utils.tsx'
      * // Note: 'components' in the middle is NOT removed (only root occurrences)
-     * 
+     *
      * // With includes: ['(src|app)/**\/*.{js,ts,jsx,tsx}']
      * // Extracts root directories: ['src', 'app']
      * // Path: 'src/features/auth.tsx' → removes root 'src' → 'features/auth.tsx'
@@ -57,7 +59,7 @@ export interface PathBasedConfigGeneratorOptions {
      * Hierarchical structure for ignoring specific directory patterns.
      * Keys represent path segments to match, values indicate what to ignore at that level.
      * Supports special key `_` when set to `true` to ignore current segment but continue hierarchy.
-     * 
+     *
      * @example
      * {
      *   'src': {
@@ -84,7 +86,7 @@ export interface PathBasedConfigGeneratorOptions {
      *   - Missing namespace: `>>: { pathPrefix: 'prefix.' }` - uses current segment as namespace with prefix
      *   - Nested: deepest `>>` in hierarchy takes precedence
      * - Regular keys: nested rules or boolean/string for child segments
-     * 
+     *
      * @example
      * {
      *   app: {
@@ -128,7 +130,7 @@ export interface PathBasedConfigGeneratorOptions {
 
     /**
      * Case transformation to apply to the namespace.
-     * Available options: 'camel', 'capital', 'constant', 'dot', 'header', 'kebab', 
+     * Available options: 'camel', 'capital', 'constant', 'dot', 'header', 'kebab',
      * 'lower', 'no', 'param', 'pascal', 'path', 'sentence', 'snake', 'swap', 'title', 'upper'
      * @default undefined (no transformation)
      */
@@ -136,7 +138,7 @@ export interface PathBasedConfigGeneratorOptions {
 
     /**
      * Case transformation to apply to the path segments.
-     * Available options: 'camel', 'capital', 'constant', 'dot', 'header', 'kebab', 
+     * Available options: 'camel', 'capital', 'constant', 'dot', 'header', 'kebab',
      * 'lower', 'no', 'param', 'pascal', 'path', 'sentence', 'snake', 'swap', 'title', 'upper'
      * @default undefined (no transformation)
      */
@@ -159,17 +161,17 @@ export interface PathBasedConfigGeneratorOptions {
 
 /**
  * Automatically generates namespace and path configuration based on file path structure.
- * 
+ *
  * This algorithm analyzes the relative file path and intelligently extracts namespace
  * and path segments according to configurable rules.
- * 
+ *
  * @param options - Configuration options for path-based generation
  * @returns A function compatible with LangTagCLIConfig.onConfigGeneration
- * 
+ *
  * @example
  * ```typescript
  * import { pathBasedConfigGenerator } from '@lang-tag/cli/algorithms';
- * 
+ *
  * export default {
  *   onConfigGeneration: pathBasedConfigGenerator({
  *     includeFileName: false,
@@ -196,25 +198,26 @@ export function pathBasedConfigGenerator(
         namespaceCase,
         pathCase,
         fallbackNamespace,
-        clearOnDefaultNamespace = true
+        clearOnDefaultNamespace = true,
     } = options;
 
     // Validate that both pathRules and ignoreStructured are not used together
     const hasPathRules = Object.keys(pathRules).length > 0;
     const hasIgnoreStructured = Object.keys(ignoreStructured).length > 0;
-    
+
     if (hasPathRules && hasIgnoreStructured) {
         throw new Error(
             'pathBasedConfigGenerator: Cannot use both "pathRules" and "ignoreStructured" options simultaneously. ' +
-            'Please use "pathRules" (recommended) or "ignoreStructured" (legacy), but not both.'
+                'Please use "pathRules" (recommended) or "ignoreStructured" (legacy), but not both.'
         );
     }
 
     return async (event: LangTagCLIConfigGenerationEvent) => {
         const { relativePath, langTagConfig } = event;
-        
+
         // Determine the actual fallback namespace from options or config default
-        const actualFallbackNamespace = fallbackNamespace ?? langTagConfig.collect?.defaultNamespace;
+        const actualFallbackNamespace =
+            fallbackNamespace ?? langTagConfig.collect?.defaultNamespace;
 
         // Extract path segments from relative path using path library for cross-platform compatibility
         let pathSegments = relativePath.split(sep).filter(Boolean);
@@ -236,26 +239,37 @@ export function pathBasedConfigGenerator(
         }
 
         // Process bracketed directories
-        pathSegments = pathSegments.map(segment => {
-            const bracketMatch = segment.match(/^[\(\[](.+)[\)\]]$/);
-            if (bracketMatch) {
-                // Directory is wrapped in brackets
-                return removeBracketedDirectories ? null : bracketMatch[1];
-            }
-            return segment;
-        }).filter((seg): seg is string => seg !== null);
+        pathSegments = pathSegments
+            .map((segment) => {
+                const bracketMatch = segment.match(/^[\(\[](.+)[\)\]]$/);
+                if (bracketMatch) {
+                    // Directory is wrapped in brackets
+                    return removeBracketedDirectories ? null : bracketMatch[1];
+                }
+                return segment;
+            })
+            .filter((seg): seg is string => seg !== null);
 
         // Apply hierarchical path rules BEFORE removing root directories
         // This allows rules to work with the full path structure
         if (hasPathRules) {
             pathSegments = applyPathRules(pathSegments, pathRules);
         } else {
-            pathSegments = applyStructuredIgnore(pathSegments, ignoreStructured);
+            pathSegments = applyStructuredIgnore(
+                pathSegments,
+                ignoreStructured
+            );
         }
 
         // Remove root directories from includes (only first occurrence)
-        if (ignoreIncludesRootDirectories && langTagConfig.includes && pathSegments.length > 0) {
-            const extractedDirectories = extractRootDirectoriesFromIncludes(langTagConfig.includes);
+        if (
+            ignoreIncludesRootDirectories &&
+            langTagConfig.includes &&
+            pathSegments.length > 0
+        ) {
+            const extractedDirectories = extractRootDirectoriesFromIncludes(
+                langTagConfig.includes
+            );
             // Only remove if the first segment matches one of the root directories
             if (extractedDirectories.includes(pathSegments[0])) {
                 pathSegments = pathSegments.slice(1);
@@ -263,7 +277,9 @@ export function pathBasedConfigGenerator(
         }
 
         // Apply global ignore rules
-        pathSegments = pathSegments.filter(seg => !ignoreDirectories.includes(seg));
+        pathSegments = pathSegments.filter(
+            (seg) => !ignoreDirectories.includes(seg)
+        );
 
         // Generate namespace and path from remaining segments
         let namespace: string | undefined;
@@ -297,7 +313,9 @@ export function pathBasedConfigGenerator(
 
         if (path && pathCase) {
             const pathParts = path.split('.');
-            const transformedParts = pathParts.map(part => applyCaseTransform(part, pathCase));
+            const transformedParts = pathParts.map((part) =>
+                applyCaseTransform(part, pathCase)
+            );
             path = transformedParts.join('.');
         }
 
@@ -313,10 +331,12 @@ export function pathBasedConfigGenerator(
                 delete newConfig.namespace;
             } else {
                 // No namespace, no path - check if there are any other custom properties
-                const hasOtherProperties = event.config && Object.keys(event.config).some(
-                    key => key !== 'namespace' && key !== 'path'
-                );
-                
+                const hasOtherProperties =
+                    event.config &&
+                    Object.keys(event.config).some(
+                        (key) => key !== 'namespace' && key !== 'path'
+                    );
+
                 if (!hasOtherProperties) {
                     // No other properties - clear entire config
                     event.save(null, TRIGGER_NAME);
@@ -357,14 +377,14 @@ function applyStructuredIgnore(
 ): string[] {
     const result: string[] = [];
     let currentStructure = structure;
-    
+
     for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
-        
+
         // Check if current segment matches any key in current structure level
         if (segment in currentStructure) {
             const rule = currentStructure[segment];
-            
+
             if (rule === true) {
                 // Skip this segment (don't add to result)
                 // Reset structure for next iteration
@@ -373,7 +393,7 @@ function applyStructuredIgnore(
             } else if (Array.isArray(rule)) {
                 // Add current segment to result
                 result.push(segment);
-                
+
                 // Check if next segment should be removed
                 if (i + 1 < segments.length && rule.includes(segments[i + 1])) {
                     // Skip next segment
@@ -385,7 +405,7 @@ function applyStructuredIgnore(
             } else if (typeof rule === 'object' && rule !== null) {
                 // Check for special _ key to ignore current segment but continue
                 const ignoreSelf = rule['_'] === true;
-                
+
                 if (ignoreSelf) {
                     // Skip this segment but continue with nested structure
                     currentStructure = rule;
@@ -398,12 +418,12 @@ function applyStructuredIgnore(
                 }
             }
         }
-        
+
         // No match - add segment and reset structure
         result.push(segment);
         currentStructure = structure;
     }
-    
+
     return result;
 }
 
@@ -417,10 +437,14 @@ function addPathPrefixAndSegments(
     remainingSegments: string[]
 ): void {
     if (pathPrefix && remainingSegments.length > 0) {
-        const cleanPrefix = pathPrefix.endsWith('.') ? pathPrefix.slice(0, -1) : pathPrefix;
+        const cleanPrefix = pathPrefix.endsWith('.')
+            ? pathPrefix.slice(0, -1)
+            : pathPrefix;
         result.push(cleanPrefix, ...remainingSegments);
     } else if (pathPrefix && remainingSegments.length === 0) {
-        const cleanPrefix = pathPrefix.endsWith('.') ? pathPrefix.slice(0, -1) : pathPrefix;
+        const cleanPrefix = pathPrefix.endsWith('.')
+            ? pathPrefix.slice(0, -1)
+            : pathPrefix;
         result.push(cleanPrefix);
     } else if (remainingSegments.length > 0) {
         result.push(...remainingSegments);
@@ -430,7 +454,7 @@ function addPathPrefixAndSegments(
 /**
  * Processes >> namespace redirect operator and returns the result array.
  * The redirect operator jumps to a different namespace and continues processing remaining path segments.
- * 
+ *
  * @param redirectRule - The redirect configuration (string or object)
  * @param remainingSegments - Path segments that come after the redirect point
  * @param options - Optional context when redirect is inside a segment rule
@@ -446,7 +470,7 @@ function processNamespaceRedirect(
     }
 ): string[] {
     const result: string[] = [];
-    
+
     // Handle null/undefined redirect - treat as empty string redirect
     if (redirectRule === null || redirectRule === undefined) {
         // Treat as empty string redirect - use current segment as namespace
@@ -478,7 +502,7 @@ function processNamespaceRedirect(
         // Complex redirect: >>: { namespace: 'name', pathPrefix: 'prefix.' }
         const namespace = redirectRule.namespace;
         const pathPrefix = redirectRule.pathPrefix || '';
-        
+
         // If namespace is missing, null, or empty, use current segment (if available)
         if (namespace === undefined || namespace === null || namespace === '') {
             if (options?.currentSegment !== undefined) {
@@ -494,7 +518,7 @@ function processNamespaceRedirect(
             addPathPrefixAndSegments(result, pathPrefix, remainingSegments);
         }
     }
-    
+
     return result;
 }
 
@@ -516,27 +540,34 @@ function applyPathRules(
 ): string[] {
     const result: string[] = [];
     let currentStructure = structure;
-    let deepestRedirect: { rule: any; remainingSegments: string[]; context?: any } | null = null;
-    
+    let deepestRedirect: {
+        rule: any;
+        remainingSegments: string[];
+        context?: any;
+    } | null = null;
+
     for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
-        
+
         // Check for >> namespace redirect at current structure level
         // Skip if we already have a redirect with context (from nested object)
-        if ('>>' in currentStructure && (!deepestRedirect || !deepestRedirect.context)) {
+        if (
+            '>>' in currentStructure &&
+            (!deepestRedirect || !deepestRedirect.context)
+        ) {
             const redirectRule = currentStructure['>>'];
             const remainingSegments = segments.slice(i);
             // Store this as the deepest redirect found so far
             deepestRedirect = {
                 rule: redirectRule,
-                remainingSegments: remainingSegments
+                remainingSegments: remainingSegments,
             };
         }
-        
+
         // Check if current segment matches any key in current structure level
         if (segment in currentStructure) {
             const rule = currentStructure[segment];
-            
+
             // Handle simple boolean/string values
             if (rule === true) {
                 // Skip this segment (don't add to result)
@@ -554,7 +585,7 @@ function applyPathRules(
             } else if (Array.isArray(rule)) {
                 // Add current segment to result
                 result.push(segment);
-                
+
                 // Check if next segment should be removed
                 if (i + 1 < segments.length && rule.includes(segments[i + 1])) {
                     // Skip next segment
@@ -567,14 +598,17 @@ function applyPathRules(
                 const ignoreSelf = rule['_'] === false;
                 const renameTo = rule['>'];
                 const redirectRule = rule['>>'];
-                
+
                 // Check for >> namespace redirect in nested object
                 if ('>>' in rule) {
                     const remainingSegments = segments.slice(i + 1); // Segments after current one
                     // Process remaining segments through nested rules (without >>)
                     const ruleWithoutRedirect = { ...rule };
                     delete ruleWithoutRedirect['>>'];
-                    const processedRemaining = applyPathRules(remainingSegments, ruleWithoutRedirect);
+                    const processedRemaining = applyPathRules(
+                        remainingSegments,
+                        ruleWithoutRedirect
+                    );
                     // Store this as the deepest redirect found so far
                     deepestRedirect = {
                         rule: redirectRule,
@@ -582,11 +616,11 @@ function applyPathRules(
                         context: {
                             currentSegment: segment,
                             renameTo: renameTo,
-                            ignoreSelf: ignoreSelf
-                        }
+                            ignoreSelf: ignoreSelf,
+                        },
                     };
                 }
-                
+
                 // Add or rename current segment (unless _ is false)
                 if (!ignoreSelf) {
                     if (typeof renameTo === 'string') {
@@ -595,18 +629,18 @@ function applyPathRules(
                         result.push(segment);
                     }
                 }
-                
+
                 // Continue with the nested structure
                 currentStructure = rule;
                 continue;
             }
         }
-        
+
         // No match - add segment and reset structure
         result.push(segment);
         currentStructure = structure;
     }
-    
+
     // If we found a redirect, use the deepest one
     if (deepestRedirect) {
         return processNamespaceRedirect(
@@ -615,7 +649,7 @@ function applyPathRules(
             deepestRedirect.context
         );
     }
-    
+
     return result;
 }
 
@@ -628,28 +662,30 @@ function applyPathRules(
  */
 function extractRootDirectoriesFromIncludes(includes: string[]): string[] {
     const directories = new Set<string>();
-    
+
     for (const pattern of includes) {
         // Remove leading ./ if present
         let cleanPattern = pattern.replace(/^\.\//, '');
-        
+
         // Extract the first segment before /**
         const match = cleanPattern.match(/^([^/]+)/);
         if (!match) continue;
-        
+
         const firstSegment = match[1];
-        
+
         // Check if it's a group pattern like (src|app) or [src|app]
         const groupMatch = firstSegment.match(/^[\(\[]([^\)\]]+)[\)\]]$/);
         if (groupMatch) {
             // Split by | and add each directory
-            const groupDirectories = groupMatch[1].split('|').map(f => f.trim());
-            groupDirectories.forEach(directory => directories.add(directory));
+            const groupDirectories = groupMatch[1]
+                .split('|')
+                .map((f) => f.trim());
+            groupDirectories.forEach((directory) => directories.add(directory));
         } else {
             // Regular directory name
             directories.add(firstSegment);
         }
     }
-    
+
     return Array.from(directories);
 }

@@ -1,11 +1,15 @@
-import {LangTagCLIConfig} from "@/config.ts";
-import {describe, expect, it} from 'vitest';
-import {$LT_TagProcessor, $LT_TagReplaceData} from '@/core/processor.ts';
+import { describe, expect, it } from 'vitest';
 
-const commonConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
+import { $LT_TagProcessor, $LT_TagReplaceData } from '@/core/processor';
+import { LangTagCLIConfig } from '@/type';
+
+const commonConfig: Pick<
+    LangTagCLIConfig,
+    'tagName' | 'translationArgPosition'
+> = {
     tagName: 'lang',
-    translationArgPosition: 1
-}
+    translationArgPosition: 1,
+};
 const processor = new $LT_TagProcessor(commonConfig);
 
 describe('findLangMatches', () => {
@@ -15,34 +19,38 @@ describe('findLangMatches', () => {
 
         expect(tags).toHaveLength(1);
         expect(tags[0].fullMatch).toBe(" text = lang({ key: 'hello' })");
-        expect(tags[0].variableName).toBe("text");
+        expect(tags[0].variableName).toBe('text');
         expect(tags[0].parameter1Text).toBe("{ key: 'hello' }");
         expect(tags[0].parameter2Text).toBeUndefined();
     });
 
     it('should find lang match with two objects', () => {
-        const content = "const text = lang({ key: 'hello' }, { fallback: 'hi' });";
+        const content =
+            "const text = lang({ key: 'hello' }, { fallback: 'hi' });";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(1);
-        expect(tags[0].fullMatch).toBe(" text = lang({ key: 'hello' }, { fallback: 'hi' })");
-        expect(tags[0].variableName).toBe("text");
+        expect(tags[0].fullMatch).toBe(
+            " text = lang({ key: 'hello' }, { fallback: 'hi' })"
+        );
+        expect(tags[0].variableName).toBe('text');
         expect(tags[0].parameter1Text).toBe("{ key: 'hello' }");
         expect(tags[0].parameter2Text).toBe("{ fallback: 'hi' }");
     });
 
     it('should find multiple lang tags', () => {
-        const content = "const text1 = lang({ key: 'hello' }); const text2 = lang({ key: 'hi' });";
+        const content =
+            "const text1 = lang({ key: 'hello' }); const text2 = lang({ key: 'hi' });";
 
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(2);
         expect(tags[0].fullMatch).toBe(" text1 = lang({ key: 'hello' })");
-        expect(tags[0].variableName).toBe("text1");
+        expect(tags[0].variableName).toBe('text1');
         expect(tags[0].parameter1Text).toBe("{ key: 'hello' }");
         expect(tags[0].parameter2Text).toBeUndefined();
         expect(tags[1].fullMatch).toBe(" text2 = lang({ key: 'hi' })");
-        expect(tags[1].variableName).toBe("text2");
+        expect(tags[1].variableName).toBe('text2');
         expect(tags[1].parameter1Text).toBe("{ key: 'hi' }");
         expect(tags[1].parameter2Text).toBeUndefined();
     });
@@ -63,20 +71,23 @@ describe('findLangMatches', () => {
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(1);
-        expect(tags[0].fullMatch).toBe("lang({ key: 'hello' }, { fallback: 'hi' })");
+        expect(tags[0].fullMatch).toBe(
+            "lang({ key: 'hello' }, { fallback: 'hi' })"
+        );
         expect(tags[0].variableName).toBeUndefined();
         expect(tags[0].parameter1Text).toBe("{ key: 'hello' }");
         expect(tags[0].parameter2Text).toBe("{ fallback: 'hi' }");
     });
 
     it('should find lang tags with and without variable assignment in the same content', () => {
-        const content = "const text = lang({ key: 'hello' }); lang({ key: 'direct_use' });";
+        const content =
+            "const text = lang({ key: 'hello' }); lang({ key: 'direct_use' });";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(2);
 
         expect(tags[0].fullMatch).toBe(" text = lang({ key: 'hello' })");
-        expect(tags[0].variableName).toBe("text");
+        expect(tags[0].variableName).toBe('text');
         expect(tags[0].parameter1Text).toBe("{ key: 'hello' }");
         expect(tags[0].parameter2Text).toBeUndefined();
 
@@ -103,7 +114,7 @@ describe('findLangMatches', () => {
                     ]
                 }
             }, {"namespace": "common"});`;
-        
+
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(1);
@@ -115,7 +126,7 @@ describe('findLangMatches', () => {
                     ]
                 }
             }, {"namespace": "common"})`);
-        expect(tags[0].variableName).toBe("translations");
+        expect(tags[0].variableName).toBe('translations');
         expect(tags[0].parameter1Text).toBe(`{
                 menu: {
                     items: [
@@ -136,7 +147,7 @@ describe('findLangMatches', () => {
     },
     { namespace: 'auth' },
 );`;
-        
+
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(1);
@@ -148,7 +159,7 @@ describe('findLangMatches', () => {
     },
     { namespace: 'auth' },
 )`);
-        expect(tags[0].variableName).toBe("authTranslations");
+        expect(tags[0].variableName).toBe('authTranslations');
         expect(tags[0].parameter1Text).toBe(`{
         common: {
             signIn: 'Sign In',
@@ -166,7 +177,7 @@ describe('findLangMatches', () => {
         facility: 'Facility',
     },
 );`;
-        
+
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(1);
@@ -176,7 +187,7 @@ describe('findLangMatches', () => {
         facility: 'Facility',
     },
 )`);
-        expect(tags[0].variableName).toBe("translations");
+        expect(tags[0].variableName).toBe('translations');
         expect(tags[0].parameter1Text).toBe(`{
         title: 'Add new zone',
         facility: 'Facility',
@@ -194,16 +205,16 @@ describe('replaceLangMatches', () => {
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], translations: "{ key: 'greeting' }" }
-        ]
-        
+            { tag: tags[0], translations: "{ key: 'greeting' }" },
+        ];
+
         const result = processor.replaceTags(content, replacements);
 
         const finalTags = processor.extractTags(result);
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(Object.keys(tag1.parameterTranslations)).toHaveLength(1);
         expect(tag1.parameterTranslations.key).toBeDefined();
         expect(tag1.parameterTranslations.key).toBe('greeting');
@@ -215,8 +226,8 @@ describe('replaceLangMatches', () => {
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], translations: { key: 'greeting' } }
-        ]
+            { tag: tags[0], translations: { key: 'greeting' } },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -224,48 +235,53 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(Object.keys(tag1.parameterTranslations)).toHaveLength(1);
         expect(tag1.parameterTranslations.key).toBeDefined();
         expect(tag1.parameterTranslations.key).toBe('greeting');
     });
 
     it('should replace multiple lang tags with new content', () => {
-        const content = "const translations1 = lang({ key: 'hello' }); const translations2 = lang({ key: 'hi' });";
+        const content =
+            "const translations1 = lang({ key: 'hello' }); const translations2 = lang({ key: 'hi' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], translations: "{ key: 'greeting' }" },
-            { tag: tags[1], translations: "{ key: 'salutation' }" }
-        ]
-    
+            { tag: tags[1], translations: "{ key: 'salutation' }" },
+        ];
+
         const result = processor.replaceTags(content, replacements);
 
         const finalTags = processor.extractTags(result);
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations1')
+        expect(tag1.variableName).toBe('translations1');
         expect(Object.keys(tag1.parameterTranslations)).toHaveLength(1);
         expect(tag1.parameterTranslations.key).toBeDefined();
         expect(tag1.parameterTranslations.key).toBe('greeting');
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('translations2')
+        expect(tag2.variableName).toBe('translations2');
         expect(Object.keys(tag2.parameterTranslations)).toHaveLength(1);
         expect(tag2.parameterTranslations.key).toBeDefined();
         expect(tag2.parameterTranslations.key).toBe('salutation');
     });
 
     it('should handle different replacement lengths correctly', () => {
-        const content = "const t1 = lang({ key: 'hello' }); const t2 = lang({ key: 'hi' });";
+        const content =
+            "const t1 = lang({ key: 'hello' }); const t2 = lang({ key: 'hi' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], translations: "{ key: 'greeting' }" },
-            { tag: tags[1], translations: "{ key: 'salutation', extraKey: 'some value' }" }
-        ]
+            {
+                tag: tags[1],
+                translations: "{ key: 'salutation', extraKey: 'some value' }",
+            },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -273,12 +289,12 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('t1')
+        expect(tag1.variableName).toBe('t1');
         expect(Object.keys(tag1.parameterTranslations)).toHaveLength(1);
         expect(tag1.parameterTranslations.key).toBeDefined();
         expect(tag1.parameterTranslations.key).toBe('greeting');
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('t2')
+        expect(tag2.variableName).toBe('t2');
         expect(Object.keys(tag2.parameterTranslations)).toHaveLength(2);
         expect(tag2.parameterTranslations.key).toBeDefined();
         expect(tag2.parameterTranslations.key).toBe('salutation');
@@ -289,7 +305,7 @@ describe('replaceLangMatches', () => {
     it('should not change content if no match is found', () => {
         const content = "const text = 'hello world';";
 
-        const replacements: $LT_TagReplaceData[] = []
+        const replacements: $LT_TagReplaceData[] = [];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -297,41 +313,46 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace multiple lang tags with object parameters', () => {
-        const content = "const translations1 = lang({ key: 'hello' }); const translations2 = lang({ key: 'hi' });";
+        const content =
+            "const translations1 = lang({ key: 'hello' }); const translations2 = lang({ key: 'hi' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], translations: { key: 'greeting' } },
-            { tag: tags[1], translations: { key: 'salutation' } }
-        ]
-    
+            { tag: tags[1], translations: { key: 'salutation' } },
+        ];
+
         const result = processor.replaceTags(content, replacements);
 
         const finalTags = processor.extractTags(result);
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations1')
+        expect(tag1.variableName).toBe('translations1');
         expect(Object.keys(tag1.parameterTranslations)).toHaveLength(1);
         expect(tag1.parameterTranslations.key).toBeDefined();
         expect(tag1.parameterTranslations.key).toBe('greeting');
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('translations2')
+        expect(tag2.variableName).toBe('translations2');
         expect(Object.keys(tag2.parameterTranslations)).toHaveLength(1);
         expect(tag2.parameterTranslations.key).toBeDefined();
         expect(tag2.parameterTranslations.key).toBe('salutation');
     });
 
     it('should handle different replacement lengths with object parameters', () => {
-        const content = "const t1 = lang({ key: 'hello' }); const t2 = lang({ key: 'hi' });";
+        const content =
+            "const t1 = lang({ key: 'hello' }); const t2 = lang({ key: 'hi' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], translations: { key: 'greeting' } },
-            { tag: tags[1], translations: { key: 'salutation', extraKey: 'some value' } }
-        ]
+            {
+                tag: tags[1],
+                translations: { key: 'salutation', extraKey: 'some value' },
+            },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -339,12 +360,12 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('t1')
+        expect(tag1.variableName).toBe('t1');
         expect(Object.keys(tag1.parameterTranslations)).toHaveLength(1);
         expect(tag1.parameterTranslations.key).toBeDefined();
         expect(tag1.parameterTranslations.key).toBe('greeting');
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('t2')
+        expect(tag2.variableName).toBe('t2');
         expect(Object.keys(tag2.parameterTranslations)).toHaveLength(2);
         expect(tag2.parameterTranslations.key).toBeDefined();
         expect(tag2.parameterTranslations.key).toBe('salutation');
@@ -359,19 +380,16 @@ describe('replaceLangMatches', () => {
 
         const complexObject = {
             menu: {
-                items: [
-                    {label: "Home"},
-                    {label: "About"},
-                ]
+                items: [{ label: 'Home' }, { label: 'About' }],
             },
             user: {
-                profile: "Profile"
-            }
+                profile: 'Profile',
+            },
         };
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], translations: complexObject }
-        ]
+            { tag: tags[0], translations: complexObject },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -379,24 +397,25 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations).toEqual(complexObject);
         expect(tag1.parameterTranslations.menu.items).toHaveLength(2);
         expect(tag1.parameterTranslations.user.profile).toBe('Profile');
     });
 
     it('should replace with object parameters and config', () => {
-        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: { key: 'greeting', message: 'Hello World' },
-                config: { namespace: 'ui', fallback: true }
-            }
-        ]
+                config: { namespace: 'ui', fallback: true },
+            },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -404,7 +423,7 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(Object.keys(tag1.parameterTranslations)).toHaveLength(2);
         expect(tag1.parameterTranslations.key).toBe('greeting');
         expect(tag1.parameterTranslations.message).toBe('Hello World');
@@ -413,14 +432,18 @@ describe('replaceLangMatches', () => {
     });
 
     it('should handle edge cases with object parameters', () => {
-        const content = "const t1 = lang({ key: 'hello' }); const t2 = lang({ key: 'hi' });";
+        const content =
+            "const t1 = lang({ key: 'hello' }); const t2 = lang({ key: 'hi' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], translations: {} }, // empty object
-            { tag: tags[1], translations: { key: null, value: undefined, empty: '' } } // null, undefined, empty string
-        ]
+            {
+                tag: tags[1],
+                translations: { key: null, value: undefined, empty: '' },
+            }, // null, undefined, empty string
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -428,11 +451,11 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('t1')
+        expect(tag1.variableName).toBe('t1');
         expect(Object.keys(tag1.parameterTranslations)).toHaveLength(0);
-        
+
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('t2')
+        expect(tag2.variableName).toBe('t2');
         // undefined values are not included in Object.keys(), so we expect 2 keys (key and empty)
         expect(Object.keys(tag2.parameterTranslations)).toHaveLength(2);
         expect(tag2.parameterTranslations.key).toBeNull();
@@ -447,8 +470,8 @@ describe('replaceLangMatches', () => {
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], translations: { key: 'greeting' } },
-            { tag: tags[1], translations: { key: 'salutation' } }
-        ]
+            { tag: tags[1], translations: { key: 'salutation' } },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -458,20 +481,21 @@ describe('replaceLangMatches', () => {
         const tag1 = finalTags[0];
         expect(tag1.variableName).toBeUndefined();
         expect(tag1.parameterTranslations.key).toBe('greeting');
-        
+
         const tag2 = finalTags[1];
         expect(tag2.variableName).toBeUndefined();
         expect(tag2.parameterTranslations.key).toBe('salutation');
     });
 
     it('should replace with config only (single tag)', () => {
-        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: { namespace: 'ui', fallback: true } }
-        ]
+            { tag: tags[0], config: { namespace: 'ui', fallback: true } },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -479,7 +503,7 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         // Original translations should remain unchanged
         expect(tag1.parameterTranslations.key).toBe('hello');
         // Config should be updated
@@ -488,14 +512,15 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace multiple tags with config only', () => {
-        const content = "const t1 = lang({ key: 'hello' }, { namespace: 'common' }); const t2 = lang({ key: 'hi' }, { namespace: 'ui' });";
+        const content =
+            "const t1 = lang({ key: 'hello' }, { namespace: 'common' }); const t2 = lang({ key: 'hi' }, { namespace: 'ui' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], config: { namespace: 'app', debug: true } },
-            { tag: tags[1], config: { namespace: 'admin', debug: false } }
-        ]
+            { tag: tags[1], config: { namespace: 'admin', debug: false } },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -503,20 +528,21 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('t1')
+        expect(tag1.variableName).toBe('t1');
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterConfig.namespace).toBe('app');
         expect(tag1.parameterConfig.debug).toBe(true);
-        
+
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('t2')
+        expect(tag2.variableName).toBe('t2');
         expect(tag2.parameterTranslations.key).toBe('hi'); // unchanged
         expect(tag2.parameterConfig.namespace).toBe('admin');
         expect(tag2.parameterConfig.debug).toBe(false);
     });
 
     it('should replace with complex config objects', () => {
-        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
 
         const tags = processor.extractTags(content);
 
@@ -527,18 +553,18 @@ describe('replaceLangMatches', () => {
                 debug: false,
                 features: {
                     interpolation: true,
-                    pluralization: false
-                }
+                    pluralization: false,
+                },
             },
             metadata: {
                 version: '1.0.0',
-                author: 'test'
-            }
+                author: 'test',
+            },
         };
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: complexConfig }
-        ]
+            { tag: tags[0], config: complexConfig },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -546,7 +572,7 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterConfig).toEqual(complexConfig);
         expect(tag1.parameterConfig.settings.features.interpolation).toBe(true);
@@ -554,14 +580,18 @@ describe('replaceLangMatches', () => {
     });
 
     it('should handle config edge cases', () => {
-        const content = "const t1 = lang({ key: 'hello' }, { namespace: 'common' }); const t2 = lang({ key: 'hi' }, { namespace: 'ui' });";
+        const content =
+            "const t1 = lang({ key: 'hello' }, { namespace: 'common' }); const t2 = lang({ key: 'hi' }, { namespace: 'ui' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], config: {} }, // empty config
-            { tag: tags[1], config: { namespace: null, debug: undefined, empty: '' } } // null, undefined, empty string
-        ]
+            {
+                tag: tags[1],
+                config: { namespace: null, debug: undefined, empty: '' },
+            }, // null, undefined, empty string
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -569,11 +599,11 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('t1')
+        expect(tag1.variableName).toBe('t1');
         expect(Object.keys(tag1.parameterConfig)).toHaveLength(0);
-        
+
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('t2')
+        expect(tag2.variableName).toBe('t2');
         // undefined values are not included in Object.keys(), so we expect 2 keys (ns and empty)
         expect(Object.keys(tag2.parameterConfig)).toHaveLength(2);
         expect(tag2.parameterConfig.namespace).toBeNull();
@@ -582,14 +612,15 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace config without variable assignment', () => {
-        const content = "lang({ key: 'hello' }, { namespace: 'common' }); lang({ key: 'hi' }, { namespace: 'ui' });";
+        const content =
+            "lang({ key: 'hello' }, { namespace: 'common' }); lang({ key: 'hi' }, { namespace: 'ui' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], config: { namespace: 'app', debug: true } },
-            { tag: tags[1], config: { namespace: 'admin', debug: false } }
-        ]
+            { tag: tags[1], config: { namespace: 'admin', debug: false } },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -601,7 +632,7 @@ describe('replaceLangMatches', () => {
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterConfig.namespace).toBe('app');
         expect(tag1.parameterConfig.debug).toBe(true);
-        
+
         const tag2 = finalTags[1];
         expect(tag2.variableName).toBeUndefined();
         expect(tag2.parameterTranslations.key).toBe('hi'); // unchanged
@@ -610,13 +641,14 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace with config as string (single tag)', () => {
-        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: "{ namespace: 'ui', fallback: true }" }
-        ]
+            { tag: tags[0], config: "{ namespace: 'ui', fallback: true }" },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -624,7 +656,7 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         // Original translations should remain unchanged
         expect(tag1.parameterTranslations.key).toBe('hello');
         // Config should be updated
@@ -633,14 +665,15 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace multiple tags with config as string', () => {
-        const content = "const t1 = lang({ key: 'hello' }, { namespace: 'common' }); const t2 = lang({ key: 'hi' }, { namespace: 'ui' });";
+        const content =
+            "const t1 = lang({ key: 'hello' }, { namespace: 'common' }); const t2 = lang({ key: 'hi' }, { namespace: 'ui' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], config: "{ namespace: 'app', debug: true }" },
-            { tag: tags[1], config: "{ namespace: 'admin', debug: false }" }
-        ]
+            { tag: tags[1], config: "{ namespace: 'admin', debug: false }" },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -648,20 +681,21 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('t1')
+        expect(tag1.variableName).toBe('t1');
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterConfig.namespace).toBe('app');
         expect(tag1.parameterConfig.debug).toBe(true);
-        
+
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('t2')
+        expect(tag2.variableName).toBe('t2');
         expect(tag2.parameterTranslations.key).toBe('hi'); // unchanged
         expect(tag2.parameterConfig.namespace).toBe('admin');
         expect(tag2.parameterConfig.debug).toBe(false);
     });
 
     it('should replace with complex config strings', () => {
-        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
 
         const tags = processor.extractTags(content);
 
@@ -682,8 +716,8 @@ describe('replaceLangMatches', () => {
         }`;
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: complexConfigString }
-        ]
+            { tag: tags[0], config: complexConfigString },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -691,7 +725,7 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterConfig.namespace).toBe('advanced');
         expect(tag1.parameterConfig.settings.fallback).toBe(true);
@@ -700,14 +734,15 @@ describe('replaceLangMatches', () => {
     });
 
     it('should handle config string edge cases', () => {
-        const content = "const t1 = lang({ key: 'hello' }, { namespace: 'common' }); const t2 = lang({ key: 'hi' }, { namespace: 'ui' });";
+        const content =
+            "const t1 = lang({ key: 'hello' }, { namespace: 'common' }); const t2 = lang({ key: 'hi' }, { namespace: 'ui' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: "{}" }, 
-            { tag: tags[1], config: "{ namespace: null, empty: '' }" }
-        ]
+            { tag: tags[0], config: '{}' },
+            { tag: tags[1], config: "{ namespace: null, empty: '' }" },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -715,25 +750,26 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('t1')
+        expect(tag1.variableName).toBe('t1');
         expect(Object.keys(tag1.parameterConfig)).toHaveLength(0);
-        
+
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('t2')
+        expect(tag2.variableName).toBe('t2');
         expect(Object.keys(tag2.parameterConfig)).toHaveLength(2);
         expect(tag2.parameterConfig.namespace).toBeNull();
         expect(tag2.parameterConfig.empty).toBe('');
     });
 
     it('should replace config as string without variable assignment', () => {
-        const content = "lang({ key: 'hello' }, { namespace: 'common' }); lang({ key: 'hi' }, { namespace: 'ui' });";
+        const content =
+            "lang({ key: 'hello' }, { namespace: 'common' }); lang({ key: 'hi' }, { namespace: 'ui' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], config: "{ namespace: 'app', debug: true }" },
-            { tag: tags[1], config: "{ namespace: 'admin', debug: false }" }
-        ]
+            { tag: tags[1], config: "{ namespace: 'admin', debug: false }" },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -745,7 +781,7 @@ describe('replaceLangMatches', () => {
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterConfig.namespace).toBe('app');
         expect(tag1.parameterConfig.debug).toBe(true);
-        
+
         const tag2 = finalTags[1];
         expect(tag2.variableName).toBeUndefined();
         expect(tag2.parameterTranslations.key).toBe('hi'); // unchanged
@@ -754,7 +790,8 @@ describe('replaceLangMatches', () => {
     });
 
     it('should handle config strings with special characters and formatting', () => {
-        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
 
         const tags = processor.extractTags(content);
 
@@ -769,8 +806,8 @@ describe('replaceLangMatches', () => {
         }`;
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: configStringWithSpecialChars }
-        ]
+            { tag: tags[0], config: configStringWithSpecialChars },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -778,12 +815,18 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterConfig.namespace).toBe('test-namespace');
-        expect(tag1.parameterConfig.settings['special-key']).toBe('value with spaces');
-        expect(tag1.parameterConfig.settings['quoted-key']).toBe('value with "quotes"');
-        expect(tag1.parameterConfig.settings.multiline).toBe('multiline\nstring');
+        expect(tag1.parameterConfig.settings['special-key']).toBe(
+            'value with spaces'
+        );
+        expect(tag1.parameterConfig.settings['quoted-key']).toBe(
+            'value with "quotes"'
+        );
+        expect(tag1.parameterConfig.settings.multiline).toBe(
+            'multiline\nstring'
+        );
         expect(tag1.parameterConfig.settings.pattern).toBe('test-pattern');
     });
 
@@ -798,8 +841,8 @@ describe('replaceLangMatches', () => {
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: { namespace: 'ui', fallback: true } }
-        ]
+            { tag: tags[0], config: { namespace: 'ui', fallback: true } },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -810,7 +853,7 @@ describe('replaceLangMatches', () => {
         // Check that the result contains the original comments
         expect(tag1.parameter1Text).toContain('// This is a comment');
         expect(tag1.parameter1Text).toContain('// Another comment');
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterTranslations.message).toBe('world'); // unchanged
         expect(tag1.parameterConfig.namespace).toBe('ui');
@@ -833,8 +876,8 @@ describe('replaceLangMatches', () => {
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], config: { namespace: 'app', debug: true } },
-            { tag: tags[1], config: { namespace: 'admin', debug: false } }
-        ]
+            { tag: tags[1], config: { namespace: 'admin', debug: false } },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -844,16 +887,16 @@ describe('replaceLangMatches', () => {
         const tag1 = finalTags[0];
         // Check that all comments are preserved
         expect(tag1.parameter1Text).toContain('// First comment');
-        expect(tag1.variableName).toBe('t1')
+        expect(tag1.variableName).toBe('t1');
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterConfig.namespace).toBe('app');
         expect(tag1.parameterConfig.debug).toBe(true);
-        
+
         const tag2 = finalTags[1];
         // Check that all comments are preserved
         expect(tag2.parameter1Text).toContain('// Second comment');
         expect(tag2.parameter1Text).toContain('// Third comment');
-        expect(tag2.variableName).toBe('t2')
+        expect(tag2.variableName).toBe('t2');
         expect(tag2.parameterTranslations.key).toBe('hi'); // unchanged
         expect(tag2.parameterTranslations.message).toBe('there'); // unchanged
         expect(tag2.parameterConfig.namespace).toBe('admin');
@@ -879,11 +922,13 @@ describe('replaceLangMatches', () => {
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: { namespace: 'advanced', settings: { debug: true } } }
-        ]
+            {
+                tag: tags[0],
+                config: { namespace: 'advanced', settings: { debug: true } },
+            },
+        ];
 
         const result = processor.replaceTags(content, replacements);
-
 
         const finalTags = processor.extractTags(result);
 
@@ -895,7 +940,7 @@ describe('replaceLangMatches', () => {
         expect(tag1.parameter1Text).toContain('// Home item');
         expect(tag1.parameter1Text).toContain('// About item');
         expect(tag1.parameter1Text).toContain('// User profile comment');
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations.menu.items).toHaveLength(2);
         expect(tag1.parameterTranslations.menu.items[0].label).toBe('Home');
         expect(tag1.parameterTranslations.menu.items[1].label).toBe('About');
@@ -921,8 +966,8 @@ describe('replaceLangMatches', () => {
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: { namespace: 'ui', fallback: true } }
-        ]
+            { tag: tags[0], config: { namespace: 'ui', fallback: true } },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -937,7 +982,7 @@ describe('replaceLangMatches', () => {
         expect(tag1.parameter1Text).toContain('// Note: Fix this later');
         expect(tag1.parameter1Text).toContain('/* Another multi-line');
         expect(tag1.parameter1Text).toContain('comment */');
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations.key).toBe('hello');
         expect(tag1.parameterTranslations.message).toBe('world');
         expect(tag1.parameterTranslations.temp).toBe('value');
@@ -947,17 +992,18 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace both translations and config with objects', () => {
-        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: { key: 'greeting', message: 'Hello World' },
-                config: { namespace: 'ui', fallback: true }
-            }
-        ]
+                config: { namespace: 'ui', fallback: true },
+            },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -965,7 +1011,7 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations.key).toBe('greeting');
         expect(tag1.parameterTranslations.message).toBe('Hello World');
         expect(tag1.parameterConfig.namespace).toBe('ui');
@@ -973,17 +1019,18 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace both translations and config with strings', () => {
-        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: "{ key: 'greeting', message: 'Hello World' }",
-                config: "{ namespace: 'ui', fallback: true }"
-            }
-        ]
+                config: "{ namespace: 'ui', fallback: true }",
+            },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -991,7 +1038,7 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations.key).toBe('greeting');
         expect(tag1.parameterTranslations.message).toBe('Hello World');
         expect(tag1.parameterConfig.namespace).toBe('ui');
@@ -999,17 +1046,18 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace with mixed object/string formats', () => {
-        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: { key: 'greeting', message: 'Hello World' }, // object
-                config: "{ namespace: 'ui', fallback: true }" // string
-            }
-        ]
+                config: "{ namespace: 'ui', fallback: true }", // string
+            },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -1017,7 +1065,7 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations.key).toBe('greeting');
         expect(tag1.parameterTranslations.message).toBe('Hello World');
         expect(tag1.parameterConfig.namespace).toBe('ui');
@@ -1025,17 +1073,18 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace with mixed string/object formats', () => {
-        const content = "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const translations = lang({ key: 'hello' }, { namespace: 'common' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: "{ key: 'greeting', message: 'Hello World' }", // string
-                config: { namespace: 'ui', fallback: true } // object
-            }
-        ]
+                config: { namespace: 'ui', fallback: true }, // object
+            },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -1043,7 +1092,7 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('translations')
+        expect(tag1.variableName).toBe('translations');
         expect(tag1.parameterTranslations.key).toBe('greeting');
         expect(tag1.parameterTranslations.message).toBe('Hello World');
         expect(tag1.parameterConfig.namespace).toBe('ui');
@@ -1051,22 +1100,23 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace multiple tags with both parameters using different formats', () => {
-        const content = "const t1 = lang({ key: 'hello' }, { namespace: 'common' }); const t2 = lang({ key: 'hi' }, { namespace: 'ui' });";
+        const content =
+            "const t1 = lang({ key: 'hello' }, { namespace: 'common' }); const t2 = lang({ key: 'hi' }, { namespace: 'ui' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: { key: 'greeting', message: 'Hello' }, // object
-                config: "{ namespace: 'app', debug: true }" // string
+                config: "{ namespace: 'app', debug: true }", // string
             },
-            { 
-                tag: tags[1], 
+            {
+                tag: tags[1],
                 translations: "{ key: 'salutation', message: 'Hi there' }", // string
-                config: { namespace: 'admin', debug: false } // object
-            }
-        ]
+                config: { namespace: 'admin', debug: false }, // object
+            },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -1074,14 +1124,14 @@ describe('replaceLangMatches', () => {
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('t1')
+        expect(tag1.variableName).toBe('t1');
         expect(tag1.parameterTranslations.key).toBe('greeting');
         expect(tag1.parameterTranslations.message).toBe('Hello');
         expect(tag1.parameterConfig.namespace).toBe('app');
         expect(tag1.parameterConfig.debug).toBe(true);
-        
+
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('t2')
+        expect(tag2.variableName).toBe('t2');
         expect(tag2.parameterTranslations.key).toBe('salutation');
         expect(tag2.parameterTranslations.message).toBe('Hi there');
         expect(tag2.parameterConfig.namespace).toBe('admin');
@@ -1089,22 +1139,23 @@ describe('replaceLangMatches', () => {
     });
 
     it('should replace both parameters without variable assignment', () => {
-        const content = "lang({ key: 'hello' }, { namespace: 'common' }); lang({ key: 'hi' }, { namespace: 'ui' });";
+        const content =
+            "lang({ key: 'hello' }, { namespace: 'common' }); lang({ key: 'hi' }, { namespace: 'ui' });";
 
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: { key: 'greeting', message: 'Hello' },
-                config: "{ namespace: 'app', debug: true }"
+                config: "{ namespace: 'app', debug: true }",
             },
-            { 
-                tag: tags[1], 
+            {
+                tag: tags[1],
                 translations: "{ key: 'salutation', message: 'Hi there' }",
-                config: { namespace: 'admin', debug: false }
-            }
-        ]
+                config: { namespace: 'admin', debug: false },
+            },
+        ];
 
         const result = processor.replaceTags(content, replacements);
 
@@ -1117,7 +1168,7 @@ describe('replaceLangMatches', () => {
         expect(tag1.parameterTranslations.message).toBe('Hello');
         expect(tag1.parameterConfig.namespace).toBe('app');
         expect(tag1.parameterConfig.debug).toBe(true);
-        
+
         const tag2 = finalTags[1];
         expect(tag2.variableName).toBeUndefined();
         expect(tag2.parameterTranslations.key).toBe('salutation');
@@ -1128,28 +1179,34 @@ describe('replaceLangMatches', () => {
 });
 
 describe('Error handling and edge cases', () => {
-    const commonConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
+    const commonConfig: Pick<
+        LangTagCLIConfig,
+        'tagName' | 'translationArgPosition'
+    > = {
         tagName: 'lang',
-        translationArgPosition: 1
-    }
+        translationArgPosition: 1,
+    };
     const processor = new $LT_TagProcessor(commonConfig);
 
     it('should handle broken syntax - missing closing bracket', () => {
-        const content = "const text = lang({ key: 'hello' }; // missing closing bracket\n const x = 1; function a(){}";
+        const content =
+            "const text = lang({ key: 'hello' }; // missing closing bracket\n const x = 1; function a(){}";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(0);
     });
 
     it('should not find tags with broken syntax - missing opening bracket', () => {
-        const content = "const text = lang key: 'hello' }); // missing opening bracket";
+        const content =
+            "const text = lang key: 'hello' }); // missing opening bracket";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(0);
     });
 
     it('should not find tags with broken syntax - unclosed string', () => {
-        const content = "const text = lang({ key: 'hello }); // unclosed string";
+        const content =
+            "const text = lang({ key: 'hello }); // unclosed string";
         const tags = processor.extractTags(content);
 
         // The processor might still find the tag but it should be invalid
@@ -1158,21 +1215,24 @@ describe('Error handling and edge cases', () => {
     });
 
     it('should handle broken syntax - missing comma', () => {
-        const content = "const text = lang({ key: 'hello' } { fallback: 'hi' }); // missing comma";
+        const content =
+            "const text = lang({ key: 'hello' } { fallback: 'hi' }); // missing comma";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(0);
     });
 
     it('should not find tags with broken syntax - nested unclosed brackets', () => {
-        const content = "const text = lang({ key: 'hello', nested: { inner: 'value' }); // missing closing bracket";
+        const content =
+            "const text = lang({ key: 'hello', nested: { inner: 'value' }); // missing closing bracket";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(0);
     });
 
     it('should handle malformed JSON in parameters', () => {
-        const content = "const text = lang({ key: 'hello', invalid: json }); // invalid JSON";
+        const content =
+            "const text = lang({ key: 'hello', invalid: json }); // invalid JSON";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(1);
@@ -1180,7 +1240,8 @@ describe('Error handling and edge cases', () => {
     });
 
     it('should handle malformed JSON in second parameter', () => {
-        const content = "const text = lang({ key: 'hello' }, { namespace: invalid json });";
+        const content =
+            "const text = lang({ key: 'hello' }, { namespace: invalid json });";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(1);
@@ -1193,7 +1254,7 @@ describe('Error handling and edge cases', () => {
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0] } // No translations or config
+                { tag: tags[0] }, // No translations or config
             ]);
         }).toThrow('Replacement data is required!');
     });
@@ -1204,18 +1265,19 @@ describe('Error handling and edge cases', () => {
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], translations: "invalid json syntax" }
+                { tag: tags[0], translations: 'invalid json syntax' },
             ]);
         }).toThrow('Tag translations are invalid object!');
     });
 
     it('should throw error when replaceTags is called with invalid config object', () => {
-        const content = "const text = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const text = lang({ key: 'hello' }, { namespace: 'common' });";
         const tags = processor.extractTags(content);
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], config: "invalid json syntax" }
+                { tag: tags[0], config: 'invalid json syntax' },
             ]);
         }).toThrow('Tag config is invalid object!');
     });
@@ -1233,7 +1295,7 @@ describe('Error handling and edge cases', () => {
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], translations: undefined, config: undefined }
+                { tag: tags[0], translations: undefined, config: undefined },
             ]);
         }).toThrow('Replacement data is required!');
     });
@@ -1249,31 +1311,32 @@ describe('Error handling and edge cases', () => {
         // }).toThrow('Replacement data is required!');
 
         const result = processor.replaceTags(content, [
-            { tag: tags[0], translations: null, config: null }
+            { tag: tags[0], translations: null, config: null },
         ]);
 
         const finalTags = processor.extractTags(result);
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('text')
+        expect(tag1.variableName).toBe('text');
         expect(tag1.parameterTranslations.key).toBe('hello');
         expect(tag1.parameterConfig).toBeUndefined();
     });
 
     it('should handle replaceTags with null translations and config, when config was previously set', () => {
-        const content = "const text = lang({ key: 'hello' }, {namespace: 'admin', path: 'test'});";
+        const content =
+            "const text = lang({ key: 'hello' }, {namespace: 'admin', path: 'test'});";
         const tags = processor.extractTags(content);
 
         const result = processor.replaceTags(content, [
-            { tag: tags[0], translations: null, config: null }
+            { tag: tags[0], translations: null, config: null },
         ]);
 
         const finalTags = processor.extractTags(result);
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('text')
+        expect(tag1.variableName).toBe('text');
         expect(tag1.parameterTranslations.key).toBe('hello');
         expect(tag1.parameterConfig).toBeUndefined();
     });
@@ -1284,7 +1347,7 @@ describe('Error handling and edge cases', () => {
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], translations: '', config: '' }
+                { tag: tags[0], translations: '', config: '' },
             ]);
         }).toThrow('Replacement data is required!');
     });
@@ -1295,18 +1358,19 @@ describe('Error handling and edge cases', () => {
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], translations: "{ key: 'hello'" } // Missing closing brace
+                { tag: tags[0], translations: "{ key: 'hello'" }, // Missing closing brace
             ]);
         }).toThrow('Tag translations are invalid object!');
     });
 
     it('should handle replaceTags with incomplete config syntax', () => {
-        const content = "const text = lang({ key: 'hello' }, { namespace: 'common' });";
+        const content =
+            "const text = lang({ key: 'hello' }, { namespace: 'common' });";
         const tags = processor.extractTags(content);
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], config: "{ namespace: 'ui'" } // Missing closing brace
+                { tag: tags[0], config: "{ namespace: 'ui'" }, // Missing closing brace
             ]);
         }).toThrow('Tag config is invalid object!');
     });
@@ -1317,7 +1381,10 @@ describe('Error handling and edge cases', () => {
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], translations: "{ key: 'hello', nested: { inner: 'value'" } // Missing closing braces
+                {
+                    tag: tags[0],
+                    translations: "{ key: 'hello', nested: { inner: 'value'",
+                }, // Missing closing braces
             ]);
         }).toThrow('Tag translations are invalid object!');
     });
@@ -1328,7 +1395,10 @@ describe('Error handling and edge cases', () => {
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], translations: "{ key: 'hello', items: ['item1', 'item2'" } // Missing closing bracket
+                {
+                    tag: tags[0],
+                    translations: "{ key: 'hello', items: ['item1', 'item2'",
+                }, // Missing closing bracket
             ]);
         }).toThrow('Tag translations are invalid object!');
     });
@@ -1339,7 +1409,11 @@ describe('Error handling and edge cases', () => {
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], translations: "{ key: 'hello', message: \"unclosed string }" } // Unclosed string
+                {
+                    tag: tags[0],
+                    translations:
+                        "{ key: 'hello', message: \"unclosed string }",
+                }, // Unclosed string
             ]);
         }).toThrow('Tag translations are invalid object!');
     });
@@ -1350,7 +1424,10 @@ describe('Error handling and edge cases', () => {
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], translations: "{ key: 'hello', count: 123abc }" } // Invalid number
+                {
+                    tag: tags[0],
+                    translations: "{ key: 'hello', count: 123abc }",
+                }, // Invalid number
             ]);
         }).toThrow('Tag translations are invalid object!');
     });
@@ -1361,7 +1438,10 @@ describe('Error handling and edge cases', () => {
 
         expect(() => {
             processor.replaceTags(content, [
-                { tag: tags[0], translations: "{ key: 'hello', enabled: tru }" } // Invalid boolean
+                {
+                    tag: tags[0],
+                    translations: "{ key: 'hello', enabled: tru }",
+                }, // Invalid boolean
             ]);
         }).toThrow('Tag translations are invalid object!');
     });
@@ -1374,7 +1454,8 @@ describe('Error handling and edge cases', () => {
     });
 
     it("should not find tag when ')' appears inside string value without real closing paren", () => {
-        const content = "const text = lang({ key: 'he)llo' } ; // missing real closing paren\nconst y = 2;";
+        const content =
+            "const text = lang({ key: 'he)llo' } ; // missing real closing paren\nconst y = 2;";
         const tags = processor.extractTags(content);
 
         expect(tags).toHaveLength(0);
@@ -1382,19 +1463,25 @@ describe('Error handling and edge cases', () => {
 });
 
 describe('findLangMatches with different config', () => {
-    const differentConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
+    const differentConfig: Pick<
+        LangTagCLIConfig,
+        'tagName' | 'translationArgPosition'
+    > = {
         tagName: 't',
-        translationArgPosition: 2
-    }
+        translationArgPosition: 2,
+    };
     const processorWithDifferentConfig = new $LT_TagProcessor(differentConfig);
 
     it('should find single t match with translations on position 2', () => {
-        const content = "const text = t({ namespace: 'common' }, { key: 'hello' });";
+        const content =
+            "const text = t({ namespace: 'common' }, { key: 'hello' });";
         const tags = processorWithDifferentConfig.extractTags(content);
 
         expect(tags).toHaveLength(1);
-        expect(tags[0].fullMatch).toBe(" text = t({ namespace: 'common' }, { key: 'hello' })");
-        expect(tags[0].variableName).toBe("text");
+        expect(tags[0].fullMatch).toBe(
+            " text = t({ namespace: 'common' }, { key: 'hello' })"
+        );
+        expect(tags[0].variableName).toBe('text');
         expect(tags[0].parameter1Text).toBe("{ namespace: 'common' }");
         expect(tags[0].parameter2Text).toBe("{ key: 'hello' }");
         expect(tags[0].parameterTranslations.key).toBe('hello'); // translations on position 2
@@ -1402,14 +1489,21 @@ describe('findLangMatches with different config', () => {
     });
 
     it('should find t match with two objects and translations on position 2', () => {
-        const content = "const text = t({ namespace: 'common', debug: true }, { key: 'hello', message: 'world' });";
+        const content =
+            "const text = t({ namespace: 'common', debug: true }, { key: 'hello', message: 'world' });";
         const tags = processorWithDifferentConfig.extractTags(content);
 
         expect(tags).toHaveLength(1);
-        expect(tags[0].fullMatch).toBe(" text = t({ namespace: 'common', debug: true }, { key: 'hello', message: 'world' })");
-        expect(tags[0].variableName).toBe("text");
-        expect(tags[0].parameter1Text).toBe("{ namespace: 'common', debug: true }");
-        expect(tags[0].parameter2Text).toBe("{ key: 'hello', message: 'world' }");
+        expect(tags[0].fullMatch).toBe(
+            " text = t({ namespace: 'common', debug: true }, { key: 'hello', message: 'world' })"
+        );
+        expect(tags[0].variableName).toBe('text');
+        expect(tags[0].parameter1Text).toBe(
+            "{ namespace: 'common', debug: true }"
+        );
+        expect(tags[0].parameter2Text).toBe(
+            "{ key: 'hello', message: 'world' }"
+        );
         expect(tags[0].parameterTranslations.key).toBe('hello');
         expect(tags[0].parameterTranslations.message).toBe('world');
         expect(tags[0].parameterConfig.namespace).toBe('common');
@@ -1417,20 +1511,25 @@ describe('findLangMatches with different config', () => {
     });
 
     it('should find multiple t tags with different config', () => {
-        const content = "const text1 = t({ namespace: 'app' }, { key: 'hello' }); const text2 = t({ namespace: 'ui' }, { key: 'hi' });";
+        const content =
+            "const text1 = t({ namespace: 'app' }, { key: 'hello' }); const text2 = t({ namespace: 'ui' }, { key: 'hi' });";
 
         const tags = processorWithDifferentConfig.extractTags(content);
 
         expect(tags).toHaveLength(2);
-        expect(tags[0].fullMatch).toBe(" text1 = t({ namespace: 'app' }, { key: 'hello' })");
-        expect(tags[0].variableName).toBe("text1");
+        expect(tags[0].fullMatch).toBe(
+            " text1 = t({ namespace: 'app' }, { key: 'hello' })"
+        );
+        expect(tags[0].variableName).toBe('text1');
         expect(tags[0].parameter1Text).toBe("{ namespace: 'app' }");
         expect(tags[0].parameter2Text).toBe("{ key: 'hello' }");
         expect(tags[0].parameterTranslations.key).toBe('hello');
         expect(tags[0].parameterConfig.namespace).toBe('app');
-        
-        expect(tags[1].fullMatch).toBe(" text2 = t({ namespace: 'ui' }, { key: 'hi' })");
-        expect(tags[1].variableName).toBe("text2");
+
+        expect(tags[1].fullMatch).toBe(
+            " text2 = t({ namespace: 'ui' }, { key: 'hi' })"
+        );
+        expect(tags[1].variableName).toBe('text2');
         expect(tags[1].parameter1Text).toBe("{ namespace: 'ui' }");
         expect(tags[1].parameter2Text).toBe("{ key: 'hi' }");
         expect(tags[1].parameterTranslations.key).toBe('hi');
@@ -1442,7 +1541,9 @@ describe('findLangMatches with different config', () => {
         const tags = processorWithDifferentConfig.extractTags(content);
 
         expect(tags).toHaveLength(1);
-        expect(tags[0].fullMatch).toBe("t({ namespace: 'common' }, { key: 'hello' })");
+        expect(tags[0].fullMatch).toBe(
+            "t({ namespace: 'common' }, { key: 'hello' })"
+        );
         expect(tags[0].variableName).toBeUndefined();
         expect(tags[0].parameter1Text).toBe("{ namespace: 'common' }");
         expect(tags[0].parameter2Text).toBe("{ key: 'hello' }");
@@ -1459,74 +1560,92 @@ describe('findLangMatches with different config', () => {
 });
 
 describe('replaceLangMatches with different config', () => {
-    const differentConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
+    const differentConfig: Pick<
+        LangTagCLIConfig,
+        'tagName' | 'translationArgPosition'
+    > = {
         tagName: 't',
-        translationArgPosition: 2
-    }
+        translationArgPosition: 2,
+    };
     const processorWithDifferentConfig = new $LT_TagProcessor(differentConfig);
 
     it('should replace translations on position 2 with object', () => {
-        const content = "const text = t({ namespace: 'common' }, { key: 'hello' });";
+        const content =
+            "const text = t({ namespace: 'common' }, { key: 'hello' });";
 
         const tags = processorWithDifferentConfig.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], translations: { key: 'greeting', message: 'Hello World' } }
-        ]
+            {
+                tag: tags[0],
+                translations: { key: 'greeting', message: 'Hello World' },
+            },
+        ];
 
-        const result = processorWithDifferentConfig.replaceTags(content, replacements);
+        const result = processorWithDifferentConfig.replaceTags(
+            content,
+            replacements
+        );
 
         const finalTags = processorWithDifferentConfig.extractTags(result);
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('text')
+        expect(tag1.variableName).toBe('text');
         expect(tag1.parameterTranslations.key).toBe('greeting');
         expect(tag1.parameterTranslations.message).toBe('Hello World');
         expect(tag1.parameterConfig.namespace).toBe('common'); // unchanged
     });
 
     it('should replace config on position 1 with object', () => {
-        const content = "const text = t({ namespace: 'common' }, { key: 'hello' });";
+        const content =
+            "const text = t({ namespace: 'common' }, { key: 'hello' });";
 
         const tags = processorWithDifferentConfig.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: { namespace: 'ui', fallback: true } }
-        ]
+            { tag: tags[0], config: { namespace: 'ui', fallback: true } },
+        ];
 
-        const result = processorWithDifferentConfig.replaceTags(content, replacements);
+        const result = processorWithDifferentConfig.replaceTags(
+            content,
+            replacements
+        );
 
         const finalTags = processorWithDifferentConfig.extractTags(result);
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('text')
+        expect(tag1.variableName).toBe('text');
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterConfig.namespace).toBe('ui');
         expect(tag1.parameterConfig.fallback).toBe(true);
     });
 
     it('should replace both parameters with different config', () => {
-        const content = "const text = t({ namespace: 'common' }, { key: 'hello' });";
+        const content =
+            "const text = t({ namespace: 'common' }, { key: 'hello' });";
 
         const tags = processorWithDifferentConfig.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: { key: 'greeting', message: 'Hello World' },
-                config: { namespace: 'ui', fallback: true }
-            }
-        ]
+                config: { namespace: 'ui', fallback: true },
+            },
+        ];
 
-        const result = processorWithDifferentConfig.replaceTags(content, replacements);
+        const result = processorWithDifferentConfig.replaceTags(
+            content,
+            replacements
+        );
 
         const finalTags = processorWithDifferentConfig.extractTags(result);
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('text')
+        expect(tag1.variableName).toBe('text');
         expect(tag1.parameterTranslations.key).toBe('greeting');
         expect(tag1.parameterTranslations.message).toBe('Hello World');
         expect(tag1.parameterConfig.namespace).toBe('ui');
@@ -1534,25 +1653,29 @@ describe('replaceLangMatches with different config', () => {
     });
 
     it('should replace with mixed formats using different config', () => {
-        const content = "const text = t({ namespace: 'common' }, { key: 'hello' });";
+        const content =
+            "const text = t({ namespace: 'common' }, { key: 'hello' });";
 
         const tags = processorWithDifferentConfig.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: "{ key: 'greeting', message: 'Hello World' }", // string
-                config: { namespace: 'ui', fallback: true } // object
-            }
-        ]
+                config: { namespace: 'ui', fallback: true }, // object
+            },
+        ];
 
-        const result = processorWithDifferentConfig.replaceTags(content, replacements);
+        const result = processorWithDifferentConfig.replaceTags(
+            content,
+            replacements
+        );
 
         const finalTags = processorWithDifferentConfig.extractTags(result);
 
         expect(finalTags).toHaveLength(1);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('text')
+        expect(tag1.variableName).toBe('text');
         expect(tag1.parameterTranslations.key).toBe('greeting');
         expect(tag1.parameterTranslations.message).toBe('Hello World');
         expect(tag1.parameterConfig.namespace).toBe('ui');
@@ -1560,58 +1683,63 @@ describe('replaceLangMatches with different config', () => {
     });
 
     it('should handle multiple tags with different config', () => {
-        const content = "const t1 = t({ namespace: 'app' }, { key: 'hello' }); const t2 = t({ namespace: 'ui' }, { key: 'hi' });";
+        const content =
+            "const t1 = t({ namespace: 'app' }, { key: 'hello' }); const t2 = t({ namespace: 'ui' }, { key: 'hi' });";
 
         const tags = processorWithDifferentConfig.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: { key: 'greeting', message: 'Hello' },
-                config: "{ namespace: 'admin', debug: true }"
+                config: "{ namespace: 'admin', debug: true }",
             },
-            { 
-                tag: tags[1], 
+            {
+                tag: tags[1],
                 translations: "{ key: 'salutation', message: 'Hi there' }",
-                config: { namespace: 'public', debug: false }
-            }
-        ]
+                config: { namespace: 'public', debug: false },
+            },
+        ];
 
-        const result = processorWithDifferentConfig.replaceTags(content, replacements);
+        const result = processorWithDifferentConfig.replaceTags(
+            content,
+            replacements
+        );
 
         const finalTags = processorWithDifferentConfig.extractTags(result);
 
         expect(finalTags).toHaveLength(2);
         const tag1 = finalTags[0];
-        expect(tag1.variableName).toBe('t1')
+        expect(tag1.variableName).toBe('t1');
         expect(tag1.parameterTranslations.key).toBe('greeting');
         expect(tag1.parameterTranslations.message).toBe('Hello');
         expect(tag1.parameterConfig.namespace).toBe('admin');
         expect(tag1.parameterConfig.debug).toBe(true);
-        
+
         const tag2 = finalTags[1];
-        expect(tag2.variableName).toBe('t2')
+        expect(tag2.variableName).toBe('t2');
         expect(tag2.parameterTranslations.key).toBe('salutation');
         expect(tag2.parameterTranslations.message).toBe('Hi there');
         expect(tag2.parameterConfig.namespace).toBe('public');
         expect(tag2.parameterConfig.debug).toBe(false);
     });
-
 });
 
 describe('Replace tags with NULL config and translationArgPosition 2', () => {
-    const config: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
-        tagName: 't',
-        translationArgPosition: 2
-    };
+    const config: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> =
+        {
+            tagName: 't',
+            translationArgPosition: 2,
+        };
     const processor = new $LT_TagProcessor(config);
 
     it('should replace config with empty object "{}" when config is null and translationArgPosition is 2', () => {
-        const content = "const text = t({ namespace: 'common', path: 'test' }, { key: 'hello' });";
+        const content =
+            "const text = t({ namespace: 'common', path: 'test' }, { key: 'hello' });";
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: null }
+            { tag: tags[0], config: null },
         ];
 
         const result = processor.replaceTags(content, replacements);
@@ -1625,11 +1753,12 @@ describe('Replace tags with NULL config and translationArgPosition 2', () => {
     });
 
     it('should replace config with empty object "{}" when config is null and translationArgPosition is 2 (without variable)', () => {
-        const content = "t({ namespace: 'common', path: 'test' }, { key: 'hello' });";
+        const content =
+            "t({ namespace: 'common', path: 'test' }, { key: 'hello' });";
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: null }
+            { tag: tags[0], config: null },
         ];
 
         const result = processor.replaceTags(content, replacements);
@@ -1643,24 +1772,25 @@ describe('Replace tags with NULL config and translationArgPosition 2', () => {
     });
 
     it('should replace config with empty object "{}" for multiple tags when config is null and translationArgPosition is 2', () => {
-        const content = "const t1 = t({ namespace: 'app' }, { key: 'hello' }); const t2 = t({ namespace: 'ui', debug: true }, { key: 'hi', message: 'world' });";
+        const content =
+            "const t1 = t({ namespace: 'app' }, { key: 'hello' }); const t2 = t({ namespace: 'ui', debug: true }, { key: 'hi', message: 'world' });";
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
             { tag: tags[0], config: null },
-            { tag: tags[1], config: null }
+            { tag: tags[1], config: null },
         ];
 
         const result = processor.replaceTags(content, replacements);
 
         const finalTags = processor.extractTags(result);
         expect(finalTags).toHaveLength(2);
-        
+
         const tag1 = finalTags[0];
         expect(tag1.variableName).toBe('t1');
         expect(tag1.parameterTranslations.key).toBe('hello'); // unchanged
         expect(tag1.parameterConfig).toEqual({}); // empty config object
-        
+
         const tag2 = finalTags[1];
         expect(tag2.variableName).toBe('t2');
         expect(tag2.parameterTranslations.key).toBe('hi'); // unchanged
@@ -1673,7 +1803,7 @@ describe('Replace tags with NULL config and translationArgPosition 2', () => {
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: null }
+            { tag: tags[0], config: null },
         ];
 
         const result = processor.replaceTags(content, replacements);
@@ -1687,15 +1817,16 @@ describe('Replace tags with NULL config and translationArgPosition 2', () => {
     });
 
     it('should work correctly when replacing both translations and setting config to null with translationArgPosition 2', () => {
-        const content = "const text = t({ namespace: 'common' }, { key: 'hello' });";
+        const content =
+            "const text = t({ namespace: 'common' }, { key: 'hello' });";
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { 
-                tag: tags[0], 
+            {
+                tag: tags[0],
                 translations: { key: 'greeting', message: 'Hello World' },
-                config: null
-            }
+                config: null,
+            },
         ];
 
         const result = processor.replaceTags(content, replacements);
@@ -1720,7 +1851,7 @@ describe('Replace tags with NULL config and translationArgPosition 2', () => {
         const tags = processor.extractTags(content);
 
         const replacements: $LT_TagReplaceData[] = [
-            { tag: tags[0], config: null }
+            { tag: tags[0], config: null },
         ];
 
         const result = processor.replaceTags(content, replacements);

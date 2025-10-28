@@ -1,7 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { configKeeper } from '@/algorithms/config-generation/config-keeper.ts';
-import { LangTagCLIConfigGenerationEvent } from '@/config.ts';
 import { LangTagTranslationsConfig } from 'lang-tag';
+import { describe, expect, it } from 'vitest';
+
+import { configKeeper } from '@/algorithms/config-generation/config-keeper';
+import { LangTagCLIConfigGenerationEvent } from '@/type';
 
 describe('configKeeper', () => {
     const createMockEvent = (
@@ -16,6 +17,14 @@ describe('configKeeper', () => {
             absolutePath: '/test/file.tsx',
             relativePath: 'src/test/file.tsx',
             isImportedLibrary: false,
+            logger: {
+                info: () => {},
+                success: () => {},
+                warn: () => {},
+                error: () => {},
+                debug: () => {},
+                conflict: async () => {},
+            },
             config: originalConfig,
             langTagConfig: {} as any,
             isSaved: currentIsSaved,
@@ -23,7 +32,7 @@ describe('configKeeper', () => {
             save: (config: LangTagTranslationsConfig | null) => {
                 currentSavedConfig = config;
                 currentIsSaved = true;
-            }
+            },
         };
     };
 
@@ -36,7 +45,9 @@ describe('configKeeper', () => {
             );
 
             let saveCalled = false;
-            event.save = () => { saveCalled = true; };
+            event.save = () => {
+                saveCalled = true;
+            };
 
             await keeper(event);
 
@@ -47,10 +58,14 @@ describe('configKeeper', () => {
     describe('when original config is undefined', () => {
         it('should not do anything', async () => {
             const keeper = configKeeper();
-            const event = createMockEvent(undefined, true, { namespace: 'new' });
+            const event = createMockEvent(undefined, true, {
+                namespace: 'new',
+            });
 
             let saveCalled = false;
-            event.save = () => { saveCalled = true; };
+            event.save = () => {
+                saveCalled = true;
+            };
 
             await keeper(event);
 
@@ -68,7 +83,9 @@ describe('configKeeper', () => {
             );
 
             let saveCalled = false;
-            event.save = () => { saveCalled = true; };
+            event.save = () => {
+                saveCalled = true;
+            };
 
             await keeper(event);
 
@@ -87,14 +104,16 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'new.path' }
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'new.path',
-                keep: 'namespace'
+                keep: 'namespace',
             });
         });
 
@@ -108,14 +127,16 @@ describe('configKeeper', () => {
                 { path: 'new.path' } // namespace removed
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'new.path',
-                keep: 'namespace'
+                keep: 'namespace',
             });
         });
     });
@@ -131,14 +152,16 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'new.path' }
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'modified',
                 path: 'old.path',
-                keep: 'path'
+                keep: 'path',
             });
         });
 
@@ -152,14 +175,16 @@ describe('configKeeper', () => {
                 { namespace: 'new' } // path removed
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'new',
                 path: 'old.path',
-                keep: 'path'
+                keep: 'path',
             });
         });
     });
@@ -175,14 +200,16 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'new.path' }
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'old.path',
-                keep: 'both'
+                keep: 'both',
             });
         });
 
@@ -196,7 +223,9 @@ describe('configKeeper', () => {
                 { someOtherProp: 'value' } // both removed
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -204,7 +233,7 @@ describe('configKeeper', () => {
                 namespace: 'original',
                 path: 'old.path',
                 keep: 'both',
-                someOtherProp: 'value'
+                someOtherProp: 'value',
             });
         });
     });
@@ -215,12 +244,20 @@ describe('configKeeper', () => {
             let finalConfig: any = null;
 
             const event = createMockEvent(
-                { namespace: 'original', path: 'old.path', keep: 'both', manual: true, someOther: 'value' },
+                {
+                    namespace: 'original',
+                    path: 'old.path',
+                    keep: 'both',
+                    manual: true,
+                    someOther: 'value',
+                },
                 true,
                 null // algorithm tried to remove config
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -229,7 +266,7 @@ describe('configKeeper', () => {
                 path: 'old.path',
                 keep: 'both',
                 manual: true,
-                someOther: 'value'
+                someOther: 'value',
             });
         });
 
@@ -238,12 +275,19 @@ describe('configKeeper', () => {
             let finalConfig: any = null;
 
             const event = createMockEvent(
-                { namespace: 'original', path: 'old.path', keep: 'namespace', extra: 'prop' },
+                {
+                    namespace: 'original',
+                    path: 'old.path',
+                    keep: 'namespace',
+                    extra: 'prop',
+                },
                 true,
                 null
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -251,7 +295,7 @@ describe('configKeeper', () => {
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 keep: 'namespace',
-                extra: 'prop'
+                extra: 'prop',
             });
             expect(finalConfig.path).toBeUndefined();
         });
@@ -261,12 +305,19 @@ describe('configKeeper', () => {
             let finalConfig: any = null;
 
             const event = createMockEvent(
-                { namespace: 'original', path: 'old.path', keep: 'path', extra: 'prop' },
+                {
+                    namespace: 'original',
+                    path: 'old.path',
+                    keep: 'path',
+                    extra: 'prop',
+                },
                 true,
                 null
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -274,7 +325,7 @@ describe('configKeeper', () => {
             expect(finalConfig).toEqual({
                 path: 'old.path',
                 keep: 'path',
-                extra: 'prop'
+                extra: 'prop',
             });
             expect(finalConfig.namespace).toBeUndefined();
         });
@@ -284,12 +335,20 @@ describe('configKeeper', () => {
             let finalConfig: any = null;
 
             const event = createMockEvent(
-                { namespace: 'original', path: 'old.path', keep: 'namespace', manual: true, custom: 'value' },
+                {
+                    namespace: 'original',
+                    path: 'old.path',
+                    keep: 'namespace',
+                    manual: true,
+                    custom: 'value',
+                },
                 true,
                 null
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -307,19 +366,25 @@ describe('configKeeper', () => {
             let finalConfig: any = null;
 
             const event = createMockEvent(
-                { namespace: 'original', path: 'old.path', keepOnGeneration: 'namespace' },
+                {
+                    namespace: 'original',
+                    path: 'old.path',
+                    keepOnGeneration: 'namespace',
+                },
                 true,
                 { namespace: 'modified', path: 'new.path' }
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'new.path',
-                keepOnGeneration: 'namespace'
+                keepOnGeneration: 'namespace',
             });
         });
 
@@ -333,7 +398,9 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'new.path' }
             );
 
-            event.save = () => { saveCalled = true; };
+            event.save = () => {
+                saveCalled = true;
+            };
 
             await keeper(event);
 
@@ -353,7 +420,9 @@ describe('configKeeper', () => {
                 { namespace: 'components', path: 'button' } // modified by path algorithm
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             // Keeper restores the namespace
             await keeper(event);
@@ -361,7 +430,7 @@ describe('configKeeper', () => {
             expect(finalConfig).toEqual({
                 namespace: 'manual',
                 path: 'button',
-                keep: 'namespace'
+                keep: 'namespace',
             });
         });
     });
@@ -377,7 +446,9 @@ describe('configKeeper', () => {
                 { namespace: 'original', path: 'new.path' } // namespace already matches, but 'keep' doesn't exist
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -385,7 +456,7 @@ describe('configKeeper', () => {
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'new.path',
-                keep: 'namespace'
+                keep: 'namespace',
             });
         });
 
@@ -399,7 +470,9 @@ describe('configKeeper', () => {
                 { namespace: 'original', path: 'new.path', keep: 'namespace' } // namespace already matches and keep exists!
             );
 
-            event.save = () => { saveCalled = true; };
+            event.save = () => {
+                saveCalled = true;
+            };
 
             await keeper(event);
 
@@ -416,7 +489,9 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'old.path', keep: 'path' } // path already matches and keep exists!
             );
 
-            event.save = () => { saveCalled = true; };
+            event.save = () => {
+                saveCalled = true;
+            };
 
             await keeper(event);
 
@@ -433,7 +508,9 @@ describe('configKeeper', () => {
                 { namespace: 'original', path: 'old.path', keep: 'both' } // both already match and keep exists!
             );
 
-            event.save = () => { saveCalled = true; };
+            event.save = () => {
+                saveCalled = true;
+            };
 
             await keeper(event);
 
@@ -450,14 +527,16 @@ describe('configKeeper', () => {
                 { namespace: 'original', path: 'new.path' } // namespace matches, path doesn't
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'old.path',
-                keep: 'both'
+                keep: 'both',
             });
         });
 
@@ -471,14 +550,16 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'old.path' } // path matches, namespace doesn't
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'old.path',
-                keep: 'both'
+                keep: 'both',
             });
         });
 
@@ -492,14 +573,16 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'new.path' } // namespace different
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'new.path',
-                keep: 'namespace'
+                keep: 'namespace',
             });
         });
 
@@ -513,14 +596,16 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'new.path' } // path different
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'modified',
                 path: 'old.path',
-                keep: 'path'
+                keep: 'path',
             });
         });
     });
@@ -536,7 +621,9 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'new.path' }
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -550,17 +637,36 @@ describe('configKeeper', () => {
             let finalConfig: any = null;
 
             const event = createMockEvent(
-                { namespace: 'original', path: 'old.path', debugMode: true, manual: false, keep: 'both' },
+                {
+                    namespace: 'original',
+                    path: 'old.path',
+                    debugMode: true,
+                    manual: false,
+                    keep: 'both',
+                },
                 true,
-                { namespace: 'modified', path: 'new.path', debugMode: true, manual: false }
+                {
+                    namespace: 'modified',
+                    path: 'new.path',
+                    debugMode: true,
+                    manual: false,
+                }
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             const keys = Object.keys(finalConfig);
-            expect(keys).toEqual(['namespace', 'path', 'debugMode', 'manual', 'keep']);
+            expect(keys).toEqual([
+                'namespace',
+                'path',
+                'debugMode',
+                'manual',
+                'keep',
+            ]);
             expect(keys[keys.length - 1]).toBe('keep');
         });
 
@@ -574,7 +680,9 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'new.path' }
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -582,21 +690,30 @@ describe('configKeeper', () => {
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'new.path',
-                keep: 'namespace'
+                keep: 'namespace',
             });
         });
 
         it('should place custom property name at the end when keepPropertyAtEnd is true', async () => {
-            const keeper = configKeeper({ propertyName: 'keepOnGeneration', keepPropertyAtEnd: true });
+            const keeper = configKeeper({
+                propertyName: 'keepOnGeneration',
+                keepPropertyAtEnd: true,
+            });
             let finalConfig: any = null;
 
             const event = createMockEvent(
-                { namespace: 'original', path: 'old.path', keepOnGeneration: 'namespace' },
+                {
+                    namespace: 'original',
+                    path: 'old.path',
+                    keepOnGeneration: 'namespace',
+                },
                 true,
                 { namespace: 'modified', path: 'new.path' }
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -610,28 +727,36 @@ describe('configKeeper', () => {
             let finalConfig: any = null;
 
             const event = createMockEvent(
-                { 
-                    namespace: 'original', 
-                    path: 'old.path', 
+                {
+                    namespace: 'original',
+                    path: 'old.path',
                     settings: { debug: true, verbose: false },
                     metadata: { version: '1.0' },
-                    keep: 'both' 
+                    keep: 'both',
                 },
                 true,
-                { 
-                    namespace: 'modified', 
+                {
+                    namespace: 'modified',
                     path: 'new.path',
                     settings: { debug: true, verbose: false },
-                    metadata: { version: '1.0' }
+                    metadata: { version: '1.0' },
                 }
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             const keys = Object.keys(finalConfig);
-            expect(keys).toEqual(['namespace', 'path', 'settings', 'metadata', 'keep']);
+            expect(keys).toEqual([
+                'namespace',
+                'path',
+                'settings',
+                'metadata',
+                'keep',
+            ]);
             expect(keys[keys.length - 1]).toBe('keep');
         });
 
@@ -645,7 +770,9 @@ describe('configKeeper', () => {
                 { namespace: 'original', keep: 'namespace', path: 'new.path' } // keep still in middle
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -656,7 +783,7 @@ describe('configKeeper', () => {
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'new.path',
-                keep: 'namespace'
+                keep: 'namespace',
             });
         });
 
@@ -670,7 +797,9 @@ describe('configKeeper', () => {
                 { namespace: 'original', path: 'new.path', keep: 'namespace' } // keep already at end
             );
 
-            event.save = () => { saveCalled = true; };
+            event.save = () => {
+                saveCalled = true;
+            };
 
             await keeper(event);
 
@@ -683,12 +812,19 @@ describe('configKeeper', () => {
             let finalConfig: any = null;
 
             const event = createMockEvent(
-                { namespace: 'original', path: 'old.path', manual: true, keep: 'both' },
+                {
+                    namespace: 'original',
+                    path: 'old.path',
+                    manual: true,
+                    keep: 'both',
+                },
                 true,
                 null
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -700,7 +836,7 @@ describe('configKeeper', () => {
                 namespace: 'original',
                 path: 'old.path',
                 manual: true,
-                keep: 'both'
+                keep: 'both',
             });
         });
     });
@@ -716,7 +852,9 @@ describe('configKeeper', () => {
                 { namespace: 'modified' }
             );
 
-            event.save = () => { saveCalled = true; };
+            event.save = () => {
+                saveCalled = true;
+            };
 
             await keeper(event);
 
@@ -733,14 +871,16 @@ describe('configKeeper', () => {
                 {}
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'old.path',
-                keep: 'both'
+                keep: 'both',
             });
         });
 
@@ -755,7 +895,9 @@ describe('configKeeper', () => {
                 { namespace: 'modified', path: 'new.path' }
             );
 
-            event.save = (config) => { finalConfig = config; };
+            event.save = (config) => {
+                finalConfig = config;
+            };
 
             await keeper(event);
 
@@ -763,9 +905,8 @@ describe('configKeeper', () => {
             expect(finalConfig).toEqual({
                 namespace: 'original',
                 path: 'new.path',
-                keep: 'both'
+                keep: 'both',
             });
         });
     });
 });
-

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
+import { program } from 'commander';
 
-import {program} from 'commander';
-import {$LT_CMD_RegenerateTags} from '@/commands/cmd-regenerate-tags.ts';
-import {$LT_WatchTranslations} from '@/commands/cmd-watch.ts';
-import {$LT_CMD_InitConfig} from '@/commands/cmd-init.ts';
-import {$LT_ImportTranslations} from "@/commands/cmd-import.ts";
-import {$LT_CMD_Collect} from "@/commands/cmd-collect.ts";
-import {$LT_CMD_InitTagFile} from "@/commands/cmd-init-tag.ts";
+import { $LT_CMD_Collect } from '@/commands/cmd-collect';
+import { $LT_ImportTranslations } from '@/commands/cmd-import';
+import { $LT_CMD_InitConfig } from '@/commands/cmd-init';
+import { $LT_CMD_InitTagFile } from '@/commands/cmd-init-tag';
+import { $LT_CMD_RegenerateTags } from '@/commands/cmd-regenerate-tags';
+import { $LT_WatchTranslations } from '@/commands/cmd-watch';
 
 export function createCli() {
     program
@@ -36,7 +36,9 @@ export function createCli() {
     program
         .command('watch')
         .alias('w')
-        .description('Watch for changes in source files and automatically collect translations')
+        .description(
+            'Watch for changes in source files and automatically collect translations'
+        )
         .action($LT_WatchTranslations);
 
     program
@@ -47,11 +49,26 @@ export function createCli() {
     program
         .command('init-tag')
         .description('Initialize a new lang-tag function file')
-        .option('-n, --name <name>', 'Name of the tag function (default: from config)')
-        .option('-l, --library', 'Generate library-style tag (default: from config)')
-        .option('-r, --react', 'Include React-specific optimizations (default: auto-detect)')
-        .option('-t, --typescript', 'Force TypeScript output (default: auto-detect)')
-        .option('-o, --output <path>', 'Output file path (default: auto-generated)')
+        .option(
+            '-n, --name <name>',
+            'Name of the tag function (default: from config)'
+        )
+        .option(
+            '-l, --library',
+            'Generate library-style tag (default: from config)'
+        )
+        .option(
+            '-r, --react',
+            'Include React-specific optimizations (default: auto-detect)'
+        )
+        .option(
+            '-t, --typescript',
+            'Force TypeScript output (default: auto-detect)'
+        )
+        .option(
+            '-o, --output <path>',
+            'Output file path (default: auto-generated)'
+        )
         .action(async (options) => {
             await $LT_CMD_InitTagFile(options);
         });

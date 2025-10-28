@@ -1,17 +1,18 @@
-import path from 'path';
 import micromatch from 'micromatch';
-import {LangTagCLIConfig} from '@/config.ts';
-import {checkAndRegenerateFileLangTags} from "@/core/regenerate/regenerate-config.ts";
-import {$LT_WriteToCollections} from "@/core/io/write-to-collections.ts";
-import {$LT_GetCommandEssentials} from "@/commands/setup.ts";
-import {LangTagCLILogger} from "@/logger.ts";
-import {$LT_CMD_Collect} from "@/commands/cmd-collect.ts";
-import {$LT_CollectCandidateFilesWithTags} from "@/core/collect/collect-tags.ts";
-import {$LT_GroupTagsToCollections} from "@/core/collect/group-tags-to-collections.ts";
-import {$LT_CreateChokidarWatcher} from "@/core/watch/chokidar-watcher.ts";
+import path from 'path';
+
+import { $LT_CMD_Collect } from '@/commands/cmd-collect';
+import { $LT_GetCommandEssentials } from '@/commands/setup';
+import { $LT_CollectCandidateFilesWithTags } from '@/core/collect/collect-tags';
+import { $LT_GroupTagsToCollections } from '@/core/collect/group-tags-to-collections';
+import { $LT_WriteToCollections } from '@/core/io/write-to-collections';
+import { checkAndRegenerateFileLangTags } from '@/core/regenerate/regenerate-config';
+import { $LT_CreateChokidarWatcher } from '@/core/watch/chokidar-watcher';
+import { LangTagCLILogger } from '@/logger';
+import { LangTagCLIConfig } from '@/type';
 
 export async function $LT_WatchTranslations() {
-    const {config, logger} = await $LT_GetCommandEssentials();
+    const { config, logger } = await $LT_GetCommandEssentials();
 
     await $LT_CMD_Collect();
 
@@ -22,15 +23,28 @@ export async function $LT_WatchTranslations() {
     logger.info('Press Ctrl+C to stop watching');
 
     watcher
-        .on('change', async filePath => await handleFile(config, logger, filePath, 'change'))
-        .on('add', async filePath => await handleFile(config, logger, filePath, 'add'))
+        .on(
+            'change',
+            async (filePath) =>
+                await handleFile(config, logger, filePath, 'change')
+        )
+        .on(
+            'add',
+            async (filePath) =>
+                await handleFile(config, logger, filePath, 'add')
+        )
         // .on('unlink', async filePath => await handleFile(config, filePath, 'unlink'))
-        .on('error', error => {
-            logger.error('Error in file watcher: {error}', {error});
+        .on('error', (error) => {
+            logger.error('Error in file watcher: {error}', { error });
         });
 }
 
-async function handleFile(config: LangTagCLIConfig, logger: LangTagCLILogger, cwdRelativeFilePath: string, event: string) {
+async function handleFile(
+    config: LangTagCLIConfig,
+    logger: LangTagCLILogger,
+    cwdRelativeFilePath: string,
+    event: string
+) {
     // Check if the path matches any of the original glob patterns
     if (!micromatch.isMatch(cwdRelativeFilePath, config.includes)) {
         return;
@@ -40,11 +54,24 @@ async function handleFile(config: LangTagCLIConfig, logger: LangTagCLILogger, cw
 
     const absoluteFilePath = path.join(cwd, cwdRelativeFilePath);
 
-    await checkAndRegenerateFileLangTags(config, logger, absoluteFilePath, cwdRelativeFilePath);
+    await checkAndRegenerateFileLangTags(
+        config,
+        logger,
+        absoluteFilePath,
+        cwdRelativeFilePath
+    );
 
-    const files = await $LT_CollectCandidateFilesWithTags({filesToScan: [cwdRelativeFilePath], config, logger});
+    const files = await $LT_CollectCandidateFilesWithTags({
+        filesToScan: [cwdRelativeFilePath],
+        config,
+        logger,
+    });
 
-    const namespaces = await $LT_GroupTagsToCollections({logger, files, config})
+    const namespaces = await $LT_GroupTagsToCollections({
+        logger,
+        files,
+        config,
+    });
 
-    await $LT_WriteToCollections({config, collections: namespaces, logger});
+    await $LT_WriteToCollections({ config, collections: namespaces, logger });
 }

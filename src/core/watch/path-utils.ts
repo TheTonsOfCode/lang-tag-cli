@@ -15,11 +15,15 @@ export function getBasePath(pattern: string): string {
     if (endIndex === -1) {
         // If the pattern contains '/', find the last '/'
         const lastSlashIndex = pattern.lastIndexOf('/');
-        return lastSlashIndex !== -1 ? pattern.substring(0, lastSlashIndex) : '.'; // Return '.' if there's no slash
+        return lastSlashIndex !== -1
+            ? pattern.substring(0, lastSlashIndex)
+            : '.'; // Return '.' if there's no slash
     }
 
     // Find the last directory separator before '*' or '{'
     const lastSeparatorIndex = pattern.lastIndexOf('/', endIndex);
 
-    return lastSeparatorIndex === -1 ? '.' : pattern.substring(0, lastSeparatorIndex);
+    return lastSeparatorIndex === -1
+        ? '.'
+        : pattern.substring(0, lastSeparatorIndex);
 }

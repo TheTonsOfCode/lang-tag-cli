@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { $LT_GroupTagsToCollections } from '@/core/collect/group-tags-to-collections.ts';
-import { $LT_TagCandidateFile } from '@/core/collect/collect-tags.ts';
-import {LangTagCLIProcessedTag, LangTagCLIConfig, LANG_TAG_DEFAULT_CONFIG} from '@/config.ts';
-import { LangTagCLILogger } from '@/logger.ts';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { $LT_TagCandidateFile } from '@/core/collect/collect-tags';
+import { $LT_GroupTagsToCollections } from '@/core/collect/group-tags-to-collections';
+import { LANG_TAG_DEFAULT_CONFIG } from '@/core/default-config';
+import { LangTagCLILogger } from '@/logger';
+import { LangTagCLIConfig, LangTagCLIProcessedTag } from '@/type';
 
 // Mock logger
 const mockLogger: LangTagCLILogger = {
@@ -32,7 +34,7 @@ const mockConfig: LangTagCLIConfig = {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
         onImport: () => {},
-    }
+    },
 };
 
 describe('$LT_GroupTagsToNamespaces', () => {
@@ -40,62 +42,81 @@ describe('$LT_GroupTagsToNamespaces', () => {
         vi.clearAllMocks();
     });
 
-    const createMockTag = (overrides: Partial<LangTagCLIProcessedTag> = {}): LangTagCLIProcessedTag => ({
-        fullMatch: 'lang({ text: "Hello" }, { path: "test.path", namespace: "common" })',
+    const createMockTag = (
+        overrides: Partial<LangTagCLIProcessedTag> = {}
+    ): LangTagCLIProcessedTag => ({
+        fullMatch:
+            'lang({ text: "Hello" }, { path: "test.path", namespace: "common" })',
         parameter1Text: '{ text: "Hello" }',
         parameter2Text: '{ path: "test.path", namespace: "common" }',
         parameterTranslations: { text: 'Hello' },
         parameterConfig: {
             namespace: 'common',
-            path: 'test.path'
+            path: 'test.path',
         },
         variableName: undefined,
         index: 0,
         line: 1,
         column: 1,
         validity: 'ok',
-        ...overrides
+        ...overrides,
     });
 
-    const createMockFile = (relativeFilePath: string, tags: LangTagCLIProcessedTag[]): $LT_TagCandidateFile => ({
+    const createMockFile = (
+        relativeFilePath: string,
+        tags: LangTagCLIProcessedTag[]
+    ): $LT_TagCandidateFile => ({
         relativeFilePath,
-        tags
+        tags,
     });
 
     it('should group tags by namespace without conflicts', async () => {
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Click me' }
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Click me' },
                 }),
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.secondary' },
-                    parameterTranslations: { text: 'Cancel' }
-                })
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.secondary',
+                    },
+                    parameterTranslations: { text: 'Cancel' },
+                }),
             ]),
             createMockFile('src/Header.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'admin', path: 'navigation.title' },
-                    parameterTranslations: { text: 'Admin Panel' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'admin',
+                        path: 'navigation.title',
+                    },
+                    parameterTranslations: { text: 'Admin Panel' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         expect(result).toEqual({
             common: {
                 buttons: {
                     primary: { text: 'Click me' },
-                    secondary: { text: 'Cancel' }
-                }
+                    secondary: { text: 'Cancel' },
+                },
             },
             admin: {
                 navigation: {
-                    title: { text: 'Admin Panel' }
-                }
-            }
+                    title: { text: 'Admin Panel' },
+                },
+            },
         });
 
         expect(mockLogger.warn).not.toHaveBeenCalled();
@@ -105,19 +126,29 @@ describe('$LT_GroupTagsToNamespaces', () => {
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Click me' }
-                })
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Click me' },
+                }),
             ]),
             createMockFile('src/Header.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Kliknij mnie' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Kliknij mnie' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         // Should keep first value due to conflict (second is skipped)
         expect(result.common.buttons.primary.text).toBe('Click me');
@@ -129,7 +160,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
         expect(mockLogger.conflict).toHaveBeenCalledWith(
             expect.objectContaining({
                 path: 'buttons.primary.text',
-                conflictType: 'path_overwrite'
+                conflictType: 'path_overwrite',
             }),
             true
         );
@@ -139,24 +170,34 @@ describe('$LT_GroupTagsToNamespaces', () => {
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Click me' }
-                })
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Click me' },
+                }),
             ]),
             createMockFile('src/Header.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary.submit' },
-                    parameterTranslations: { text: 'Submit' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary.submit',
+                    },
+                    parameterTranslations: { text: 'Submit' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         // Should create nested structure successfully
-        expect(result.common.buttons.primary).toEqual({ 
+        expect(result.common.buttons.primary).toEqual({
             text: 'Click me',
-            submit: { text: 'Submit' }
+            submit: { text: 'Submit' },
         });
 
         // Should not report any conflicts
@@ -167,31 +208,41 @@ describe('$LT_GroupTagsToNamespaces', () => {
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Click me' }
-                })
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Click me' },
+                }),
             ]),
             createMockFile('src/Admin.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'admin', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Admin Click' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'admin',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Admin Click' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         expect(result).toEqual({
             common: {
                 buttons: {
-                    primary: { text: 'Click me' }
-                }
+                    primary: { text: 'Click me' },
+                },
             },
             admin: {
                 buttons: {
-                    primary: { text: 'Admin Click' }
-                }
-            }
+                    primary: { text: 'Admin Click' },
+                },
+            },
         });
 
         // Should not report any conflicts
@@ -202,37 +253,47 @@ describe('$LT_GroupTagsToNamespaces', () => {
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { 
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: {
                         text: 'Click me',
-                        style: 'primary'
-                    }
+                        style: 'primary',
+                    },
                 }),
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.secondary' },
-                    parameterTranslations: { 
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.secondary',
+                    },
+                    parameterTranslations: {
                         text: 'Cancel',
-                        style: 'secondary'
-                    }
-                })
-            ])
+                        style: 'secondary',
+                    },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         expect(result).toEqual({
             common: {
                 buttons: {
-                    primary: { 
+                    primary: {
                         text: 'Click me',
-                        style: 'primary'
+                        style: 'primary',
                     },
-                    secondary: { 
+                    secondary: {
                         text: 'Cancel',
-                        style: 'secondary'
-                    }
-                }
-            }
+                        style: 'secondary',
+                    },
+                },
+            },
         });
     });
 
@@ -240,30 +301,43 @@ describe('$LT_GroupTagsToNamespaces', () => {
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'settings.count' },
-                    parameterTranslations: { value: 42 }
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'settings.count',
+                    },
+                    parameterTranslations: { value: 42 },
                 }),
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'settings.enabled' },
-                    parameterTranslations: { value: true }
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'settings.enabled',
+                    },
+                    parameterTranslations: { value: true },
                 }),
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'settings.title' },
-                    parameterTranslations: { value: 'My App' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'settings.title',
+                    },
+                    parameterTranslations: { value: 'My App' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         expect(result).toEqual({
             common: {
                 settings: {
                     count: { value: 42 },
                     enabled: { value: true },
-                    title: { value: 'My App' }
-                }
-            }
+                    title: { value: 'My App' },
+                },
+            },
         });
     });
 
@@ -271,19 +345,29 @@ describe('$LT_GroupTagsToNamespaces', () => {
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'settings.count' },
-                    parameterTranslations: { value: 42 }
-                })
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'settings.count',
+                    },
+                    parameterTranslations: { value: 42 },
+                }),
             ]),
             createMockFile('src/Header.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'settings.count' },
-                    parameterTranslations: { value: 'forty-two' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'settings.count',
+                    },
+                    parameterTranslations: { value: 'forty-two' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         // Should keep first value due to conflict
         expect(result.common.settings.count).toEqual({ value: 42 });
@@ -295,14 +379,18 @@ describe('$LT_GroupTagsToNamespaces', () => {
         expect(mockLogger.conflict).toHaveBeenCalledWith(
             expect.objectContaining({
                 path: 'settings.count.value',
-                conflictType: 'type_mismatch'
+                conflictType: 'type_mismatch',
             }),
             true
         );
     });
 
     it('should handle empty files array', async () => {
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files: [], config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files: [],
+            config: mockConfig,
+        });
 
         expect(result).toEqual({});
         expect(mockLogger.warn).not.toHaveBeenCalled();
@@ -313,17 +401,21 @@ describe('$LT_GroupTagsToNamespaces', () => {
             createMockFile('src/Button.tsx', [
                 createMockTag({
                     parameterConfig: { namespace: 'common', path: undefined },
-                    parameterTranslations: { text: 'Root level' }
-                })
-            ])
+                    parameterTranslations: { text: 'Root level' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         expect(result).toEqual({
             common: {
-                text: 'Root level'
-            }
+                text: 'Root level',
+            },
         });
     });
 
@@ -332,17 +424,21 @@ describe('$LT_GroupTagsToNamespaces', () => {
             createMockFile('src/Button.tsx', [
                 createMockTag({
                     parameterConfig: { namespace: 'common', path: '' },
-                    parameterTranslations: { text: 'Root level' }
-                })
-            ])
+                    parameterTranslations: { text: 'Root level' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         expect(result).toEqual({
             common: {
-                text: 'Root level'
-            }
+                text: 'Root level',
+            },
         });
     });
 
@@ -351,17 +447,21 @@ describe('$LT_GroupTagsToNamespaces', () => {
             createMockFile('src/Button.tsx', [
                 createMockTag({
                     parameterConfig: { namespace: 'common', path: '   ' },
-                    parameterTranslations: { text: 'Root level' }
-                })
-            ])
+                    parameterTranslations: { text: 'Root level' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         expect(result).toEqual({
             common: {
-                text: 'Root level'
-            }
+                text: 'Root level',
+            },
         });
     });
 
@@ -370,18 +470,22 @@ describe('$LT_GroupTagsToNamespaces', () => {
             createMockFile('src/Button.tsx', [
                 createMockTag({
                     parameterConfig: { namespace: 'common', path: '' },
-                    parameterTranslations: { text: 'First root' }
-                })
+                    parameterTranslations: { text: 'First root' },
+                }),
             ]),
             createMockFile('src/Header.tsx', [
                 createMockTag({
                     parameterConfig: { namespace: 'common', path: '' },
-                    parameterTranslations: { text: 'Second root' }
-                })
-            ])
+                    parameterTranslations: { text: 'Second root' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         // Should keep first value due to conflict
         expect(result.common.text).toBe('First root');
@@ -393,7 +497,7 @@ describe('$LT_GroupTagsToNamespaces', () => {
         expect(mockLogger.conflict).toHaveBeenCalledWith(
             expect.objectContaining({
                 path: 'text',
-                conflictType: 'path_overwrite'
+                conflictType: 'path_overwrite',
             }),
             true
         );
@@ -404,28 +508,35 @@ describe('$LT_GroupTagsToNamespaces', () => {
             createMockFile('src/Button.tsx', [
                 createMockTag({
                     parameterConfig: { namespace: 'common', path: '' },
-                    parameterTranslations: { 
+                    parameterTranslations: {
                         rootText: 'Root level',
-                        rootCount: 42
-                    }
+                        rootCount: 42,
+                    },
                 }),
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Click me' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Click me' },
+                }),
+            ]),
         ];
 
-        const result = await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: mockConfig });
+        const result = await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: mockConfig,
+        });
 
         expect(result).toEqual({
             common: {
                 rootText: 'Root level',
                 rootCount: 42,
                 buttons: {
-                    primary: { text: 'Click me' }
-                }
-            }
+                    primary: { text: 'Click me' },
+                },
+            },
         });
 
         // Should not report any conflicts
@@ -438,35 +549,45 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ...mockConfig,
             collect: {
                 ...mockConfig.collect,
-                onConflictResolution
-            }
+                onConflictResolution,
+            },
         };
 
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Click me' }
-                })
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Click me' },
+                }),
             ]),
             createMockFile('src/Header.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Kliknij mnie' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Kliknij mnie' },
+                }),
+            ]),
         ];
 
-        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: configWithHandler });
+        await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: configWithHandler,
+        });
 
         expect(onConflictResolution).toHaveBeenCalledTimes(1);
         expect(onConflictResolution).toHaveBeenCalledWith(
             expect.objectContaining({
                 conflict: expect.objectContaining({
                     path: 'buttons.primary.text',
-                    conflictType: 'path_overwrite'
+                    conflictType: 'path_overwrite',
                 }),
-                logger: mockLogger
+                logger: mockLogger,
             })
         );
     });
@@ -477,26 +598,36 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ...mockConfig,
             collect: {
                 ...mockConfig.collect,
-                onCollectFinish
-            }
+                onCollectFinish,
+            },
         };
 
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Click me' }
-                })
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Click me' },
+                }),
             ]),
             createMockFile('src/Header.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Kliknij mnie' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Kliknij mnie' },
+                }),
+            ]),
         ];
 
-        await $LT_GroupTagsToCollections({ logger: mockLogger, files, config: configWithHandler });
+        await $LT_GroupTagsToCollections({
+            logger: mockLogger,
+            files,
+            config: configWithHandler,
+        });
 
         expect(onCollectFinish).toHaveBeenCalledTimes(1);
         expect(onCollectFinish).toHaveBeenCalledWith(
@@ -504,44 +635,58 @@ describe('$LT_GroupTagsToNamespaces', () => {
                 conflicts: expect.arrayContaining([
                     expect.objectContaining({
                         path: 'buttons.primary.text',
-                        conflictType: 'path_overwrite'
-                    })
+                        conflictType: 'path_overwrite',
+                    }),
                 ]),
-                logger: mockLogger
+                logger: mockLogger,
             })
         );
     });
 
     it('should stop processing when onConflictResolution calls exit()', async () => {
-        const onConflictResolution = vi.fn().mockImplementation(async (event) => {
-            event.exit();
-        });
+        const onConflictResolution = vi
+            .fn()
+            .mockImplementation(async (event) => {
+                event.exit();
+            });
         const configWithHandler = {
             ...mockConfig,
             collect: {
                 ...mockConfig.collect,
-                onConflictResolution
-            }
+                onConflictResolution,
+            },
         };
 
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Click me' }
-                })
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Click me' },
+                }),
             ]),
             createMockFile('src/Header.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Kliknij mnie' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Kliknij mnie' },
+                }),
+            ]),
         ];
 
         await expect(
-            $LT_GroupTagsToCollections({ logger: mockLogger, files, config: configWithHandler })
-        ).rejects.toThrow('Processing stopped due to conflict resolution: common|buttons.primary.text');
+            $LT_GroupTagsToCollections({
+                logger: mockLogger,
+                files,
+                config: configWithHandler,
+            })
+        ).rejects.toThrow(
+            'Processing stopped due to conflict resolution: common|buttons.primary.text'
+        );
     });
 
     it('should stop processing when onCollectFinish calls exit()', async () => {
@@ -552,27 +697,37 @@ describe('$LT_GroupTagsToNamespaces', () => {
             ...mockConfig,
             collect: {
                 ...mockConfig.collect,
-                onCollectFinish
-            }
+                onCollectFinish,
+            },
         };
 
         const files: $LT_TagCandidateFile[] = [
             createMockFile('src/Button.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Click me' }
-                })
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Click me' },
+                }),
             ]),
             createMockFile('src/Header.tsx', [
                 createMockTag({
-                    parameterConfig: { namespace: 'common', path: 'buttons.primary' },
-                    parameterTranslations: { text: 'Kliknij mnie' }
-                })
-            ])
+                    parameterConfig: {
+                        namespace: 'common',
+                        path: 'buttons.primary',
+                    },
+                    parameterTranslations: { text: 'Kliknij mnie' },
+                }),
+            ]),
         ];
 
         await expect(
-            $LT_GroupTagsToCollections({ logger: mockLogger, files, config: configWithHandler })
+            $LT_GroupTagsToCollections({
+                logger: mockLogger,
+                files,
+                config: configWithHandler,
+            })
         ).rejects.toThrow('Processing stopped due to collect finish handler');
     });
 });

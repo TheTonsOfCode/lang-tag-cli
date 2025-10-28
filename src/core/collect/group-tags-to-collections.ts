@@ -1,26 +1,41 @@
-import {$LT_TagCandidateFile} from "@/core/collect/collect-tags.ts";
-import {LangTagCLILogger} from "@/logger.ts";
-import {LangTagCLITagConflictInfo, LangTagCLIConflict, LangTagCLIConfig} from "@/config.ts";
+import { $LT_TagCandidateFile } from '@/core/collect/collect-tags';
+import { LangTagCLILogger } from '@/logger';
+import {
+    LangTagCLIConfig,
+    LangTagCLIConflict,
+    LangTagCLITagConflictInfo,
+} from '@/type';
 
 type ValueTracker = {
     get(path: string): LangTagCLITagConflictInfo | undefined;
     trackValue(path: string, value: any): void;
-}
+};
 
-type AddConflictFunction = (path: string, tagA: LangTagCLITagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => Promise<void>;
+type AddConflictFunction = (
+    path: string,
+    tagA: LangTagCLITagConflictInfo,
+    tagBValue: any,
+    conflictType: 'path_overwrite' | 'type_mismatch'
+) => Promise<void>;
 
-export async function $LT_GroupTagsToCollections({logger, files, config}: {
-    logger: LangTagCLILogger,
-    files: $LT_TagCandidateFile[],
-    config: LangTagCLIConfig
+export async function $LT_GroupTagsToCollections({
+    logger,
+    files,
+    config,
+}: {
+    logger: LangTagCLILogger;
+    files: $LT_TagCandidateFile[];
+    config: LangTagCLIConfig;
 }) {
     let totalTags = 0;
     const collections: Record<string, Record<string, any>> = {};
 
     function getTranslationsCollection(namespace: string): Record<string, any> {
-        const collectionName = config.collect!.collector!.aggregateCollection(namespace);
+        const collectionName =
+            config.collect!.collector!.aggregateCollection(namespace);
 
-        const collection: Record<string, any> = collections[collectionName] || {};
+        const collection: Record<string, any> =
+            collections[collectionName] || {};
         if (!(collectionName in collections)) {
             collections[collectionName] = collection;
         }
@@ -31,7 +46,10 @@ export async function $LT_GroupTagsToCollections({logger, files, config}: {
     const allConflicts: LangTagCLIConflict[] = [];
 
     // Track existing values and their sources for conflict detection per namespace
-    const existingValuesByNamespace: Map<string, Map<string, LangTagCLITagConflictInfo>> = new Map();
+    const existingValuesByNamespace: Map<
+        string,
+        Map<string, LangTagCLITagConflictInfo>
+    > = new Map();
 
     for (const file of files) {
         totalTags += file.tags.length;
@@ -43,25 +61,42 @@ export async function $LT_GroupTagsToCollections({logger, files, config}: {
             const collection = getTranslationsCollection(tagConfig.namespace);
 
             // Get or create existing values map for this namespace
-            let existingValues = existingValuesByNamespace.get(tagConfig.namespace);
+            let existingValues = existingValuesByNamespace.get(
+                tagConfig.namespace
+            );
             if (!existingValues) {
                 existingValues = new Map();
-                existingValuesByNamespace.set(tagConfig.namespace, existingValues);
+                existingValuesByNamespace.set(
+                    tagConfig.namespace,
+                    existingValues
+                );
             }
 
             // Create value tracker for this tag
             const valueTracker: ValueTracker = {
                 get: (path: string) => existingValues.get(path),
                 trackValue: (path: string, value: any) => {
-                    existingValues.set(path, {tag, relativeFilePath: file.relativeFilePath, value});
-                }
+                    existingValues.set(path, {
+                        tag,
+                        relativeFilePath: file.relativeFilePath,
+                        value,
+                    });
+                },
             };
 
-            const addConflict: AddConflictFunction = async (path: string, tagA: LangTagCLITagConflictInfo, tagBValue: any, conflictType: 'path_overwrite' | 'type_mismatch') => {
+            const addConflict: AddConflictFunction = async (
+                path: string,
+                tagA: LangTagCLITagConflictInfo,
+                tagBValue: any,
+                conflictType: 'path_overwrite' | 'type_mismatch'
+            ) => {
                 // Skip conflicts when values match and ignoreConflictsWithMatchingValues is enabled
-                if (conflictType === 'path_overwrite' && 
-                    config.collect?.ignoreConflictsWithMatchingValues !== false &&
-                    tagA.value === tagBValue) {
+                if (
+                    conflictType === 'path_overwrite' &&
+                    config.collect?.ignoreConflictsWithMatchingValues !==
+                        false &&
+                    tagA.value === tagBValue
+                ) {
                     return; // Silently skip this conflict
                 }
 
@@ -71,21 +106,25 @@ export async function $LT_GroupTagsToCollections({logger, files, config}: {
                     tagB: {
                         tag,
                         relativeFilePath: file.relativeFilePath,
-                        value: tagBValue
+                        value: tagBValue,
                     },
-                    conflictType
+                    conflictType,
                 };
 
                 // Call onConflictResolution for each conflict
                 if (config.collect?.onConflictResolution) {
                     let shouldContinue = true;
                     await config.collect.onConflictResolution({
-                        conflict, logger, exit() {
+                        conflict,
+                        logger,
+                        exit() {
                             shouldContinue = false;
-                        }
+                        },
                     });
                     if (!shouldContinue) {
-                        throw new Error(`LangTagConflictResolution:Processing stopped due to conflict resolution: ${conflict.tagA.tag.parameterConfig.namespace}|${conflict.path}`);
+                        throw new Error(
+                            `LangTagConflictResolution:Processing stopped due to conflict resolution: ${conflict.tagA.tag.parameterConfig.namespace}|${conflict.path}`
+                        );
                     }
                 }
 
@@ -120,18 +159,21 @@ export async function $LT_GroupTagsToCollections({logger, files, config}: {
         config.collect.onCollectFinish({
             totalTags,
             namespaces: collections,
-            conflicts: allConflicts, logger, exit() {
+            conflicts: allConflicts,
+            logger,
+            exit() {
                 shouldContinue = false;
-            }
+            },
         });
         if (!shouldContinue) {
-            throw new Error(`LangTagConflictResolution:Processing stopped due to collect finish handler`);
+            throw new Error(
+                `LangTagConflictResolution:Processing stopped due to collect finish handler`
+            );
         }
     }
 
     return collections;
 }
-
 
 /**
  * Creates nested object structure for dot-notation path and returns target object.
@@ -157,7 +199,12 @@ async function ensureNestedObject(
             const existingInfo = valueTracker.get(currentPath);
             if (existingInfo) {
                 // We're trying to create nested structure but there's already a primitive here
-                await addConflict(currentPath, existingInfo, {}, 'type_mismatch');
+                await addConflict(
+                    currentPath,
+                    existingInfo,
+                    {},
+                    'type_mismatch'
+                );
             }
             // Can't navigate deeper, return current level
             return current;
@@ -200,7 +247,7 @@ async function mergeWithConflictDetection(
             continue; // Skip arrays silently
         }
 
-            // Check for conflicts if target already has a value
+        // Check for conflicts if target already has a value
         if (targetValue !== undefined) {
             const targetType = typeof targetValue;
             const sourceType = typeof sourceValue;
@@ -209,16 +256,28 @@ async function mergeWithConflictDetection(
             let existingInfo = valueTracker.get(currentPath);
 
             // If we don't have direct info but target is an object, try to find info from nested values
-            if (!existingInfo && targetType === 'object' && targetValue !== null && !Array.isArray(targetValue)) {
+            if (
+                !existingInfo &&
+                targetType === 'object' &&
+                targetValue !== null &&
+                !Array.isArray(targetValue)
+            ) {
                 // Recursively search for any tracked nested value
-                const findNestedInfo = (obj: any, prefix: string): LangTagCLITagConflictInfo | undefined => {
+                const findNestedInfo = (
+                    obj: any,
+                    prefix: string
+                ): LangTagCLITagConflictInfo | undefined => {
                     for (const key in obj) {
                         const path = prefix ? `${prefix}.${key}` : key;
                         const info = valueTracker.get(path);
                         if (info) {
                             return info;
                         }
-                        if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                        if (
+                            typeof obj[key] === 'object' &&
+                            obj[key] !== null &&
+                            !Array.isArray(obj[key])
+                        ) {
                             const nestedInfo = findNestedInfo(obj[key], path);
                             if (nestedInfo) {
                                 return nestedInfo;
@@ -233,7 +292,12 @@ async function mergeWithConflictDetection(
             // Detect type mismatch conflicts (any type change)
             if (targetType !== sourceType) {
                 if (existingInfo) {
-                    await addConflict(currentPath, existingInfo, sourceValue, 'type_mismatch');
+                    await addConflict(
+                        currentPath,
+                        existingInfo,
+                        sourceValue,
+                        'type_mismatch'
+                    );
                 }
                 continue; // Skip this merge
             }
@@ -243,7 +307,12 @@ async function mergeWithConflictDetection(
             if (targetType !== 'object') {
                 if (existingInfo) {
                     // Always call addConflict - it will decide whether to skip based on config
-                    await addConflict(currentPath, existingInfo, sourceValue, 'path_overwrite');
+                    await addConflict(
+                        currentPath,
+                        existingInfo,
+                        sourceValue,
+                        'path_overwrite'
+                    );
                 }
                 // Skip merge only if values are different
                 if (targetValue !== sourceValue) {
@@ -253,7 +322,11 @@ async function mergeWithConflictDetection(
         }
 
         // Merge objects recursively (but not null or arrays)
-        if (typeof sourceValue === 'object' && sourceValue !== null && !Array.isArray(sourceValue)) {
+        if (
+            typeof sourceValue === 'object' &&
+            sourceValue !== null &&
+            !Array.isArray(sourceValue)
+        ) {
             if (!targetValue) {
                 targetValue = {};
                 target[key] = targetValue;
@@ -272,5 +345,4 @@ async function mergeWithConflictDetection(
             valueTracker.trackValue(currentPath, sourceValue);
         }
     }
-
 }

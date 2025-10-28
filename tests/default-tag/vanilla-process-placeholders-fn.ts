@@ -1,4 +1,3 @@
-
 /**
  * Processes placeholders in a translation string.
  * If the input `translation` is not a string, it returns an empty string.
@@ -18,6 +17,8 @@ export function processPlaceholders(
     }
     return translation.replace(/{{(.*?)}}/g, (_: any, placeholder: string) => {
         const trimmedPlaceholder = placeholder.trim();
-        return params?.[trimmedPlaceholder] !== undefined ? String(params[trimmedPlaceholder]) : '';
+        return params?.[trimmedPlaceholder] !== undefined
+            ? String(params[trimmedPlaceholder])
+            : '';
     });
 }

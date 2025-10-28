@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { $LT_GroupTagsToCollections } from '@/core/collect/group-tags-to-collections.ts';
-import { $LT_TagCandidateFile } from '@/core/collect/collect-tags.ts';
-import {LangTagCLIProcessedTag, LangTagCLIConfig, LANG_TAG_DEFAULT_CONFIG} from '@/config.ts';
-import { LangTagCLILogger } from '@/logger.ts';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { $LT_TagCandidateFile } from '@/core/collect/collect-tags';
+import { $LT_GroupTagsToCollections } from '@/core/collect/group-tags-to-collections';
+import { LANG_TAG_DEFAULT_CONFIG } from '@/core/default-config';
+import { LangTagCLILogger } from '@/logger';
+import { LangTagCLIConfig, LangTagCLIProcessedTag } from '@/type';
 
 // Mock logger
 const mockLogger: LangTagCLILogger = {
@@ -26,13 +28,13 @@ const createBaseConfig = (): LangTagCLIConfig => ({
     onConfigGeneration: async () => {},
     collect: {
         ...LANG_TAG_DEFAULT_CONFIG.collect,
-        onCollectFinish: () => {} // Don't exit on conflicts in tests
+        onCollectFinish: () => {}, // Don't exit on conflicts in tests
     },
     import: {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
         onImport: () => {},
-    }
+    },
 });
 
 describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => {
@@ -43,35 +45,43 @@ describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => 
         mockOnConflictResolution = vi.fn().mockResolvedValue(undefined);
     });
 
-    const createMockTag = (overrides: Partial<LangTagCLIProcessedTag> = {}): LangTagCLIProcessedTag => ({
-        fullMatch: 'lang({ text: "Hello" }, { path: "test.path", namespace: "common" })',
+    const createMockTag = (
+        overrides: Partial<LangTagCLIProcessedTag> = {}
+    ): LangTagCLIProcessedTag => ({
+        fullMatch:
+            'lang({ text: "Hello" }, { path: "test.path", namespace: "common" })',
         parameter1Text: '{ text: "Hello" }',
         parameter2Text: '{ path: "test.path", namespace: "common" }',
         parameterTranslations: { text: 'Hello' },
         parameterConfig: {
             namespace: 'common',
-            path: 'test.path'
+            path: 'test.path',
         },
         variableName: undefined,
         index: 0,
         line: 1,
         column: 1,
         validity: 'ok',
-        ...overrides
+        ...overrides,
     });
 
-    const createMockFile = (relativeFilePath: string, tags: LangTagCLIProcessedTag[]): $LT_TagCandidateFile => ({
+    const createMockFile = (
+        relativeFilePath: string,
+        tags: LangTagCLIProcessedTag[]
+    ): $LT_TagCandidateFile => ({
         relativeFilePath,
-        tags
+        tags,
     });
 
-    const createConfigWithConflictResolution = (ignoreConflictsWithMatchingValues?: boolean): LangTagCLIConfig => ({
+    const createConfigWithConflictResolution = (
+        ignoreConflictsWithMatchingValues?: boolean
+    ): LangTagCLIConfig => ({
         ...createBaseConfig(),
         collect: {
             ...createBaseConfig().collect,
             ignoreConflictsWithMatchingValues,
-            onConflictResolution: mockOnConflictResolution
-        }
+            onConflictResolution: mockOnConflictResolution,
+        },
     });
 
     describe('when ignoreConflictsWithMatchingValues is true (default)', () => {
@@ -80,21 +90,27 @@ describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => 
                 createMockFile('src/Component1.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Same Title' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
                 ]),
                 createMockFile('src/Component2.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Same Title' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
-                ])
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
+                ]),
             ];
 
             await $LT_GroupTagsToCollections({
-                logger: mockLogger, 
-                files, 
-                config: createConfigWithConflictResolution(true) 
+                logger: mockLogger,
+                files,
+                config: createConfigWithConflictResolution(true),
             });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
@@ -105,27 +121,36 @@ describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => 
                 createMockFile('src/Component1.tsx', [
                     createMockTag({
                         parameterTranslations: { greeting: 'Hello World' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
                 ]),
                 createMockFile('src/Component2.tsx', [
                     createMockTag({
                         parameterTranslations: { greeting: 'Hello World' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
                 ]),
                 createMockFile('src/Component3.tsx', [
                     createMockTag({
                         parameterTranslations: { greeting: 'Hello World' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
-                ])
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
+                ]),
             ];
 
             await $LT_GroupTagsToCollections({
-                logger: mockLogger, 
-                files, 
-                config: createConfigWithConflictResolution(true) 
+                logger: mockLogger,
+                files,
+                config: createConfigWithConflictResolution(true),
             });
 
             expect(mockOnConflictResolution).not.toHaveBeenCalled();
@@ -136,21 +161,27 @@ describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => 
                 createMockFile('src/Component1.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Title 1' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
                 ]),
                 createMockFile('src/Component2.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Title 2' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
-                ])
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
+                ]),
             ];
 
             await $LT_GroupTagsToCollections({
-                logger: mockLogger, 
-                files, 
-                config: createConfigWithConflictResolution(true) 
+                logger: mockLogger,
+                files,
+                config: createConfigWithConflictResolution(true),
             });
 
             expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
@@ -158,8 +189,8 @@ describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => 
                 expect.objectContaining({
                     conflict: expect.objectContaining({
                         path: 'title',
-                        conflictType: 'path_overwrite'
-                    })
+                        conflictType: 'path_overwrite',
+                    }),
                 })
             );
         });
@@ -171,21 +202,27 @@ describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => 
                 createMockFile('src/Component1.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Same Title' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
                 ]),
                 createMockFile('src/Component2.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Same Title' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
-                ])
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
+                ]),
             ];
 
             await $LT_GroupTagsToCollections({
-                logger: mockLogger, 
-                files, 
-                config: createConfigWithConflictResolution(false) 
+                logger: mockLogger,
+                files,
+                config: createConfigWithConflictResolution(false),
             });
 
             expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
@@ -193,8 +230,8 @@ describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => 
                 expect.objectContaining({
                     conflict: expect.objectContaining({
                         path: 'title',
-                        conflictType: 'path_overwrite'
-                    })
+                        conflictType: 'path_overwrite',
+                    }),
                 })
             );
         });
@@ -204,27 +241,36 @@ describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => 
                 createMockFile('src/Component1.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Same' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
                 ]),
                 createMockFile('src/Component2.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Same' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
                 ]),
                 createMockFile('src/Component3.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Same' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
-                ])
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
+                ]),
             ];
 
             await $LT_GroupTagsToCollections({
-                logger: mockLogger, 
-                files, 
-                config: createConfigWithConflictResolution(false) 
+                logger: mockLogger,
+                files,
+                config: createConfigWithConflictResolution(false),
             });
 
             // Should detect 2 conflicts (file1 vs file2, file1 vs file3)
@@ -236,21 +282,27 @@ describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => 
                 createMockFile('src/Component1.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Title 1' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
                 ]),
                 createMockFile('src/Component2.tsx', [
                     createMockTag({
                         parameterTranslations: { title: 'Title 2' },
-                        parameterConfig: { namespace: 'common', path: undefined }
-                    })
-                ])
+                        parameterConfig: {
+                            namespace: 'common',
+                            path: undefined,
+                        },
+                    }),
+                ]),
             ];
 
             await $LT_GroupTagsToCollections({
-                logger: mockLogger, 
-                files, 
-                config: createConfigWithConflictResolution(false) 
+                logger: mockLogger,
+                files,
+                config: createConfigWithConflictResolution(false),
             });
 
             expect(mockOnConflictResolution).toHaveBeenCalledTimes(1);
@@ -258,11 +310,10 @@ describe('$LT_GroupTagsToNamespaces - ignoreConflictsWithMatchingValues', () => 
                 expect.objectContaining({
                     conflict: expect.objectContaining({
                         path: 'title',
-                        conflictType: 'path_overwrite'
-                    })
+                        conflictType: 'path_overwrite',
+                    }),
                 })
             );
         });
     });
 });
-

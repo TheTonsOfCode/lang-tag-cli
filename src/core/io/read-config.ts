@@ -1,24 +1,32 @@
-import {resolve} from "pathe";
-import {CONFIG_FILE_NAME} from "@/core/constants.ts";
-import {existsSync} from "fs";
-import {pathToFileURL} from "url";
-import {LANG_TAG_DEFAULT_CONFIG, LangTagCLIConfig} from "@/config.ts";
+import { existsSync } from 'fs';
+import { resolve } from 'pathe';
+import { pathToFileURL } from 'url';
 
-export async function $LT_ReadConfig(projectPath: string): Promise<LangTagCLIConfig> {
+import { CONFIG_FILE_NAME } from '@/core/constants';
+import { LANG_TAG_DEFAULT_CONFIG } from '@/core/default-config';
+import { LangTagCLIConfig } from '@/type';
+
+export async function $LT_ReadConfig(
+    projectPath: string
+): Promise<LangTagCLIConfig> {
     const configPath = resolve(projectPath, CONFIG_FILE_NAME);
 
     if (!existsSync(configPath)) {
-        throw new Error(`No "${CONFIG_FILE_NAME}" detected`)
+        throw new Error(`No "${CONFIG_FILE_NAME}" detected`);
     }
 
     try {
         const configModule = await import(pathToFileURL(configPath).href);
 
-        if (!configModule.default || Object.keys(configModule.default).length === 0) {
-            throw new Error(`Config found, but default export is undefined`)
+        if (
+            !configModule.default ||
+            Object.keys(configModule.default).length === 0
+        ) {
+            throw new Error(`Config found, but default export is undefined`);
         }
 
-        const userConfig: Partial<LangTagCLIConfig> = configModule.default || {};
+        const userConfig: Partial<LangTagCLIConfig> =
+            configModule.default || {};
 
         const tn = (userConfig.tagName || '')
             .toLowerCase()
@@ -26,7 +34,9 @@ export async function $LT_ReadConfig(projectPath: string): Promise<LangTagCLICon
 
         // Block exact matches for "lang-tag" and "langtag"
         if (tn === 'langtag' || tn === 'lang-tag') {
-            throw new Error('Custom tagName cannot be "lang-tag" or "langtag"! (It is not recommended for use with libraries)\n');
+            throw new Error(
+                'Custom tagName cannot be "lang-tag" or "langtag"! (It is not recommended for use with libraries)\n'
+            );
         }
 
         const config = {
@@ -39,8 +49,8 @@ export async function $LT_ReadConfig(projectPath: string): Promise<LangTagCLICon
             collect: {
                 ...LANG_TAG_DEFAULT_CONFIG.collect,
                 ...userConfig.collect,
-            }
-        }
+            },
+        };
 
         if (!config.collect.collector) {
             throw new Error('Collector not found! (config.collect.collector)');

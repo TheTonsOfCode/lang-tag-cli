@@ -1,5 +1,6 @@
-import {LangTagCLIProcessedTag, LangTagCLIConfig} from "@/config.ts";
-import JSON5 from "json5";
+import JSON5 from 'json5';
+
+import { LangTagCLIConfig, LangTagCLIProcessedTag } from '@/type';
 
 export interface $LT_TagReplaceData {
     tag: LangTagCLIProcessedTag;
@@ -9,8 +10,12 @@ export interface $LT_TagReplaceData {
 }
 
 export class $LT_TagProcessor {
-
-    constructor(private config: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'>) {}
+    constructor(
+        private config: Pick<
+            LangTagCLIConfig,
+            'tagName' | 'translationArgPosition'
+        >
+    ) {}
 
     public extractTags(fileContent: string): LangTagCLIProcessedTag[] {
         const tagName = this.config.tagName;
@@ -24,7 +29,10 @@ export class $LT_TagProcessor {
         const skipRanges = this.buildSkipRanges(fileContent);
 
         // Create a regex to find the start of a lang tag
-        const startPattern = new RegExp(`${optionalVariableAssignment}${tagName}\\(\\s*\\{`, 'g');
+        const startPattern = new RegExp(
+            `${optionalVariableAssignment}${tagName}\\(\\s*\\{`,
+            'g'
+        );
 
         while (true) {
             // Find the next potential match
@@ -59,12 +67,20 @@ export class $LT_TagProcessor {
             }
 
             // Check if there's a second parameter
-            let parameter1Text = fileContent.substring(matchStartIndex + startMatch[0].length - 1, i);
+            let parameter1Text = fileContent.substring(
+                matchStartIndex + startMatch[0].length - 1,
+                i
+            );
             let parameter2Text: string | undefined;
 
             // After first object, we expect either ',' (then second object) or ')' (end of call)
             // Skip whitespace
-            while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
+            while (
+                i < fileContent.length &&
+                (fileContent[i] === ' ' ||
+                    fileContent[i] === '\n' ||
+                    fileContent[i] === '\t')
+            ) {
                 i++;
             }
 
@@ -77,7 +93,12 @@ export class $LT_TagProcessor {
             if (fileContent[i] === ',') {
                 // Consume comma and any whitespace after it
                 i++;
-                while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
+                while (
+                    i < fileContent.length &&
+                    (fileContent[i] === ' ' ||
+                        fileContent[i] === '\n' ||
+                        fileContent[i] === '\t')
+                ) {
                     i++;
                 }
 
@@ -107,7 +128,12 @@ export class $LT_TagProcessor {
                     parameter2Text = fileContent.substring(secondParamStart, i);
 
                     // After second object, skip whitespace
-                    while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
+                    while (
+                        i < fileContent.length &&
+                        (fileContent[i] === ' ' ||
+                            fileContent[i] === '\n' ||
+                            fileContent[i] === '\t')
+                    ) {
                         i++;
                     }
 
@@ -115,7 +141,12 @@ export class $LT_TagProcessor {
                     if (i < fileContent.length && fileContent[i] === ',') {
                         i++; // consume the comma
                         // Skip whitespace after comma
-                        while (i < fileContent.length && (fileContent[i] === ' ' || fileContent[i] === '\n' || fileContent[i] === '\t')) {
+                        while (
+                            i < fileContent.length &&
+                            (fileContent[i] === ' ' ||
+                                fileContent[i] === '\n' ||
+                                fileContent[i] === '\t')
+                        ) {
                             i++;
                         }
                     }
@@ -143,7 +174,10 @@ export class $LT_TagProcessor {
 
             const fullMatch = fileContent.substring(matchStartIndex, i);
 
-            const {line, column} = getLineAndColumn(fileContent, matchStartIndex)
+            const { line, column } = getLineAndColumn(
+                fileContent,
+                matchStartIndex
+            );
 
             let validity: any = 'ok';
 
@@ -151,7 +185,11 @@ export class $LT_TagProcessor {
             let parameter2 = undefined;
 
             // Check for template string interpolation (${...}) - not allowed
-            if (this.hasTemplateInterpolation(parameter1Text) || (parameter2Text && this.hasTemplateInterpolation(parameter2Text))) {
+            if (
+                this.hasTemplateInterpolation(parameter1Text) ||
+                (parameter2Text &&
+                    this.hasTemplateInterpolation(parameter2Text))
+            ) {
                 // Skip this match - template interpolation not allowed
                 currentIndex = matchStartIndex + 1;
                 continue;
@@ -165,7 +203,9 @@ export class $LT_TagProcessor {
                     } catch (error) {
                         // Try to parse with escaped newlines in strings
                         try {
-                            parameter2 = JSON5.parse(this.escapeNewlinesInStrings(parameter2Text));
+                            parameter2 = JSON5.parse(
+                                this.escapeNewlinesInStrings(parameter2Text)
+                            );
                         } catch {
                             validity = 'invalid-param-2';
                         }
@@ -174,14 +214,22 @@ export class $LT_TagProcessor {
             } catch (error) {
                 // Try to parse with escaped newlines in strings (for multiline string support)
                 try {
-                    parameter1 = JSON5.parse(this.escapeNewlinesInStrings(parameter1Text));
+                    parameter1 = JSON5.parse(
+                        this.escapeNewlinesInStrings(parameter1Text)
+                    );
                 } catch {
                     validity = 'invalid-param-1';
                 }
             }
 
-            let parameterTranslations = this.config.translationArgPosition === 1 ? parameter1 : parameter2;
-            let parameterConfig = this.config.translationArgPosition === 1 ? parameter2 : parameter1;
+            let parameterTranslations =
+                this.config.translationArgPosition === 1
+                    ? parameter1
+                    : parameter2;
+            let parameterConfig =
+                this.config.translationArgPosition === 1
+                    ? parameter2
+                    : parameter1;
 
             if (validity === 'ok') {
                 if (!parameterTranslations) validity = 'translations-not-found';
@@ -206,57 +254,81 @@ export class $LT_TagProcessor {
         return matches;
     }
 
-    public replaceTags(fileContent: string, replacements: $LT_TagReplaceData[]): string {
-
+    public replaceTags(
+        fileContent: string,
+        replacements: $LT_TagReplaceData[]
+    ): string {
         const replaceMap: Map<LangTagCLIProcessedTag, string> = new Map();
 
-        replacements.forEach(R => {
+        replacements.forEach((R) => {
             if (!R.translations && !R.config && R.config !== null) {
-                throw new Error('Replacement data is required!')
+                throw new Error('Replacement data is required!');
             }
 
             const tag = R.tag;
 
             let newTranslationsString = R.translations;
             // We do not use "tag.parameterTranslations" in order to preserve translations object comments, etc.
-            if (!newTranslationsString) newTranslationsString = this.config.translationArgPosition === 1 ? tag.parameter1Text : (tag.parameter2Text || "{}");
-            else if (typeof newTranslationsString !== 'string') newTranslationsString = JSON5.stringify(newTranslationsString);
-            if (!newTranslationsString) throw new Error('Tag must have translations provided!');
+            if (!newTranslationsString)
+                newTranslationsString =
+                    this.config.translationArgPosition === 1
+                        ? tag.parameter1Text
+                        : tag.parameter2Text || '{}';
+            else if (typeof newTranslationsString !== 'string')
+                newTranslationsString = JSON5.stringify(newTranslationsString);
+            if (!newTranslationsString)
+                throw new Error('Tag must have translations provided!');
             try {
                 JSON5.parse(newTranslationsString);
             } catch (error) {
-                throw new Error(`Tag translations are invalid object! Translations: ${newTranslationsString}`)
+                throw new Error(
+                    `Tag translations are invalid object! Translations: ${newTranslationsString}`
+                );
             }
 
             let newConfigString = R.config;
-            if (!newConfigString && newConfigString !== null) newConfigString = tag.parameterConfig;
+            if (!newConfigString && newConfigString !== null)
+                newConfigString = tag.parameterConfig;
             if (newConfigString) {
                 try {
-                    if (typeof newConfigString === 'string') JSON5.parse(newConfigString);
+                    if (typeof newConfigString === 'string')
+                        JSON5.parse(newConfigString);
                     else newConfigString = JSON5.stringify(newConfigString);
                 } catch (error) {
-                    throw new Error(`Tag config is invalid object! Config: ${newConfigString}`)
+                    throw new Error(
+                        `Tag config is invalid object! Config: ${newConfigString}`
+                    );
                 }
             }
 
             // IMPORTANT: If config is NULL and translations are on position 2, we need to set config to "{}"
             // to ensure the function call has the correct argument structure: t({}, translations)
-            if (newConfigString === null && this.config.translationArgPosition === 2) {
-                newConfigString = "{}";
+            if (
+                newConfigString === null &&
+                this.config.translationArgPosition === 2
+            ) {
+                newConfigString = '{}';
             }
 
             // TODO:   HERE:  Cała logika formatowania wcięć itd w przyszłości
 
-            const arg1 = this.config.translationArgPosition === 1  ? newTranslationsString : newConfigString;
-            const arg2 = this.config.translationArgPosition === 1  ? newConfigString : newTranslationsString;
+            const arg1 =
+                this.config.translationArgPosition === 1
+                    ? newTranslationsString
+                    : newConfigString;
+            const arg2 =
+                this.config.translationArgPosition === 1
+                    ? newConfigString
+                    : newTranslationsString;
 
             let tagFunction = `${this.config.tagName}(${arg1}`;
             if (arg2) tagFunction += `, ${arg2}`;
-            tagFunction += ")";
+            tagFunction += ')';
 
-            if (tag.variableName) replaceMap.set(tag, ` ${tag.variableName} = ${tagFunction}`);
+            if (tag.variableName)
+                replaceMap.set(tag, ` ${tag.variableName} = ${tagFunction}`);
             else replaceMap.set(tag, tagFunction);
-        })
+        });
 
         let offset = 0;
 
@@ -264,7 +336,10 @@ export class $LT_TagProcessor {
             const startIdx = match.index + offset;
             const endIdx = startIdx + match.fullMatch.length;
 
-            fileContent = fileContent.slice(0, startIdx) + replacement + fileContent.slice(endIdx);
+            fileContent =
+                fileContent.slice(0, startIdx) +
+                replacement +
+                fileContent.slice(endIdx);
 
             offset += replacement.length - match.fullMatch.length;
         });
@@ -369,7 +444,10 @@ export class $LT_TagProcessor {
         return ranges;
     }
 
-    private isInSkipRange(position: number, skipRanges: Array<[number, number]>): boolean {
+    private isInSkipRange(
+        position: number,
+        skipRanges: Array<[number, number]>
+    ): boolean {
         for (const [start, end] of skipRanges) {
             if (position >= start && position < end) {
                 return true;
@@ -480,8 +558,11 @@ export class $LT_TagProcessor {
     }
 }
 
-function getLineAndColumn(text: string, matchIndex: number): { line: number; column: number } {
-    const lines = text.slice(0, matchIndex).split("\n");
+function getLineAndColumn(
+    text: string,
+    matchIndex: number
+): { line: number; column: number } {
+    const lines = text.slice(0, matchIndex).split('\n');
     const line = lines.length;
     const column = lines[lines.length - 1].length + 1;
     return { line, column };

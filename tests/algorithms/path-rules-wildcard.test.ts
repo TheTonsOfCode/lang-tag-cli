@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { pathBasedConfigGenerator } from '../../src/algorithms/config-generation/path-based-config-generator';
-import { LangTagCLIConfigGenerationEvent } from '../../src/config';
+import { describe, expect, it, vi } from 'vitest';
+
+import { pathBasedConfigGenerator } from '@/algorithms';
+import { LangTagCLIConfigGenerationEvent } from '@/type';
 
 const TRIGGER_NAME = 'path-based-config-generator';
 
@@ -51,19 +52,24 @@ describe('pathRules >> wildcard', () => {
                 pathRules: {
                     components: {
                         dashboard: {
-                            '>>': 'ui'
-                        }
-                    }
-                }
+                            '>>': 'ui',
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/modal/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/modal/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'ui',
-                path: 'views.modal'
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'ui',
+                    path: 'views.modal',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should transform features to pages namespace', async () => {
@@ -71,19 +77,24 @@ describe('pathRules >> wildcard', () => {
                 pathRules: {
                     features: {
                         auth: {
-                            '>>': 'pages'
-                        }
-                    }
-                }
+                            '>>': 'pages',
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('features/auth/login/form/validation.tsx');
+
+            const event = createMockEvent(
+                'features/auth/login/form/validation.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'pages',
-                path: 'login.form'
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'pages',
+                    path: 'login.form',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -95,20 +106,25 @@ describe('pathRules >> wildcard', () => {
                         admin: {
                             '>>': {
                                 namespace: 'management',
-                                pathPrefix: 'admin.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'admin.',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('app/admin/users/roles/permissions.tsx');
+
+            const event = createMockEvent(
+                'app/admin/users/roles/permissions.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'management',
-                path: 'admin.users.roles'
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'management',
+                    path: 'admin.users.roles',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should add prefix without dot at the end', async () => {
@@ -118,20 +134,25 @@ describe('pathRules >> wildcard', () => {
                         modules: {
                             '>>': {
                                 namespace: 'core',
-                                pathPrefix: 'app'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'app',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('src/modules/payments/checkout/summary.tsx');
+
+            const event = createMockEvent(
+                'src/modules/payments/checkout/summary.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'core',
-                path: 'app.payments.checkout'
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'core',
+                    path: 'app.payments.checkout',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should add multi-level prefix with dots', async () => {
@@ -141,20 +162,25 @@ describe('pathRules >> wildcard', () => {
                         dashboard: {
                             '>>': {
                                 namespace: 'widgets',
-                                pathPrefix: 'app.dashboard.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'app.dashboard.',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('features/dashboard/charts/analytics/report.tsx');
+
+            const event = createMockEvent(
+                'features/dashboard/charts/analytics/report.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'widgets',
-                path: "app.dashboard.charts.analytics"
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'widgets',
+                    path: 'app.dashboard.charts.analytics',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should work with empty prefix', async () => {
@@ -164,20 +190,25 @@ describe('pathRules >> wildcard', () => {
                         components: {
                             '>>': {
                                 namespace: 'shared',
-                                pathPrefix: ''
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: '',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('lib/components/buttons/primary/icon.tsx');
+
+            const event = createMockEvent(
+                'lib/components/buttons/primary/icon.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'shared',
-                path: 'buttons.primary'
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'shared',
+                    path: 'buttons.primary',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should work without prefix property', async () => {
@@ -186,20 +217,23 @@ describe('pathRules >> wildcard', () => {
                     pages: {
                         public: {
                             '>>': {
-                                namespace: 'marketing'
-                            }
-                        }
-                    }
-                }
+                                namespace: 'marketing',
+                            },
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('pages/public/landing/hero/cta.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'marketing',
-                path: 'landing.hero',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'marketing',
+                    path: 'landing.hero',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -211,20 +245,25 @@ describe('pathRules >> wildcard', () => {
                         features: {
                             '>>': {
                                 namespace: 'app',
-                                pathPrefix: 'features.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'features.',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('src/features/billing/invoices/details.tsx');
+
+            const event = createMockEvent(
+                'src/features/billing/invoices/details.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: "features.billing.invoices",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'features.billing.invoices',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should add multi-level prefix to multi-level namespace', async () => {
@@ -234,20 +273,25 @@ describe('pathRules >> wildcard', () => {
                         modules: {
                             '>>': {
                                 namespace: 'core.system',
-                                pathPrefix: 'app.modules.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'app.modules.',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('app/modules/settings/preferences/theme.tsx');
+
+            const event = createMockEvent(
+                'app/modules/settings/preferences/theme.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'core.system',
-                path: "app.modules.settings.preferences",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'core.system',
+                    path: 'app.modules.settings.preferences',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -258,19 +302,24 @@ describe('pathRules >> wildcard', () => {
                 pathRules: {
                     components: {
                         forms: {
-                            '>>': 'FormValidation'
-                        }
-                    }
-                }
+                            '>>': 'FormValidation',
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/forms/inputs/email/validator.tsx');
+
+            const event = createMockEvent(
+                'components/forms/inputs/email/validator.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'form-validation',
-                path: "inputs.email",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'form-validation',
+                    path: 'inputs.email',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should apply camelCase transformation', async () => {
@@ -279,19 +328,24 @@ describe('pathRules >> wildcard', () => {
                 pathRules: {
                     features: {
                         admin: {
-                            '>>': 'user-management'
-                        }
-                    }
-                }
+                            '>>': 'user-management',
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('features/admin/users/list/table.tsx');
+
+            const event = createMockEvent(
+                'features/admin/users/list/table.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'userManagement',
-                path: "users.list",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'userManagement',
+                    path: 'users.list',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -302,19 +356,24 @@ describe('pathRules >> wildcard', () => {
                     src: {
                         features: {
                             _: false,
-                            '>>': 'app'
-                        }
-                    }
-                }
+                            '>>': 'app',
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('src/features/profile/settings/account.tsx');
+
+            const event = createMockEvent(
+                'src/features/profile/settings/account.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: "profile.settings",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'profile.settings',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should work in deeply nested structure', async () => {
@@ -324,21 +383,26 @@ describe('pathRules >> wildcard', () => {
                         modules: {
                             admin: {
                                 users: {
-                                    '>>': 'permissions'
-                                }
-                            }
-                        }
-                    }
-                }
+                                    '>>': 'permissions',
+                                },
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('app/modules/admin/users/roles/groups/list.tsx');
+
+            const event = createMockEvent(
+                'app/modules/admin/users/roles/groups/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'permissions',
-                path: "roles.groups",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'permissions',
+                    path: 'roles.groups',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -349,20 +413,25 @@ describe('pathRules >> wildcard', () => {
                     components: {
                         dashboard: {
                             '>>': {
-                                pathPrefix: 'ui.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'ui.',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'dashboard',
-                path: "ui.views",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'dashboard',
+                    path: 'ui.views',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should return null when namespace is null', async () => {
@@ -372,20 +441,25 @@ describe('pathRules >> wildcard', () => {
                         dashboard: {
                             '>>': {
                                 namespace: null,
-                                pathPrefix: 'ui.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'ui.',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'dashboard',
-                path: "ui.views",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'dashboard',
+                    path: 'ui.views',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should return null when namespace is empty string', async () => {
@@ -393,19 +467,24 @@ describe('pathRules >> wildcard', () => {
                 pathRules: {
                     components: {
                         dashboard: {
-                            '>>': ''
-                        }
-                    }
-                }
+                            '>>': '',
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'dashboard',
-                path: "views",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'dashboard',
+                    path: 'views',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should handle >> with empty string object', async () => {
@@ -415,20 +494,25 @@ describe('pathRules >> wildcard', () => {
                         dashboard: {
                             '>>': {
                                 namespace: '',
-                                pathPrefix: 'ui.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'ui.',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'dashboard',
-                path: "ui.views",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'dashboard',
+                    path: 'ui.views',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should handle >> with null namespace object', async () => {
@@ -438,20 +522,25 @@ describe('pathRules >> wildcard', () => {
                         dashboard: {
                             '>>': {
                                 namespace: null,
-                                pathPrefix: 'ui.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'ui.',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'dashboard',
-                path: "ui.views",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'dashboard',
+                    path: 'ui.views',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should handle >> with undefined namespace object', async () => {
@@ -460,20 +549,25 @@ describe('pathRules >> wildcard', () => {
                     components: {
                         dashboard: {
                             '>>': {
-                                pathPrefix: 'ui.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'ui.',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'dashboard',
-                path: "ui.views",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'dashboard',
+                    path: 'ui.views',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should handle >> with null object', async () => {
@@ -481,19 +575,24 @@ describe('pathRules >> wildcard', () => {
                 pathRules: {
                     components: {
                         dashboard: {
-                            '>>': null
-                        }
-                    }
-                }
+                            '>>': null,
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'dashboard',
-                path: "views",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'dashboard',
+                    path: 'views',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should handle >> with undefined object', async () => {
@@ -501,19 +600,24 @@ describe('pathRules >> wildcard', () => {
                 pathRules: {
                     components: {
                         dashboard: {
-                            '>>': undefined
-                        }
-                    }
-                }
+                            '>>': undefined,
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'dashboard',
-                path: 'views',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'dashboard',
+                    path: 'views',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should handle >> with empty object', async () => {
@@ -521,19 +625,24 @@ describe('pathRules >> wildcard', () => {
                 pathRules: {
                     components: {
                         dashboard: {
-                            '>>': {}
-                        }
-                    }
-                }
+                            '>>': {},
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'dashboard',
-                path: "views",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'dashboard',
+                    path: 'views',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should handle >> with object containing only pathPrefix', async () => {
@@ -542,20 +651,25 @@ describe('pathRules >> wildcard', () => {
                     components: {
                         dashboard: {
                             '>>': {
-                                pathPrefix: 'ui.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'ui.',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'dashboard',
-                path: "ui.views",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'dashboard',
+                    path: 'ui.views',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should handle >> with object containing only namespace', async () => {
@@ -564,20 +678,25 @@ describe('pathRules >> wildcard', () => {
                     components: {
                         dashboard: {
                             '>>': {
-                                namespace: 'custom'
-                            }
-                        }
-                    }
-                }
+                                namespace: 'custom',
+                            },
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('components/dashboard/views/list.tsx');
+
+            const event = createMockEvent(
+                'components/dashboard/views/list.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'custom',
-                path: "views",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'custom',
+                    path: 'views',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -588,18 +707,23 @@ describe('pathRules >> wildcard', () => {
                 pathRules: {
                     src: {
                         features: {
-                            '>>': 'app'
-                        }
-                    }
-                }
+                            '>>': 'app',
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('src/features/__tests__/utils/helpers.tsx');
+
+            const event = createMockEvent(
+                'src/features/__tests__/utils/helpers.tsx'
+            );
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should work with removeBracketedDirectories', async () => {
@@ -608,19 +732,22 @@ describe('pathRules >> wildcard', () => {
                 pathRules: {
                     app: {
                         routes: {
-                            '>>': 'pages'
-                        }
-                    }
-                }
+                            '>>': 'pages',
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/routes/(auth)/login/form.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'pages',
-                path: "login",
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'pages',
+                    path: 'login',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -629,17 +756,20 @@ describe('pathRules >> wildcard', () => {
             const generator = pathBasedConfigGenerator({
                 pathRules: {
                     components: {
-                        '>>': 'ui'
-                    }
-                }
+                        '>>': 'ui',
+                    },
+                },
             });
-            
+
             const event = createMockEvent('components/Button.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'ui',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'ui',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should work with pathPrefix without dot at the end', async () => {
@@ -648,19 +778,22 @@ describe('pathRules >> wildcard', () => {
                     features: {
                         '>>': {
                             namespace: 'pages',
-                            pathPrefix: 'feature'
-                        }
-                    }
-                }
+                            pathPrefix: 'feature',
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('features/Dashboard.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'pages',
-                path: 'feature',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'pages',
+                    path: 'feature',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should work with pathPrefix with dot at the end', async () => {
@@ -669,19 +802,22 @@ describe('pathRules >> wildcard', () => {
                     modules: {
                         '>>': {
                             namespace: 'core',
-                            pathPrefix: 'module.'
-                        }
-                    }
-                }
+                            pathPrefix: 'module.',
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('modules/Analytics.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'core',
-                path: 'module',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'core',
+                    path: 'module',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should work with multi-level pathPrefix with dots', async () => {
@@ -690,19 +826,22 @@ describe('pathRules >> wildcard', () => {
                     views: {
                         '>>': {
                             namespace: 'app',
-                            pathPrefix: 'app.views.'
-                        }
-                    }
-                }
+                            pathPrefix: 'app.views.',
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('views/Profile.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'app.views',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'app.views',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -717,21 +856,24 @@ describe('pathRules >> wildcard', () => {
                             auth: {
                                 '>>': 'security',
                                 login: {
-                                    '>': 'auth'
-                                }
-                            }
-                        }
-                    }
-                }
+                                    '>': 'auth',
+                                },
+                            },
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/features/auth/login/form.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'security',
-                path: 'auth',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'security',
+                    path: 'auth',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should use the deepest >> redirect with pathPrefix when nested', async () => {
@@ -742,26 +884,29 @@ describe('pathRules >> wildcard', () => {
                         modules: {
                             '>>': {
                                 namespace: 'core',
-                                pathPrefix: 'modules.'
+                                pathPrefix: 'modules.',
                             },
                             admin: {
                                 '>>': {
                                     namespace: 'management',
-                                    pathPrefix: 'admin.'
-                                }
-                            }
-                        }
-                    }
-                }
+                                    pathPrefix: 'admin.',
+                                },
+                            },
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('src/modules/admin/users/roles.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'management',
-                path: 'admin.users',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'management',
+                    path: 'admin.users',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should use the deepest >> redirect even when parent has string redirect', async () => {
@@ -772,21 +917,23 @@ describe('pathRules >> wildcard', () => {
                         forms: {
                             '>>': {
                                 namespace: 'validation',
-                                pathPrefix: 'forms.'
-                            }
-                        }
-                    }
-                }
+                                pathPrefix: 'forms.',
+                            },
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('components/forms/inputs/email.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'validation',
-                path: 'forms.inputs',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'validation',
+                    path: 'forms.inputs',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 });
-

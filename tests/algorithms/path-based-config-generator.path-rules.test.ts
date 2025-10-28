@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from 'vitest';
-import { pathBasedConfigGenerator } from '../../src/algorithms/config-generation/path-based-config-generator';
-import { LangTagCLIConfigGenerationEvent } from '../../src/config';
+import { describe, expect, it, vi } from 'vitest';
 
-const TRIGGER_NAME = "path-based-config-generator"
+import { pathBasedConfigGenerator } from '@/algorithms';
+import { LangTagCLIConfigGenerationEvent } from '@/type';
+
+const TRIGGER_NAME = 'path-based-config-generator';
 
 // Helper function to create a mock event
 function createMockEvent(
@@ -11,7 +12,7 @@ function createMockEvent(
     collectDefaultNamespace: string = 'common'
 ): LangTagCLIConfigGenerationEvent {
     let savedConfig: any = null;
-    
+
     return {
         absolutePath: `/project/${relativePath}`,
         relativePath,
@@ -52,14 +53,14 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                 pathBasedConfigGenerator({
                     pathRules: {
                         app: {
-                            dashboard: false
-                        }
+                            dashboard: false,
+                        },
                     },
                     ignoreStructured: {
                         src: {
-                            features: true
-                        }
-                    }
+                            features: true,
+                        },
+                    },
                 });
             }).toThrow('Cannot use both "pathRules" and "ignoreStructured"');
         });
@@ -69,9 +70,9 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                 pathBasedConfigGenerator({
                     pathRules: {
                         app: {
-                            dashboard: false
-                        }
-                    }
+                            dashboard: false,
+                        },
+                    },
                 });
             }).not.toThrow();
         });
@@ -81,9 +82,9 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                 pathBasedConfigGenerator({
                     ignoreStructured: {
                         src: {
-                            features: true
-                        }
-                    }
+                            features: true,
+                        },
+                    },
                 });
             }).not.toThrow();
         });
@@ -92,7 +93,7 @@ describe('pathBasedConfigGenerator - pathRules', () => {
             expect(() => {
                 pathBasedConfigGenerator({
                     pathRules: {},
-                    ignoreStructured: {}
+                    ignoreStructured: {},
                 });
             }).not.toThrow();
         });
@@ -104,20 +105,23 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                 pathRules: {
                     app: {
                         dashboard: {
-                            _: false,  // ignore "dashboard"
-                        }
-                    }
-                }
+                            _: false, // ignore "dashboard"
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/dashboard/users/List.tsx');
             await generator(event);
-            
+
             // dashboard is ignored, so: app -> users
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'users',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'users',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should ignore segment and continue with nested rules', async () => {
@@ -125,21 +129,26 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                 pathRules: {
                     app: {
                         dashboard: {
-                            _: false,     // ignore "dashboard"
-                            modules: false // ignore "modules" too
-                        }
-                    }
-                }
+                            _: false, // ignore "dashboard"
+                            modules: false, // ignore "modules" too
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('app/dashboard/modules/advanced/facility/page.tsx');
+
+            const event = createMockEvent(
+                'app/dashboard/modules/advanced/facility/page.tsx'
+            );
             await generator(event);
-            
+
             // dashboard and modules ignored: app -> advanced -> facility
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'advanced.facility',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'advanced.facility',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should work with ignoreIncludesRootDirectories', async () => {
@@ -149,24 +158,27 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                     app: {
                         dashboard: {
                             _: false,
-                            modules: false
-                        }
-                    }
-                }
+                            modules: false,
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent(
                 'app/dashboard/modules/advanced/facility/page.tsx',
                 ['app/**/*.tsx']
             );
             await generator(event);
-            
+
             // app removed by ignoreIncludesRootDirectories, then dashboard and modules ignored
             // Result: advanced -> facility
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'advanced',
-                path: 'facility',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'advanced',
+                    path: 'facility',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -176,20 +188,23 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                 pathRules: {
                     app: {
                         admin: {
-                            '>': 'management'
-                        }
-                    }
-                }
+                            '>': 'management',
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/admin/users/List.tsx');
             await generator(event);
-            
+
             // admin renamed to management: app -> management -> users
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'management.users',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'management.users',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should rename and continue with nested rules', async () => {
@@ -198,20 +213,23 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                     app: {
                         admin: {
                             '>': 'management',
-                            users: 'people'  // rename users to people
-                        }
-                    }
-                }
+                            users: 'people', // rename users to people
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/admin/users/profile/edit.tsx');
             await generator(event);
-            
+
             // admin -> management, users -> people
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'management.people.profile',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'management.people.profile',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -221,22 +239,25 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                 pathRules: {
                     app: {
                         dashboard: {
-                            _: false,          // ignore dashboard
-                            '>': 'panel',      // this won't apply since _ ignores it
-                            admin: 'mgmt'      // rename admin
-                        }
-                    }
-                }
+                            _: false, // ignore dashboard
+                            '>': 'panel', // this won't apply since _ ignores it
+                            admin: 'mgmt', // rename admin
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/dashboard/admin/users.tsx');
             await generator(event);
-            
+
             // dashboard ignored, admin renamed to mgmt
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'mgmt',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'mgmt',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should rename parent and ignore child', async () => {
@@ -245,20 +266,23 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                     src: {
                         features: {
                             '>': 'modules',
-                            auth: false  // ignore auth
-                        }
-                    }
-                }
+                            auth: false, // ignore auth
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('src/features/auth/login/page.tsx');
             await generator(event);
-            
+
             // features renamed to modules, auth ignored
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'src',
-                path: 'modules.login',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'src',
+                    path: 'modules.login',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -267,18 +291,21 @@ describe('pathBasedConfigGenerator - pathRules', () => {
             const generator = pathBasedConfigGenerator({
                 pathRules: {
                     app: {
-                        dashboard: 'panel'  // shorthand for rename
-                    }
-                }
+                        dashboard: 'panel', // shorthand for rename
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/dashboard/users/List.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'panel.users',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'panel.users',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should work with nested string renames', async () => {
@@ -288,25 +315,31 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                         dashboard: {
                             '>': 'panel',
                             modules: 'features',
-                            views: 'pages'
-                        }
-                    }
-                }
+                            views: 'pages',
+                        },
+                    },
+                },
             });
-            
+
             const event1 = createMockEvent('app/dashboard/modules/auth.tsx');
             await generator(event1);
-            expect(event1.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'panel.features',
-            }, TRIGGER_NAME);
+            expect(event1.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'panel.features',
+                },
+                TRIGGER_NAME
+            );
 
             const event2 = createMockEvent('app/dashboard/views/home.tsx');
             await generator(event2);
-            expect(event2.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'panel.pages',
-            }, TRIGGER_NAME);
+            expect(event2.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'panel.pages',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -315,36 +348,42 @@ describe('pathBasedConfigGenerator - pathRules', () => {
             const generator = pathBasedConfigGenerator({
                 pathRules: {
                     app: {
-                        dashboard: false  // shorthand for ignore
-                    }
-                }
+                        dashboard: false, // shorthand for ignore
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/dashboard/users/List.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'users',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'users',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should ignore using true value', async () => {
             const generator = pathBasedConfigGenerator({
                 pathRules: {
                     app: {
-                        temp: true  // ignore (like ignoreStructured)
-                    }
-                }
+                        temp: true, // ignore (like ignoreStructured)
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/temp/users/List.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'users',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'users',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -356,20 +395,25 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                 pathRules: {
                     app: {
                         admin_panel: {
-                            '>': 'AdminDashboard'
-                        }
-                    }
-                }
+                            '>': 'AdminDashboard',
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('app/admin_panel/user_management/edit.tsx');
+
+            const event = createMockEvent(
+                'app/admin_panel/user_management/edit.tsx'
+            );
             await generator(event);
-            
+
             // admin_panel renamed to AdminDashboard, then case transforms apply
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'adminDashboard.userManagement',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'adminDashboard.userManagement',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should work with ignoreDirectories and pathRules', async () => {
@@ -381,21 +425,26 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                     app: {
                         dashboard: {
                             _: false,
-                            modules: false
-                        }
-                    }
-                }
+                            modules: false,
+                        },
+                    },
+                },
             });
-            
-            const event = createMockEvent('app/dashboard/modules/views/UserProfile/edit.tsx');
+
+            const event = createMockEvent(
+                'app/dashboard/modules/views/UserProfile/edit.tsx'
+            );
             await generator(event);
-            
+
             // dashboard and modules ignored by pathRules, views ignored by ignoreDirectories
             // Result: app (kebab) -> UserProfile (camel)
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'userProfile',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'userProfile',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -412,10 +461,10 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                     app: {
                         dashboard: {
                             _: false,
-                            modules: false
-                        }
-                    }
-                }
+                            modules: false,
+                        },
+                    },
+                },
             });
 
             const event = createMockEvent(
@@ -423,7 +472,7 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                 ['app/**/*.{js,ts,jsx,tsx}'],
                 'common'
             );
-            
+
             await generator(event);
 
             // Expected transformation:
@@ -431,10 +480,13 @@ describe('pathBasedConfigGenerator - pathRules', () => {
             // 2. pathRules: dashboard and modules ignored
             // 3. ignoreIncludesRootDirectories: app removed
             // 4. Result: advanced -> facility -> edit
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'advanced',
-                path: 'facility.edit',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'advanced',
+                    path: 'facility.edit',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should rename dashboard to panel', async () => {
@@ -444,76 +496,92 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                     app: {
                         dashboard: {
                             '>': 'panel',
-                            modules: false
-                        }
-                    }
-                }
+                            modules: false,
+                        },
+                    },
+                },
             });
 
             const event = createMockEvent(
                 'app/dashboard/modules/users/list.tsx',
                 ['app/**/*.tsx']
             );
-            
+
             await generator(event);
 
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'panel',
-                path: 'users',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'panel',
+                    path: 'users',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
     describe('Edge cases', () => {
         it('should handle empty pathRules object', async () => {
             const generator = pathBasedConfigGenerator({
-                pathRules: {}
+                pathRules: {},
             });
-            
+
             const event = createMockEvent('app/dashboard/users/List.tsx');
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'dashboard.users',
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'dashboard.users',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should handle pathRules with no matching segments', async () => {
             const generator = pathBasedConfigGenerator({
                 pathRules: {
                     src: {
-                        features: false
-                    }
-                }
+                        features: false,
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/dashboard/users/List.tsx');
             await generator(event);
-            
+
             // No rules match, so path remains unchanged
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'dashboard.users',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'dashboard.users',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should handle all segments being ignored', async () => {
             const generator = pathBasedConfigGenerator({
                 pathRules: {
-                    app: false
+                    app: false,
                 },
                 fallbackNamespace: 'common',
-                clearOnDefaultNamespace: false
+                clearOnDefaultNamespace: false,
             });
-            
-            const event = createMockEvent('app/Button.tsx', ['app/**/*.tsx'], 'default');
+
+            const event = createMockEvent(
+                'app/Button.tsx',
+                ['app/**/*.tsx'],
+                'default'
+            );
             await generator(event);
-            
+
             // app ignored, fallback to common
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'common',
-            }, TRIGGER_NAME);
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'common',
+                },
+                TRIGGER_NAME
+            );
         });
 
         it('should preserve custom config properties', async () => {
@@ -521,26 +589,29 @@ describe('pathBasedConfigGenerator - pathRules', () => {
                 pathRules: {
                     app: {
                         dashboard: {
-                            _: false
-                        }
-                    }
-                }
+                            _: false,
+                        },
+                    },
+                },
             });
-            
+
             const event = createMockEvent('app/dashboard/users/List.tsx');
             (event as any).config = {
                 manual: true,
-                customFlag: 'test'
+                customFlag: 'test',
             };
-            
+
             await generator(event);
-            
-            expect(event.save).toHaveBeenCalledWith({
-                namespace: 'app',
-                path: 'users',
-                manual: true,
-                customFlag: 'test'
-            }, TRIGGER_NAME);
+
+            expect(event.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'app',
+                    path: 'users',
+                    manual: true,
+                    customFlag: 'test',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 
@@ -549,29 +620,34 @@ describe('pathBasedConfigGenerator - pathRules', () => {
             const generator = pathBasedConfigGenerator({
                 pathRules: {
                     src: {
-                        features: ['auth', 'admin']
-                    }
-                }
+                        features: ['auth', 'admin'],
+                    },
+                },
             });
-            
+
             const event1 = createMockEvent('src/features/auth/login.tsx');
             await generator(event1);
-            
+
             // auth is in the array, so it gets ignored
-            expect(event1.save).toHaveBeenCalledWith({
-                namespace: 'src',
-                path: 'features',
-            }, TRIGGER_NAME);
+            expect(event1.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'src',
+                    path: 'features',
+                },
+                TRIGGER_NAME
+            );
 
             const event2 = createMockEvent('src/features/orders/list.tsx');
             await generator(event2);
-            
+
             // orders is not in the array, so it remains
-            expect(event2.save).toHaveBeenCalledWith({
-                namespace: 'src',
-                path: 'features.orders',
-            }, TRIGGER_NAME);
+            expect(event2.save).toHaveBeenCalledWith(
+                {
+                    namespace: 'src',
+                    path: 'features.orders',
+                },
+                TRIGGER_NAME
+            );
         });
     });
 });
-

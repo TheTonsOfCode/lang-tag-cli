@@ -1,6 +1,7 @@
-import { LangTagCLILogger } from '@/logger.ts';
-import { LangTagCLIConflict } from '../../config.ts';
-import { $LT_LogConflict } from './conflict-log.ts';
+import { LangTagCLILogger } from '@/logger';
+import { LangTagCLIConflict } from '@/type';
+
+import { $LT_LogConflict } from './conflict-log';
 
 const ANSI_COLORS: Record<string, string> = {
     reset: '\x1b[0m',
@@ -17,16 +18,22 @@ const ANSI_COLORS: Record<string, string> = {
 };
 
 function validateAndInterpolate(message: string, params?: Record<string, any>) {
-    const placeholders = Array.from(message.matchAll(/\{(\w+)\}/g)).map(m => m[1]);
+    const placeholders = Array.from(message.matchAll(/\{(\w+)\}/g)).map(
+        (m) => m[1]
+    );
 
-    const missing = placeholders.filter(p => !(p in (params || {})));
+    const missing = placeholders.filter((p) => !(p in (params || {})));
     if (missing.length) {
         throw new Error(`Missing variables in message: ${missing.join(', ')}`);
     }
 
-    const extra = params ? Object.keys(params).filter(k => !placeholders.includes(k)) : [];
+    const extra = params
+        ? Object.keys(params).filter((k) => !placeholders.includes(k))
+        : [];
     if (extra.length) {
-        throw new Error(`Extra variables provided not used in message: ${extra.join(', ')}`);
+        throw new Error(
+            `Extra variables provided not used in message: ${extra.join(', ')}`
+        );
     }
 
     const parts: { text: string; isVar: boolean }[] = [];
@@ -51,7 +58,7 @@ function log(baseColor: string, message: string, params?: Record<string, any>) {
     const parts = validateAndInterpolate(message, params);
 
     const coloredMessage = parts
-        .map(p =>
+        .map((p) =>
             p.isVar
                 ? `${ANSI_COLORS.bold}${ANSI_COLORS.white}${p.text}${ANSI_COLORS.reset}${baseColor}`
                 : p.text
@@ -59,7 +66,8 @@ function log(baseColor: string, message: string, params?: Record<string, any>) {
         .join('');
 
     const now = new Date();
-    const time = `${now.getHours().toString().padStart(2, '0')}:` +
+    const time =
+        `${now.getHours().toString().padStart(2, '0')}:` +
         `${now.getMinutes().toString().padStart(2, '0')}:` +
         `${now.getSeconds().toString().padStart(2, '0')}`;
 
@@ -72,12 +80,16 @@ function log(baseColor: string, message: string, params?: Record<string, any>) {
     console.log(`${prefix}${baseColor}${coloredMessage}${ANSI_COLORS.reset}`);
 }
 
-export function $LT_CreateDefaultLogger(debugMode?: boolean, translationArgPosition = 1): LangTagCLILogger {
+export function $LT_CreateDefaultLogger(
+    debugMode?: boolean,
+    translationArgPosition = 1
+): LangTagCLILogger {
     return {
         info: (msg, params) => log(ANSI_COLORS.blue, msg, params),
         success: (msg, params) => log(ANSI_COLORS.green, msg, params),
         warn: (msg, params) => log(ANSI_COLORS.yellow, msg, params),
-        error: (msg, params) => log(ANSI_COLORS.red, msg || 'empty error message', params),
+        error: (msg, params) =>
+            log(ANSI_COLORS.red, msg || 'empty error message', params),
         debug: (msg, params) => {
             if (!debugMode) return;
             log(ANSI_COLORS.gray, msg, params);
@@ -86,13 +98,25 @@ export function $LT_CreateDefaultLogger(debugMode?: boolean, translationArgPosit
             const { path, conflictType, tagA } = conflict;
 
             console.log();
-            console.log(`${ANSI_COLORS.bold}${ANSI_COLORS.red}⚠ Translation Conflict Detected${ANSI_COLORS.reset}`);
-            console.log(`${ANSI_COLORS.gray}${'─'.repeat(60)}${ANSI_COLORS.reset}`);
-            console.log(`  ${ANSI_COLORS.cyan}Conflict Type:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${conflictType}${ANSI_COLORS.reset}`);
-            console.log(`  ${ANSI_COLORS.cyan}Translation Key:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${path}${ANSI_COLORS.reset}`);
-            console.log(`  ${ANSI_COLORS.cyan}Namespace:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${tagA.tag.parameterConfig.namespace}${ANSI_COLORS.reset}`);
-            console.log(`${ANSI_COLORS.gray}${'─'.repeat(60)}${ANSI_COLORS.reset}`);
-            
+            console.log(
+                `${ANSI_COLORS.bold}${ANSI_COLORS.red}⚠ Translation Conflict Detected${ANSI_COLORS.reset}`
+            );
+            console.log(
+                `${ANSI_COLORS.gray}${'─'.repeat(60)}${ANSI_COLORS.reset}`
+            );
+            console.log(
+                `  ${ANSI_COLORS.cyan}Conflict Type:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${conflictType}${ANSI_COLORS.reset}`
+            );
+            console.log(
+                `  ${ANSI_COLORS.cyan}Translation Key:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${path}${ANSI_COLORS.reset}`
+            );
+            console.log(
+                `  ${ANSI_COLORS.cyan}Namespace:${ANSI_COLORS.reset} ${ANSI_COLORS.white}${tagA.tag.parameterConfig.namespace}${ANSI_COLORS.reset}`
+            );
+            console.log(
+                `${ANSI_COLORS.gray}${'─'.repeat(60)}${ANSI_COLORS.reset}`
+            );
+
             await $LT_LogConflict(conflict, translationArgPosition, condense);
 
             console.log();
