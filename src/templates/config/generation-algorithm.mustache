@@ -2,11 +2,11 @@
 /**
  * Generates namespace/path from directory structure (filename is excluded).
  * 
- * Example with current settings:
+ * Example with current settings (assuming includes: ['src/**']):
  *   File: src/(admin)/features/auth/utils/LoginForm.tsx
  *   1. Remove filename → src/(admin)/features/auth/utils
  *   2. Remove root 'src' → (admin)/features/auth/utils
- *   2. Remove bracketed '(admin)' → features/auth/utils
+ *   3. Remove bracketed '(admin)' → features/auth/utils
  *   4. Remove 'utils' (in ignoreDirectories) → features/auth
  *   5. First segment = namespace, rest = path → namespace: 'features', path: 'auth'
  */

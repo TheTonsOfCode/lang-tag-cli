@@ -27,7 +27,6 @@
 
 {{#needsPathBasedImport}}
 {{>generation-algorithm}}
-
 {{/needsPathBasedImport}}
 {{#useKeeper}}
 {{#addComments}}
@@ -110,7 +109,7 @@ const config = {
         //     path: 'your.path'
         // });
 {{#useKeeper}}
-        await keeper(event);
+    await keeper(event);
 {{/useKeeper}}
     },
 {{/useCustom}}
