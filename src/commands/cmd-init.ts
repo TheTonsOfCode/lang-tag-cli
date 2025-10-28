@@ -47,19 +47,15 @@ export async function $LT_CMD_InitConfig() {
     console.log('');
 
     try {
-        // Ask interactive questions
         const answers = await askProjectSetupQuestions();
 
-        // Detect module system
         const moduleSystem = await detectModuleSystem();
 
-        // Render config from templates
         const configContent = renderConfigTemplate({
             answers,
             moduleSystem,
         });
 
-        // Write config file
         await writeFile(CONFIG_FILE_NAME, configContent, 'utf-8');
 
         logger.success('Configuration file created successfully!');
@@ -67,20 +63,27 @@ export async function $LT_CMD_InitConfig() {
             configFile: CONFIG_FILE_NAME,
         });
 
-        // Print next steps
         logger.info('Next steps:');
         logger.info('  1. Review and customize {configFile}', {
             configFile: CONFIG_FILE_NAME,
         });
-        logger.info('  2. Run "npx lang-tag collect" to collect translations');
+        logger.info(
+            '  2. Since you have installed all basic libraries (React, TypeScript, etc.)'
+        );
+        logger.info(
+            '     and the initialized basic tag is based on what you use in your project,'
+        );
+        logger.info(
+            '     we recommend using "npx lang-tag init-tag" to generate an initial version of the tag'
+        );
+        logger.info('  3. Run "npx lang-tag collect" to collect translations');
         if (answers.projectType === 'project') {
-            logger.info('  3. Your translations will be in {dir}', {
+            logger.info('  4. Your translations will be in {dir}', {
                 dir: answers.localesDirectory,
             });
         }
     } catch (error: any) {
         if (error.name === 'ExitPromptError') {
-            // User cancelled the prompt
             logger.warn('Setup cancelled');
             return;
         }
