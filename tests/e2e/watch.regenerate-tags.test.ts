@@ -1,7 +1,4 @@
-import process from 'node:process';
-
-import { execSync, spawn } from 'child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import {
     afterAll,
@@ -9,7 +6,6 @@ import {
     beforeAll,
     beforeEach,
     describe,
-    expect,
     it,
 } from 'vitest';
 

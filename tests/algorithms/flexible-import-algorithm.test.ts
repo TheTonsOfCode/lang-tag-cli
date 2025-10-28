@@ -1,9 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { flexibleImportAlgorithm } from '@/algorithms/import/flexible-import-algorithm';
+import { ImportManager } from '@/core/import/import-manager';
 import { LangTagCLIImportEvent } from '@/type';
-
-import { ImportManager } from '../../src/core/import/import-manager';
 
 // Helper function to create a mock event
 function createMockEvent(

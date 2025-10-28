@@ -1,6 +1,5 @@
 import { existsSync } from 'fs';
-import { writeFile } from 'fs/promises';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { CONFIG_FILE_NAME } from '@/core/constants';

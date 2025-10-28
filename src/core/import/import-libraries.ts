@@ -3,12 +3,7 @@ import { generateImportFiles } from '@/core/import/import-file-generator';
 import { ImportManager } from '@/core/import/import-manager';
 import { $LT_ReadJSON } from '@/core/io/file';
 import { LangTagCLILogger } from '@/logger';
-import {
-    LangTagCLIConfig,
-    LangTagCLIExportData,
-    LangTagCLIImportedTag,
-    LangTagCLIImportedTagsFile,
-} from '@/type';
+import { LangTagCLIConfig, LangTagCLIExportData } from '@/type';
 
 export async function $LT_ImportLibraries(
     config: LangTagCLIConfig,

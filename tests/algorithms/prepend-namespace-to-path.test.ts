@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { prependNamespaceToPath } from '@/algorithms';
 import { LangTagCLIConfigGenerationEvent } from '@/type';
-
-import { prependNamespaceToPath } from '../../src/algorithms/config-generation/prepend-namespace-to-path';
 
 const TRIGGER_NAME = 'prepend-namespace-to-path';
 

@@ -2,7 +2,7 @@ import { LangTagTranslationsConfig } from 'lang-tag';
 import { describe, expect, it } from 'vitest';
 
 import { configKeeper } from '@/algorithms/config-generation/config-keeper';
-import { LangTagCLIConfigGenerationEvent, LangTagCLIConflict } from '@/type';
+import { LangTagCLIConfigGenerationEvent } from '@/type';
 
 describe('configKeeper', () => {
     const createMockEvent = (

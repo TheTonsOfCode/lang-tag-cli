@@ -13,8 +13,6 @@ import {
 } from 'vitest';
 
 import { CONFIG_FILE_NAME, EXPORTS_FILE_NAME } from '@/core/constants';
-import { $LT_TagProcessor } from '@/core/processor';
-import { LangTagCLIConfig } from '@/type';
 
 import {
     TESTS_TEST_DIR as _TESTS_TEST_DIR,
