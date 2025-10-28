@@ -3,7 +3,7 @@ import confirm from '@inquirer/confirm';
 import input from '@inquirer/input';
 import select from '@inquirer/select';
 
-import { detectProjectFolders } from './detect-folders';
+import { detectProjectFolders } from './detect-directories';
 
 export interface InitAnswers {
     projectType: 'project' | 'library';

@@ -3,8 +3,8 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { CONFIG_FILE_NAME } from '@/core/constants';
-import { renderConfigTemplate } from '@/core/init/config-renderer';
 import { askProjectSetupQuestions } from '@/core/init/inquirer-prompts';
+import { renderConfigTemplate } from '@/core/init/renderer';
 import { $LT_CreateDefaultLogger } from '@/core/logger/default-logger';
 import { LangTagCLILogger } from '@/logger';
 

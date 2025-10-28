@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { renderConfigTemplate } from '@/core/init/config-renderer';
 import { InitAnswers } from '@/core/init/inquirer-prompts';
+import { renderConfigTemplate } from '@/core/init/renderer';
 
 describe('Config Renderer', () => {
     it('should render basic config for ESM project with namespace collector', () => {
