@@ -12,7 +12,11 @@ function parseGitignore(cwd: string): string[] {
             .map((line) => line.trim())
             .filter((line) => line && !line.startsWith('#'))
             .filter((line) => !line.startsWith('!')) // Exclude negation patterns
-            .map((line) => (line.endsWith('/') ? line.slice(0, -1) : line))
+            .map((line) => {
+                if (line.endsWith('/')) line = line.slice(0, -1);
+                if (line.startsWith('/')) line = line.slice(1);
+                return line;
+            })
             .filter((line) => {
                 // Only keep patterns that are meant for directories
                 // Exclude patterns with file extensions (*.log, *.json, etc.)
