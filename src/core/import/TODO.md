@@ -16,14 +16,10 @@
 
 - funkcja do przydzielania i nadpisywania configów przed zapisaniem
 
-- wywalic case transformy z variable ktore nie mają prawa dzialac np. kebab, dot notation itd.
-
-    i zamieniac wszystkie - na _ w nazwie variabla aby nie generowalo głupot
-  powinno transformowac dla sciezek usuwac @ a zamiast _ dawac - aby to
-  się nazywało scope-package a _ w nazwach zmiennych
 
 
 
 - dodac mapping algorytm który przyjmuje liste paczek i tagów po nazwać/indeksach i wskazuje nowe sciezki/nazwy_zmiennych/jak remapowac config
 
 
+- opcja ktora pozwala na pelny custom nazewnictwa variabli zamiast oryginalnych co przychodzą z exportu

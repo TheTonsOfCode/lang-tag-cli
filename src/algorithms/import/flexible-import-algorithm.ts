@@ -6,7 +6,13 @@ import micromatch from "micromatch";
 /**
  * Available case transformation options.
  */
-export type CaseType = 'camel' | 'capital' | 'constant' | 'dot' | 'header' | 'kebab' | 'lower' | 'no' | 'param' | 'pascal' | 'path' | 'sentence' | 'snake' | 'swap' | 'title' | 'upper';
+export type CaseType = 'no' | 'camel' | 'capital' | 'constant' | 'dot' | 'header' | 'kebab' | 'lower' | 'param' | 'pascal' | 'path' | 'sentence' | 'snake' | 'swap' | 'title' | 'upper';
+
+/**
+ * Available case transformation options for variable names.
+ * Only includes transformations that produce valid JavaScript identifiers.
+ */
+export type VariableNameCaseType = 'no' | 'camel' | 'capital' | 'constant' | 'lower' | 'pascal' | 'snake' | 'swap' | 'upper';
 
 /**
  * Case transformation configuration for file paths.
@@ -35,11 +41,17 @@ export interface VariableNameOptions {
 
     /**
      * Case transformation to apply to variable names.
-     * Available options: 'camel', 'capital', 'constant', 'dot', 'header', 'kebab', 
-     * 'lower', 'no', 'param', 'pascal', 'path', 'sentence', 'snake', 'swap', 'title', 'upper'
+     * Available options: 'camel', 'capital', 'constant', 'lower', 'no', 'pascal', 'snake', 'swap', 'upper'
      * @default 'no'
      */
-    case?: CaseType;
+    case?: VariableNameCaseType;
+
+    /**
+     * Whether to sanitize variable names by replacing invalid characters with $.
+     * This ensures the final variable name is a valid JavaScript identifier.
+     * @default true
+     */
+    sanitizeVariableName?: boolean;
 
     /**
      * How to handle tags without variableName.
@@ -242,6 +254,20 @@ function applyCaseTransform(str: string, caseType: string): string {
     return str;
 }
 
+function sanitizeVariableName(name: string): string {
+    let sanitized = name.replace(/[^a-zA-Z0-9_$]/g, '$');
+    
+    if (/^[0-9]/.test(sanitized)) {
+        sanitized = '$' + sanitized;
+    }
+    
+    if (sanitized === '') {
+        sanitized = '$';
+    }
+    
+    return sanitized;
+}
+
 /**
  * Applies case transformation to file path segments.
  * If caseType is a string, applies uniform transformation per segment.
@@ -336,6 +362,7 @@ function generateVariableName(
         prefixWithPackageName = false, 
         scopedPackageHandling = 'replace', 
         case: caseType = 'no',
+        sanitizeVariableName: shouldSanitize = true,
         handleMissingVariableName = 'auto-generate'
     } = options;
 
@@ -363,7 +390,9 @@ function generateVariableName(
         finalName = `${normalizedPackageName}_${originalVariableName}`;
     }
 
-    return applyCaseTransform(finalName, caseType);
+    const transformedName = applyCaseTransform(finalName, caseType);
+    
+    return shouldSanitize ? sanitizeVariableName(transformedName) : transformedName;
 }
 
 /**

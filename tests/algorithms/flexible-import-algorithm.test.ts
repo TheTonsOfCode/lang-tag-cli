@@ -453,6 +453,118 @@ describe('flexibleImportAlgorithm', () => {
                 config: { namespace: 'common' }
             });
         });
+
+        it('should sanitize variable names by default', () => {
+            const exports = [
+                createMockExportData('my-package', [
+                    {
+                        relativeFilePath: 'common.ts',
+                        tags: [createMockTag('my-variable')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports);
+            const algorithm = flexibleImportAlgorithm();
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
+                variableName: 'my$variable',
+                translations: { hello: 'Hello' },
+                config: { namespace: 'common' }
+            });
+        });
+
+        it('should sanitize variable names with dots and spaces', () => {
+            const exports = [
+                createMockExportData('my-package', [
+                    {
+                        relativeFilePath: 'common.ts',
+                        tags: [createMockTag('my.variable name')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports);
+            const algorithm = flexibleImportAlgorithm();
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
+                variableName: 'my$variable$name',
+                translations: { hello: 'Hello' },
+                config: { namespace: 'common' }
+            });
+        });
+
+        it('should sanitize variable names starting with numbers', () => {
+            const exports = [
+                createMockExportData('my-package', [
+                    {
+                        relativeFilePath: 'common.ts',
+                        tags: [createMockTag('123variable')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports);
+            const algorithm = flexibleImportAlgorithm();
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
+                variableName: '$123variable',
+                translations: { hello: 'Hello' },
+                config: { namespace: 'common' }
+            });
+        });
+
+        it('should not sanitize when sanitizeVariableName is false', () => {
+            const exports = [
+                createMockExportData('my-package', [
+                    {
+                        relativeFilePath: 'common.ts',
+                        tags: [createMockTag('my.variable')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports);
+            const algorithm = flexibleImportAlgorithm({
+                variableName: {
+                    sanitizeVariableName: false
+                }
+            });
+            
+            expect(() => algorithm(event)).toThrow('Invalid JavaScript identifier: "my.variable"');
+        });
+
+        it('should sanitize after case transformation', () => {
+            const exports = [
+                createMockExportData('my-package', [
+                    {
+                        relativeFilePath: 'common.ts',
+                        tags: [createMockTag('my.variable-name')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports);
+            const algorithm = flexibleImportAlgorithm({
+                variableName: {
+                    case: 'upper'
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
+                variableName: 'MY$VARIABLE$NAME',
+                translations: { hello: 'Hello' },
+                config: { namespace: 'common' }
+            });
+        });
     });
 
     describe('File path options', () => {
