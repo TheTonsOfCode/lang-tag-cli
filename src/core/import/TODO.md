@@ -1,11 +1,4 @@
 
-- tutaj ma wczytywac istniejace tagi o tej samej nazwie
-    brac ich oryginalne wartosci
-    a stare ktore nie istnieją wykomentowywac
-
-    tutaj tez jest miejsce do popisu dla toola UI
-
-
 
 
 - funkcja do przydzielania i nadpisywania configów przed zapisaniem
