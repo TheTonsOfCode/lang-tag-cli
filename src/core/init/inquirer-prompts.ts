@@ -106,7 +106,7 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
 
     const enableConfigGeneration = await confirm({
         message: 'Do you want to enable automatic config generation for tags?',
-        default: true,
+        default: projectType === 'project',
     });
 
     let configGeneration: InitAnswers['configGeneration'] = {
@@ -133,7 +133,7 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
 
         const keepVariables = await confirm({
             message:
-                'Keep existing variables and protect them from overwriting?',
+                'Add a keeper mechanism that locks parts of the configuration from being overwritten?',
             default: true,
         });
 
@@ -147,7 +147,7 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
     const importLibraries = await confirm({
         message:
             'Do you plan to import translation tags from external libraries?',
-        default: false,
+        default: projectType === 'project',
     });
 
     const detectedDirectories = detectProjectFolders();
@@ -175,7 +175,7 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
 
     const addCommentGuides = await confirm({
         message: 'Would you like guides in comments?',
-        default: false,
+        default: true,
     });
 
     return {

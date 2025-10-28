@@ -1,0 +1,28 @@
+const generationAlgorithm = pathBasedConfigGenerator({
+    ignoreIncludesRootDirectories: true,
+    removeBracketedDirectories: true,
+    namespaceCase: 'kebab',
+    pathCase: 'camel',
+    clearOnDefaultNamespace: true,
+    ignoreDirectories: ['core', 'utils', 'helpers'],{{#addComments}}
+    // Advanced: Use pathRules for hierarchical transformations with ignore and rename
+    // pathRules: {
+    //     app: {
+    //         dashboard: {
+    //             _: false,          // ignore "dashboard" but continue with nested rules
+    //             modules: false     // also ignore "modules"
+    //         },
+    //         admin: {
+    //             '>': 'management', // rename "admin" to "management"
+    //             users: false       // ignore "users",
+    //             ui: {
+    //                 '>>': {        // 'redirect' - ignore everything, jump to 'ui' namespace and prefix all paths with 'admin'
+    //                     namespace: 'ui',
+    //                     pathPrefix: 'admin'
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }{{/addComments}}
+});
+

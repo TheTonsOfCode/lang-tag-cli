@@ -31,26 +31,67 @@ interface TemplateData {
     showImportComment: boolean;
 }
 
-function renderTemplate(template: string, data: Record<string, any>): string {
-    return mustache.render(template, data, {}, { escape: (text) => text });
+function renderTemplate(
+    template: string,
+    data: Record<string, any>,
+    partials?: Record<string, string>
+): string {
+    return mustache.render(template, data, partials, {
+        escape: (text) => text,
+    });
 }
 
-function loadTemplate(): string {
+function loadTemplateFile(
+    filename: string,
+    required: boolean = true
+): string | null {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = dirname(__filename);
-    // Go up from src/core/init to src, then to templates/config
-    const templatePath = join(
-        __dirname,
-        'templates',
-        'config',
-        'config.mustache'
-    );
+
+    // Try build path first (from dist/core/init to dist/templates/config)
+    let templatePath = join(__dirname, 'templates', 'config', filename);
 
     try {
         return readFileSync(templatePath, 'utf-8');
-    } catch (error) {
-        throw new Error(`Failed to load template: ${error}`);
+    } catch {
+        // Fallback to source path (from src/core/init to src/templates/config)
+        templatePath = join(
+            __dirname,
+            '..',
+            '..',
+            'templates',
+            'config',
+            filename
+        );
+        try {
+            return readFileSync(templatePath, 'utf-8');
+        } catch (error) {
+            if (required) {
+                throw new Error(
+                    `Failed to load template "${filename}": ${error}`
+                );
+            }
+            return null;
+        }
     }
+}
+
+function loadTemplate(): string {
+    return loadTemplateFile('config.mustache', true)!;
+}
+
+function loadPartials(): Record<string, string> {
+    const partials: Record<string, string> = {};
+
+    const generationAlgorithm = loadTemplateFile(
+        'generation-algorithm.mustache',
+        false
+    );
+    if (generationAlgorithm) {
+        partials['generation-algorithm'] = generationAlgorithm;
+    }
+
+    return partials;
 }
 
 function buildIncludesPattern(directories: string[]): string {
@@ -115,6 +156,7 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
 export function renderConfigTemplate(options: ConfigRenderOptions): string {
     const template = loadTemplate();
     const templateData = prepareTemplateData(options);
+    const partials = loadPartials();
 
-    return renderTemplate(template, templateData);
+    return renderTemplate(template, templateData, partials);
 }
