@@ -1,8 +1,6 @@
 import {LangTagTranslationsConfig} from "lang-tag";
-import path from "pathe";
 import {LangTagCLILogger} from "./logger.ts";
-import {TranslationsCollector} from "@/algorithms/collector/type.ts";
-import {NamespaceCollector} from "@/algorithms/collector/namespace-collector.ts";
+import {TranslationsCollector, NamespaceCollector, flexibleImportAlgorithm} from "@/algorithms";
 
 export interface LangTagCLIConfig {
     /**
@@ -351,11 +349,11 @@ export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     import: {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { lang } from "@/my-lang-tag-path"',
-        onImport: event => {
-            for (let e of event.exports) {
-                console.log(111, e.packageJSON.name, e.exportData.files);
+        onImport: flexibleImportAlgorithm({
+            filePath: {
+                includePackageInPath: true,
             }
-        }
+        })
         // onImport: ({importedRelativePath, fileGenerationData}: LangTagCLIOnImportParams, actions)=> {
         //     const exportIndex = (fileGenerationData.index || 0) + 1;
         //     fileGenerationData.index = exportIndex;
