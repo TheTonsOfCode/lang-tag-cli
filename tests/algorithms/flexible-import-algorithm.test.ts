@@ -565,6 +565,25 @@ describe('flexibleImportAlgorithm', () => {
                 config: { namespace: 'common' }
             });
         });
+
+        it('should throw error when duplicate variable names exist in same file', () => {
+            const exports = [
+                createMockExportData('my-package', [
+                    {
+                        relativeFilePath: 'common.ts',
+                        tags: [
+                            createMockTag('greeting'),
+                            createMockTag('greeting')
+                        ]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports);
+            const algorithm = flexibleImportAlgorithm();
+            
+            expect(() => algorithm(event)).toThrow('Duplicate variable name "greeting" in file "common.ts". Variable names must be unique within the same file.');
+        });
     });
 
     describe('File path options', () => {

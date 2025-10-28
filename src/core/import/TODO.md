@@ -8,9 +8,6 @@
 
 
 
-
-- ten algorytm powinien wykrywac na jakims etapie ze w generowanych plikach powielona jest nazwa exportu i walic error
-
 - ten caseType jest uzywany w kilku miejscach, dac go do osobnego pliku
 
 
