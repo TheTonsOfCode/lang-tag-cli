@@ -164,7 +164,9 @@ describe('Config Renderer', () => {
 
         expect(result).toContain('/**');
         expect(result).toContain('Lang Tag CLI Configuration');
-        expect(result).toContain('// Advanced: Use pathRules');
+        expect(result).toContain(
+            'Advanced: pathRules for hierarchical transformations'
+        );
     });
 
     it('should handle multiple include directories', () => {
