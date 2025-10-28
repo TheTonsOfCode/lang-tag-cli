@@ -1,6 +1,6 @@
 import { LangTagCLILogger } from '@/logger';
+import { LangTagCLIConflict } from '@/type';
 
-import { LangTagCLIConflict } from '../../type';
 import { $LT_LogConflict } from './conflict-log';
 
 const ANSI_COLORS: Record<string, string> = {
