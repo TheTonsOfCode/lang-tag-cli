@@ -28,11 +28,16 @@ const CONFIG_LIBRARY = {
 };
 
 // language=javascript
-const CONFIG_MAIN_PROJECT_ON_IMPORT_FUNCTION = `(params, actions) => {
-    const {packageName} = params;
+const CONFIG_MAIN_PROJECT_ON_IMPORT_FUNCTION = `const { flexibleImportAlgorithm } = require('@lang-tag/cli/algorithms');
 
-    actions.setFile(packageName + '.ts');
-}`;
+const onImport = flexibleImportAlgorithm({
+    filePath: {
+        groupByPackage: true,
+        scopedPackageHandling: 'remove-scope'
+    }
+});
+
+module.exports = onImport;`;
 
 const CONFIG_MAIN_PROJECT = {
     tagName: 'lang',
@@ -71,13 +76,31 @@ const TEST_LIBRARY_PACKAGE_NAME = 'test-library';
 describe('libraries import e2e tests', () => {
 
     function writeConfig(dir: string, config: any, onImportFunc?: string) {
-        let configString = JSON.stringify(config, null, 2);
         if (onImportFunc) {
-            // Replace the placeholder string with the actual function code
-            configString = configString.replace('"$onImport$"', onImportFunc);
-        }
+            // Generate JavaScript config file directly
+            const configWithoutOnImport = {...config};
+            delete configWithoutOnImport.import.onImport;
+            
+            const configString = JSON.stringify(configWithoutOnImport, null, 2);
+            const configFile = `const { flexibleImportAlgorithm } = require('@lang-tag/cli/algorithms');
 
-        writeFileSync(join(dir, CONFIG_FILE_NAME), `const config = ${configString};\nmodule.exports = config;`);
+const config = ${configString};
+
+config.import.onImport = flexibleImportAlgorithm({
+    filePath: {
+        groupByPackage: true,
+        scopedPackageHandling: 'remove-scope'
+    }
+});
+
+module.exports = config;`;
+            
+            writeFileSync(join(dir, CONFIG_FILE_NAME), configFile);
+        } else {
+            // Generate normal config file
+            const configString = JSON.stringify(config, null, 2);
+            writeFileSync(join(dir, CONFIG_FILE_NAME), `const config = ${configString};\nmodule.exports = config;`);
+        }
     }
 
     type LocalConfig = LangTagTranslationsConfig & {

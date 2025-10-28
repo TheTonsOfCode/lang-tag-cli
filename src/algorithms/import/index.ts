@@ -5,5 +5,17 @@
  * and organized in your project.
  */
 
-// Placeholder - future import algorithms will be exported here
+export { 
+    flexibleImportAlgorithm,
+    type FlexibleImportAlgorithmOptions,
+    type FilePathCaseType,
+    type VariableNameCaseType
+} from './flexible-import-algorithm.ts';
+
+export {
+    simpleMappingImportAlgorithm,
+    type SimpleMappingImportAlgorithmOptions,
+    type PackageMapping,
+    type FileMapping
+} from './simple-mapping-import-algorithm.ts';
 
