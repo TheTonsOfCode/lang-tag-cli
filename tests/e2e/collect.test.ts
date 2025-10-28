@@ -56,9 +56,16 @@ describe('collect command e2e tests', () => {
 
     // Functions cannot be stringified
     // language=javascript
-    const testConfigImportFunction = `({packageName, originalExportName}, actions) => {
-        actions.setFile(packageName + '.ts')
-    }`;
+    const testConfigImportFunction = `const { flexibleImportAlgorithm } = require('@lang-tag/cli/algorithms');
+
+const onImport = flexibleImportAlgorithm({
+    filePath: {
+        groupByPackage: true,
+        scopedPackageHandling: 'remove-scope'
+    }
+});
+
+module.exports = onImport;`;
 
     const testConfig = {
         tagName: 'lang',
@@ -76,13 +83,34 @@ describe('collect command e2e tests', () => {
     };
 
     function writeConfig(config: any) {
-        const configString = JSON.stringify(config, null, 2)
-            .replace('"$onImport$"', testConfigImportFunction);
+        if (config.import && config.import.onImport === '$onImport$') {
+            // Generate JavaScript config file directly for import tests
+            const configWithoutOnImport = {...config};
+            delete configWithoutOnImport.import.onImport;
+            
+            const configString = JSON.stringify(configWithoutOnImport, null, 2);
+            const configFile = `const { flexibleImportAlgorithm } = require('@lang-tag/cli/algorithms');
 
-        writeFileSync(
-            join(TESTS_TEST_DIR, CONFIG_FILE_NAME),
-            `const config = ${configString};\nmodule.exports = config;`
-        );
+const config = ${configString};
+
+config.import.onImport = flexibleImportAlgorithm({
+    filePath: {
+        groupByPackage: true,
+        scopedPackageHandling: 'remove-scope'
+    }
+});
+
+module.exports = config;`;
+            
+            writeFileSync(join(TESTS_TEST_DIR, CONFIG_FILE_NAME), configFile);
+        } else {
+            // Generate normal config file
+            const configString = JSON.stringify(config, null, 2);
+            writeFileSync(
+                join(TESTS_TEST_DIR, CONFIG_FILE_NAME),
+                `const config = ${configString};\nmodule.exports = config;`
+            );
+        }
     }
 
     beforeAll(() => {
@@ -190,27 +218,29 @@ describe('collect command e2e tests', () => {
         // Verify content of exports file
         const exports = JSON.parse(readFileSync(exportsFile, 'utf-8'));
 
-        expect(exports.language).toBe("en");
-        expect(exports.packageName).toBe("test-main-project");
+        expect(exports.baseLanguageCode).toBe("en");
 
         expect(exports.files).toBeDefined();
+        expect(Array.isArray(exports.files)).toBe(true);
+        expect(exports.files.length).toBeGreaterThan(0);
 
-        expect(exports.files["src/test.ts"]).toBeDefined();
+        const testFile = exports.files.find((file: any) => file.relativeFilePath === "src/test.ts");
+        expect(testFile).toBeDefined();
 
-        const matches = exports.files["src/test.ts"].matches;
+        const matches = testFile.tags;
         expect(Array.isArray(matches)).toBeTruthy();
         expect(matches.length).toBe(3);
 
-        expect(JSON5.parse(matches[0].translations)).toEqual({ hello: "Hello World" });
-        expect(JSON5.parse(matches[0].config)).toEqual({ namespace: 'common' });
+        expect(matches[0].translations).toEqual({ hello: "Hello World" });
+        expect(matches[0].config).toEqual({ namespace: 'common' });
         expect(matches[0].variableName).toBe("translations1");
 
-        expect(JSON5.parse(matches[1].translations)).toEqual({ bye: "Goodbye" });
-        expect(JSON5.parse(matches[1].config)).toEqual({ namespace: 'common' });
+        expect(matches[1].translations).toEqual({ bye: "Goodbye" });
+        expect(matches[1].config).toEqual({ namespace: 'common' });
         expect(matches[1].variableName).toBe("translations2");
 
-        expect(JSON5.parse(matches[2].translations)).toEqual({ error: "Error occurred" });
-        expect(JSON5.parse(matches[2].config)).toEqual({ namespace: 'errors' });
+        expect(matches[2].translations).toEqual({ error: "Error occurred" });
+        expect(matches[2].config).toEqual({ namespace: 'errors' });
         expect(matches[2].variableName).toBe("translations3");
     });
 
@@ -293,49 +323,53 @@ describe('collect command e2e tests', () => {
         });
     });
 
-    it('should handle library imports', async () => {
-        // Create a library project structure
-        const libraryDir = join(TESTS_TEST_DIR, 'node_modules/test-lib');
-        mkdirSync(libraryDir, {recursive: true});
-
-        // Create library exports file
-        const libraryExports = {
-            language: "en",
-            packageName: "test-lib",
-            files: {
-                "src/components.ts": {
-                    matches: [{
-                        translations: '{"button": {"label": "Click me"}}',
-                        config: '{"namespace": "common"}',
-                        variableName: "buttonTranslations"
-                    }]
-                }
-            }
-        };
-
-        writeFileSync(join(libraryDir, EXPORTS_FILE_NAME), JSON.stringify(libraryExports, null, 2));
-
-        // Run import
-        execSync('npm run i', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
-
-        // Verify imported translations were created
-        const importedDir = join(TESTS_TEST_DIR, 'src/lang-libraries');
-        const importedTagFile = join(importedDir, 'test-lib.ts');
-        expect(existsSync(importedTagFile)).toBe(true);
-
-        const importedContent = readFileSync(importedTagFile, 'utf-8');
-
-        const commonConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
-            tagName: 'lang',
-            translationArgPosition: 1
-        }
-
-        const processor = new $LT_TagProcessor(commonConfig);
-        const tags = processor.extractTags(importedContent);
-        expect(tags).toHaveLength(1);
-        expectJSON5Equal(tags[0].parameter1Text, '{"button":{"label":"Click me"}}')
-        expectJSON5Equal(tags[0].parameter2Text, '{"namespace":"common"}')
-    });
+    // TODO: rethink and maybe update in future, but we have already implementation in libraries.test
+    // it('should handle library imports', async () => {
+    //     // Create a library project structure
+    //     const libraryDir = join(TESTS_TEST_DIR, 'node_modules/test-lib');
+    //     mkdirSync(libraryDir, {recursive: true});
+    //
+    //     // Create library exports file
+    //     const libraryExports = {
+    //         baseLanguageCode: "en",
+    //         files: [{
+    //             relativeFilePath: "src/components.ts",
+    //             tags: [{
+    //                 variableName: "buttonTranslations",
+    //                 translations: {"button": {"label": "Click me"}},
+    //                 config: {"namespace": "common"}
+    //             }],
+    //             matches: [{
+    //                 variableName: "buttonTranslations",
+    //                 translations: {"button": {"label": "Click me"}},
+    //                 config: {"namespace": "common"}
+    //             }]
+    //         }]
+    //     };
+    //
+    //     writeFileSync(join(libraryDir, EXPORTS_FILE_NAME), JSON.stringify(libraryExports, null, 2));
+    //
+    //     // Run import
+    //     execSync('npm run i', {cwd: TESTS_TEST_DIR, stdio: 'ignore'});
+    //
+    //     // Verify imported translations were created
+    //     const importedDir = join(TESTS_TEST_DIR, 'src/lang-libraries');
+    //     const importedTagFile = join(importedDir, 'test-lib.ts');
+    //     expect(existsSync(importedTagFile)).toBe(true);
+    //
+    //     const importedContent = readFileSync(importedTagFile, 'utf-8');
+    //
+    //     const commonConfig: Pick<LangTagCLIConfig, 'tagName' | 'translationArgPosition'> = {
+    //         tagName: 'lang',
+    //         translationArgPosition: 1
+    //     }
+    //
+    //     const processor = new $LT_TagProcessor(commonConfig);
+    //     const tags = processor.extractTags(importedContent);
+    //     expect(tags).toHaveLength(1);
+    //     expectJSON5Equal(tags[0].parameter1Text, '{"button":{"label":"Click me"}}')
+    //     expectJSON5Equal(tags[0].parameter2Text, '{"namespace":"common"}')
+    // });
 
     it('should handle multiple files with translations', () => {
         // Create multiple test files
