@@ -4,7 +4,7 @@ import { CONFIG_FILE_NAME } from '@/core/constants.ts';
 import { resolve } from 'pathe';
 import * as fs from 'fs';
 import { pathToFileURL } from 'url';
-import {LANG_TAG_DEFAULT_CONFIG} from "@/config.ts";
+import {LANG_TAG_DEFAULT_CONFIG} from "@/default-config.ts";
 
 const defaultConfig = LANG_TAG_DEFAULT_CONFIG;
 

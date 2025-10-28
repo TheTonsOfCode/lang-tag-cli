@@ -1,7 +1,7 @@
 import {TranslationsCollector} from "@/algorithms/collector/type.ts";
 import {LangTagCLIProcessedTag} from "@/config.ts";
 import path, {resolve} from "pathe";
-import {$LT_EnsureDirectoryExists, $LT_RemoveFile} from "@/core/io/file.ts";
+import {mkdir, rm} from 'fs/promises';
 import process from "node:process";
 
 interface Options {
@@ -56,10 +56,10 @@ export class DictionaryCollector extends TranslationsCollector {
 
         if (clean) {
             this.logger.info('Removing {file}', {file: baseDictionaryFile});
-            await $LT_RemoveFile(baseDictionaryFile);
+            await removeFile(baseDictionaryFile);
         }
 
-        await $LT_EnsureDirectoryExists(this.config.localesDirectory);
+        await ensureDirectoryExists(this.config.localesDirectory);
     }
 
     async resolveCollectionFilePath(baseLanguageCode: string): Promise<any> {
@@ -92,5 +92,16 @@ export class DictionaryCollector extends TranslationsCollector {
         )
 
         this.logger.success('Updated dictionary {dict}', { dict });
+    }
+}
+
+async function ensureDirectoryExists(filePath: string): Promise<void> {
+    await mkdir(filePath, {recursive: true});
+}
+
+async function removeFile(filePath: string): Promise<void> {
+    try {
+        await rm(filePath, {force: true});
+    } catch (error) {
     }
 }

@@ -5,7 +5,4 @@
 
  2. Change naming from @/cli/config to @/cli/type (update cmd init and etc.)
 
-    - DEFAULT CONFIG wyciagnac z tego i przeniesc do default-config.ts czy jakos tak
-
-
-    3. remove from build files like: namespace-collector-DCruv_PK.js
+ 3. remove from build files like: namespace-collector-DCruv_PK.js
