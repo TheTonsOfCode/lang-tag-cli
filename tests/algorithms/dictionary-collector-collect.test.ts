@@ -33,6 +33,12 @@ vi.mock('@/core/io/file.ts', () => ({
     $LT_ReadJSON: vi.fn().mockRejectedValue(new Error('File not found')),
 }));
 
+// Mock fs/promises for local implementations
+vi.mock('fs/promises', () => ({
+    mkdir: vi.fn().mockResolvedValue(undefined),
+    rm: vi.fn().mockResolvedValue(undefined),
+}));
+
 // Mock command essentials
 vi.mock('@/commands/setup.ts', () => ({
     $LT_GetCommandEssentials: vi.fn(() => ({

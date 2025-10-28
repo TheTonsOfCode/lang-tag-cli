@@ -96,7 +96,13 @@ export class DictionaryCollector extends TranslationsCollector {
 }
 
 async function ensureDirectoryExists(filePath: string): Promise<void> {
-    await mkdir(filePath, {recursive: true});
+    try {
+        await mkdir(filePath, {recursive: true});
+    } catch (error) {
+        if ((error as any).code !== 'EEXIST') {
+            throw error;
+        }
+    }
 }
 
 async function removeFile(filePath: string): Promise<void> {
