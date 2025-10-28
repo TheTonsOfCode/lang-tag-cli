@@ -30,7 +30,9 @@ interface TemplateData {
     usePathBased: boolean;
     useCustom: boolean;
     defaultNamespace: string;
+    isDefaultNamespace: boolean;
     interfereWithCollection: boolean;
+    hasCollectContent: boolean;
 }
 
 function renderTemplate(
@@ -137,6 +139,17 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
         !!answers.namespaceOptions?.modifyNamespaceOptions;
     const importLibraries = answers.importLibraries;
 
+    const defaultNamespace =
+        answers.namespaceOptions?.defaultNamespace || 'common';
+    const isDefaultNamespace = defaultNamespace === 'common';
+
+    // Check if collect section has any content
+    const hasCollectContent =
+        isDictionaryCollector ||
+        isModifiedNamespaceCollector ||
+        answers.interfereWithCollection ||
+        !isDefaultNamespace;
+
     // Check if any algorithms are needed
     const needsAlgorithms =
         needsPathBasedImport ||
@@ -164,9 +177,10 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
         hasConfigGeneration,
         usePathBased,
         useCustom,
-        defaultNamespace:
-            answers.namespaceOptions?.defaultNamespace || 'common',
+        defaultNamespace,
+        isDefaultNamespace,
         interfereWithCollection: answers.interfereWithCollection,
+        hasCollectContent,
     };
 }
 

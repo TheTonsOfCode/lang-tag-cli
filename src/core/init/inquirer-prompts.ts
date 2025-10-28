@@ -52,6 +52,8 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
     let namespaceOptions: InitAnswers['namespaceOptions'];
     let localesDirectory = 'locales';
 
+    const modifyNamespaceOptions = false;
+
     if (projectType === 'project') {
         collectorType = await select<'dictionary' | 'namespace'>({
             message: 'How would you like to collect translations?',
@@ -70,35 +72,28 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
         });
 
         if (collectorType === 'namespace') {
-            const modifyOptions = false;
-            // Note: for now, we don't have modifyOptions for namespace
-            // const modifyOptions = await confirm({
+            // Note: for now, we don't have options for namespace
+            // const modifyNamespaceOptions = await confirm({
             //     message: 'Would you like to customize namespace options?',
             //     default: false,
             // });
-
-            const defaultNamespace = await input({
-                message:
-                    'Default namespace for tags without explicit namespace:',
-                default: 'common',
-            });
-
-            namespaceOptions = {
-                modifyNamespaceOptions: true,
-                defaultNamespace,
-            };
         }
 
         localesDirectory = await input({
             message: 'Where should the translation files be stored?',
             default: 'public/locales',
         });
-    } else {
-        namespaceOptions = {
-            modifyNamespaceOptions: false,
-            defaultNamespace: 'common',
-        };
     }
+
+    const defaultNamespace = await input({
+        message: 'Default namespace for tags without explicit namespace:',
+        default: 'common',
+    });
+
+    namespaceOptions = {
+        modifyNamespaceOptions,
+        defaultNamespace,
+    };
 
     const enableConfigGeneration = await confirm({
         message: 'Do you want to script config generation for tags?',

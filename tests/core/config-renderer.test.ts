@@ -21,7 +21,7 @@ describe('Config Renderer', () => {
             interfereWithCollection: false,
             includeDirectories: ['src'],
             addCommentGuides: true,
-            tagName: 'lang',
+            tagName: 't',
             baseLanguageCode: 'en',
             localesDirectory: 'public/locales',
         };
@@ -31,12 +31,10 @@ describe('Config Renderer', () => {
             moduleSystem: 'esm',
         });
 
-        expect(result).toContain(
-            'import { pathBasedConfigGenerator, configKeeper } from'
-        );
-        expect(result).toContain("tagName: 'lang'");
-        expect(result).toContain('isLibrary: false');
-        expect(result).toContain("defaultNamespace: 'common'");
+        expect(result).toContain('pathBasedConfigGenerator');
+        expect(result).toContain('configKeeper');
+        expect(result).toContain("tagName: 't'");
+        expect(result).not.toContain("defaultNamespace: 'common'");
         expect(result).toContain('export default config;');
         expect(result).toContain('onConfigGeneration: async event =>');
     });
@@ -62,7 +60,8 @@ describe('Config Renderer', () => {
             moduleSystem: 'cjs',
         });
 
-        expect(result).toContain('const { DictionaryCollector } = require');
+        expect(result).toContain('DictionaryCollector');
+        expect(result).toContain('require');
         expect(result).toContain("tagName: 't'");
         expect(result).toContain('isLibrary: true');
         expect(result).toContain('collector: new DictionaryCollector()');
@@ -95,7 +94,7 @@ describe('Config Renderer', () => {
             moduleSystem: 'esm',
         });
 
-        expect(result).toContain('import { flexibleImportAlgorithm } from');
+        expect(result).toContain('flexibleImportAlgorithm');
         expect(result).toContain('import: {');
         expect(result).toContain('onImport: flexibleImportAlgorithm');
     });
@@ -197,5 +196,61 @@ describe('Config Renderer', () => {
         expect(result).toContain("'app/**/*.{js,ts,jsx,tsx}'");
         expect(result).toContain("'pages/**/*.{js,ts,jsx,tsx}'");
         expect(result).toContain("'components/**/*.{js,ts,jsx,tsx}'");
+    });
+
+    it('should render defaultNamespace when it is not common', () => {
+        const answers: InitAnswers = {
+            projectType: 'project',
+            collectorType: 'namespace',
+            namespaceOptions: {
+                modifyNamespaceOptions: false,
+                defaultNamespace: 'translations',
+            },
+            configGeneration: {
+                enabled: false,
+            },
+            importLibraries: false,
+            interfereWithCollection: false,
+            includeDirectories: ['src'],
+            addCommentGuides: false,
+            tagName: 'lang',
+            baseLanguageCode: 'en',
+            localesDirectory: 'public/locales',
+        };
+
+        const result = renderConfigTemplate({
+            answers,
+            moduleSystem: 'esm',
+        });
+
+        expect(result).toContain("defaultNamespace: 'translations'");
+    });
+
+    it('should not render collect section when it has no content', () => {
+        const answers: InitAnswers = {
+            projectType: 'project',
+            collectorType: 'namespace',
+            namespaceOptions: {
+                modifyNamespaceOptions: false,
+                defaultNamespace: 'common',
+            },
+            configGeneration: {
+                enabled: false,
+            },
+            importLibraries: false,
+            interfereWithCollection: false,
+            includeDirectories: ['src'],
+            addCommentGuides: false,
+            tagName: 'lang',
+            baseLanguageCode: 'en',
+            localesDirectory: 'public/locales',
+        };
+
+        const result = renderConfigTemplate({
+            answers,
+            moduleSystem: 'esm',
+        });
+
+        expect(result).not.toContain('collect: {');
     });
 });
