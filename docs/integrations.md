@@ -11,13 +11,15 @@ Your custom tag function (e.g., `i18n`) will use `createCallableTranslations` an
 ```ts
 // src/utils/i18n-tag.ts (or your preferred location for the custom tag)
 import {
-  LangTagTranslationsConfig,
   LangTagTranslations,
+  LangTagTranslationsConfig,
   createCallableTranslations,
   defaultTranslationTransformer,
   // You might also need TranslationMappingStrategy if you customize heavily
-} from "lang-tag";
-import { useTranslation } from 'react-i18next'; // Core hook from react-i18next
+} from 'lang-tag';
+import { useTranslation } from 'react-i18next';
+
+// Core hook from react-i18next
 
 // This is your custom "tag" function, integrating lang-tag with react-i18next
 export function i18n<T extends LangTagTranslations>(
@@ -49,14 +51,14 @@ export function i18n<T extends LangTagTranslations>(
       // The namespace for useTranslation can be derived from lang-tag's config.
       // If no namespace is in config, react-i18next will use its defaultNS.
       const { t } = useTranslation(config?.namespace);
-      
+
       return createCallableTranslations(translations, config, {
         // The transform function calls react-i18next's `t` function
         // with the fully resolved path and any provided interpolation parameters.
         transform: ({ path, params }) => t(path, params),
         // processKey: (context, addProcessedKey) => { /* advanced key processing if needed */ }
       });
-    }
+    },
   };
 }
 ```
@@ -67,19 +69,29 @@ This is the most common scenario in React components.
 
 ```tsx
 // src/components/ProfileComponent.tsx
-'use client' // If using Next.js App Router
+'use client';
 
-import { i18n } from '../utils/i18n-tag'; // Adjust path to your i18n tag definition
+// If using Next.js App Router
+import { i18n } from '../utils/i18n-tag';
+
+// src/components/ProfileComponent.tsx
+
+// src/components/ProfileComponent.tsx
+
+// Adjust path to your i18n tag definition
 
 // Define translations inline using your i18n tag
-const translations = i18n({
-  title: "Member Profile",
-  greeting: "Hello, {{name}}!",
-  bio: "Update your bio here."
-}, {
-  namespace: 'profile', // This namespace will be used by useTranslation
-  path: 'userView'       // Optional sub-path for key structure
-});
+const translations = i18n(
+  {
+    title: 'Member Profile',
+    greeting: 'Hello, {{name}}!',
+    bio: 'Update your bio here.',
+  },
+  {
+    namespace: 'profile', // This namespace will be used by useTranslation
+    path: 'userView', // Optional sub-path for key structure
+  }
+);
 
 interface ProfileComponentProps {
   userName: string;
@@ -87,8 +99,8 @@ interface ProfileComponentProps {
 
 export function ProfileComponent({ userName }: ProfileComponentProps) {
   // useT() provides a typed object mirroring your translations structure
-  const t = translations.useT(); 
-  
+  const t = translations.useT();
+
   return (
     <div>
       <h1>{t.title()}</h1>
@@ -105,24 +117,30 @@ In server components (e.g., Next.js App Router), Node.js scripts, or other non-R
 
 ```tsx
 // app/user/[id]/page.tsx (Example for Next.js Server Component)
-import { i18n } from '@/utils/i18n-tag'; // Adjust path
-import { createServerSideI18n } from '@/lib/i18n-server-config'; // Your server-side i18n setup
+// Adjust path
+import { createServerSideI18n } from '@/lib/i18n-server-config';
+import { i18n } from '@/utils/i18n-tag';
+
+// Your server-side i18n setup
 
 // Define translations (lang-tag doesn't care about client/server here)
-const translations = i18n({
-  pageTitle: "User Details",
-  welcomeMessage: "Welcome back, {{user}}."
-}, {
-  namespace: 'userDetails',
-  path: 'mainContent'
-});
+const translations = i18n(
+  {
+    pageTitle: 'User Details',
+    welcomeMessage: 'Welcome back, {{user}}.',
+  },
+  {
+    namespace: 'userDetails',
+    path: 'mainContent',
+  }
+);
 
 export default async function UserPage({ params, searchParams }: any) {
   // Assuming `lang` comes from route or is detected
-  const lang = params.lang || 'en'; 
+  const lang = params.lang || 'en';
   const { t } = await createServerSideI18n(lang, ['userDetails']); // Init server i18next
 
-  const userName = "Server User"; // Fetch user data or similar
+  const userName = 'Server User'; // Fetch user data or similar
 
   return (
     <div>
@@ -139,4 +157,4 @@ export default async function UserPage({ params, searchParams }: any) {
 1.  **`lang-tag` for definition & collection:** Use `lang-tag` (`i18n` calls + `lang-tag collect` CLI) to define translations inline and generate JSON files.
 2.  **`i18next` for runtime:** Configure `i18next` (and `react-i18next`) to load these JSON files and handle the actual translation lookups, language switching, etc.
 3.  **Custom Tag Function (`i18n`):** This acts as the bridge. It uses `createCallableTranslations` to structure the translation accessors and integrates with `useTranslation` (client-side) or provides raw keys (server-side).
-4.  **Namespaces:** The `namespace` property in your `lang-tag` config is crucial as it typically maps directly to i18next namespaces, allowing `useTranslation(namespace)` to load the correct set of translations. 
+4.  **Namespaces:** The `namespace` property in your `lang-tag` config is crucial as it typically maps directly to i18next namespaces, allowing `useTranslation(namespace)` to load the correct set of translations.

@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+coverage
+examples/monorepo/node_modules
+*.min.js
+*.bundle.js
+vite.config.ts
+vitest.config.ts
+

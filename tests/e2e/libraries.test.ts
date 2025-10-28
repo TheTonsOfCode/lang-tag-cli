@@ -1,30 +1,40 @@
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from 'vitest';
-import {execSync} from 'child_process';
-import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'fs';
-import {join} from 'path';
-import {
-    clearPreparedMainProjectBase,
-    copyPreparedMainProjectBase,
-    prepareMainProjectBase,
-    removeTestDirectory,
-    TESTS_TEST_DIR as _TESTS_TEST_DIR,
-} from "./utils.ts";
-import {CONFIG_FILE_NAME} from "@/core/constants.ts";
+import { execSync } from 'child_process';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import JSON5 from 'json5';
-import {LangTagTranslationsConfig} from "lang-tag";
-import {$LT_TagProcessor} from "@/core/processor.ts";
+import { LangTagTranslationsConfig } from 'lang-tag';
+import { join } from 'path';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from 'vitest';
+
+import { CONFIG_FILE_NAME } from '@/core/constants';
+import { $LT_TagProcessor } from '@/core/processor';
+
+import {
+  TESTS_TEST_DIR as _TESTS_TEST_DIR,
+  clearPreparedMainProjectBase,
+  copyPreparedMainProjectBase,
+  prepareMainProjectBase,
+  removeTestDirectory,
+} from './utils';
 
 const SUFFIX = 'libraries';
-const MAIN_PROJECT_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
-const LIBRARY_PROJECT_DIR = _TESTS_TEST_DIR + "-" + SUFFIX + '-lib';
+const MAIN_PROJECT_DIR = _TESTS_TEST_DIR + '-' + SUFFIX;
+const LIBRARY_PROJECT_DIR = _TESTS_TEST_DIR + '-' + SUFFIX + '-lib';
 
 const CONFIG_LIBRARY = {
-    tagName: 'libTag',
-    includes: ['src/**/*.{js,jsx,ts,tsx}'],
-    // Library doesn't generate combined files, just uses tags for collection
-    // outputDir: 'dist/locales/en', // Not needed for collection, only for generation
-    isLibrary: true,
-    translationArgPosition: 1,
+  tagName: 'libTag',
+  includes: ['src/**/*.{js,jsx,ts,tsx}'],
+  // Library doesn't generate combined files, just uses tags for collection
+  // outputDir: 'dist/locales/en', // Not needed for collection, only for generation
+  isLibrary: true,
+  translationArgPosition: 1,
 };
 
 // language=javascript
@@ -40,16 +50,16 @@ const onImport = flexibleImportAlgorithm({
 module.exports = onImport;`;
 
 const CONFIG_MAIN_PROJECT = {
-    tagName: 'lang',
-    includes: ['src/**/*.{js,jsx,ts,tsx}'],
-    outputDir: 'locales/en',
-    isLibrary: false,
-    translationArgPosition: 1,
-    import: {
-        dir: 'src/lang-libraries',
-        tagImportPath: 'import { lang } from "../lang-tag";',
-        onImport: '$onImport$'
-    },
+  tagName: 'lang',
+  includes: ['src/**/*.{js,jsx,ts,tsx}'],
+  outputDir: 'locales/en',
+  isLibrary: false,
+  translationArgPosition: 1,
+  import: {
+    dir: 'src/lang-libraries',
+    tagImportPath: 'import { lang } from "../lang-tag";',
+    onImport: '$onImport$',
+  },
 };
 
 // language=typescript
@@ -74,15 +84,14 @@ const MAIN_PROJECT_LANG_TAG_DEFINITION = `
 const TEST_LIBRARY_PACKAGE_NAME = 'test-library';
 
 describe('libraries import e2e tests', () => {
+  function writeConfig(dir: string, config: any, onImportFunc?: string) {
+    if (onImportFunc) {
+      // Generate JavaScript config file directly
+      const configWithoutOnImport = { ...config };
+      delete configWithoutOnImport.import.onImport;
 
-    function writeConfig(dir: string, config: any, onImportFunc?: string) {
-        if (onImportFunc) {
-            // Generate JavaScript config file directly
-            const configWithoutOnImport = {...config};
-            delete configWithoutOnImport.import.onImport;
-            
-            const configString = JSON.stringify(configWithoutOnImport, null, 2);
-            const configFile = `const { flexibleImportAlgorithm } = require('@lang-tag/cli/algorithms');
+      const configString = JSON.stringify(configWithoutOnImport, null, 2);
+      const configFile = `const { flexibleImportAlgorithm } = require('@lang-tag/cli/algorithms');
 
 const config = ${configString};
 
@@ -94,76 +103,85 @@ config.import.onImport = flexibleImportAlgorithm({
 });
 
 module.exports = config;`;
-            
-            writeFileSync(join(dir, CONFIG_FILE_NAME), configFile);
-        } else {
-            // Generate normal config file
-            const configString = JSON.stringify(config, null, 2);
-            writeFileSync(join(dir, CONFIG_FILE_NAME), `const config = ${configString};\nmodule.exports = config;`);
-        }
+
+      writeFileSync(join(dir, CONFIG_FILE_NAME), configFile);
+    } else {
+      // Generate normal config file
+      const configString = JSON.stringify(config, null, 2);
+      writeFileSync(
+        join(dir, CONFIG_FILE_NAME),
+        `const config = ${configString};\nmodule.exports = config;`
+      );
     }
+  }
 
-    type LocalConfig = LangTagTranslationsConfig & {
-        manual?: boolean;
-    };
+  type LocalConfig = LangTagTranslationsConfig & {
+    manual?: boolean;
+  };
 
-    interface ContentMatch {
-        translations: any;
-        config: LocalConfig;
-    }
+  interface ContentMatch {
+    translations: any;
+    config: LocalConfig;
+  }
 
-    function parseContent(content: string, config: any): ContentMatch[] {
+  function parseContent(content: string, config: any): ContentMatch[] {
+    const processor = new $LT_TagProcessor(config);
+    const tags = processor.extractTags(content);
 
-        const processor = new $LT_TagProcessor(config);
-        const tags = processor.extractTags(content);
+    return tags.map((t) => ({
+      translations: t.parameterTranslations,
+      config: t.parameterConfig,
+    }));
 
-        return tags.map(t => ({
-            translations: t.parameterTranslations,
-            config: t.parameterConfig,
-        }));
+    // return tags.map(m => {
+    //     const argT = config.translationArgPosition === 1 ? m.content1 : (m.content2 || '{}');
+    //     const argC = config.translationArgPosition === 1 ? (m.content2 || '{}') : m.content1;
+    //     return ({
+    //         translations: JSON5.parse(argT),
+    //         config: JSON5.parse(argC),
+    //     });
+    // });
+  }
 
-        // return tags.map(m => {
-        //     const argT = config.translationArgPosition === 1 ? m.content1 : (m.content2 || '{}');
-        //     const argC = config.translationArgPosition === 1 ? (m.content2 || '{}') : m.content1;
-        //     return ({
-        //         translations: JSON5.parse(argT),
-        //         config: JSON5.parse(argC),
-        //     });
-        // });
-    }
+  beforeAll(() => {
+    prepareMainProjectBase(SUFFIX);
+  });
 
-    beforeAll(() => {
-        prepareMainProjectBase(SUFFIX);
-    });
+  beforeEach(() => {
+    removeTestDirectory(MAIN_PROJECT_DIR);
+    removeTestDirectory(LIBRARY_PROJECT_DIR);
+  });
 
-    beforeEach(() => {
-        removeTestDirectory(MAIN_PROJECT_DIR);
-        removeTestDirectory(LIBRARY_PROJECT_DIR);
-    });
+  afterEach(() => {
+    removeTestDirectory(MAIN_PROJECT_DIR);
+    removeTestDirectory(LIBRARY_PROJECT_DIR);
+  });
 
-    afterEach(() => {
-        removeTestDirectory(MAIN_PROJECT_DIR);
-        removeTestDirectory(LIBRARY_PROJECT_DIR);
-    });
+  afterAll(() => {
+    clearPreparedMainProjectBase(SUFFIX);
+  });
 
-    afterAll(() => {
-        clearPreparedMainProjectBase(SUFFIX);
-    });
+  it('should import library tags using onImport configuration', () => {
+    // --- Setup Main Project ---
+    mkdirSync(MAIN_PROJECT_DIR, { recursive: true });
+    copyPreparedMainProjectBase(SUFFIX); // Copy the template to the actual test dir
+    writeConfig(
+      MAIN_PROJECT_DIR,
+      CONFIG_MAIN_PROJECT,
+      CONFIG_MAIN_PROJECT_ON_IMPORT_FUNCTION
+    ); // Write main config with onImport
+    const mainSrcDir = join(MAIN_PROJECT_DIR, 'src');
+    mkdirSync(mainSrcDir, { recursive: true });
+    // Main project needs its own lang tag def if it uses tags directly or for generated library files
+    writeFileSync(
+      join(mainSrcDir, 'lang-tag.ts'),
+      MAIN_PROJECT_LANG_TAG_DEFINITION.replace(/@ts-ignore/g, '')
+    );
 
-    it('should import library tags using onImport configuration', () => {
-        // --- Setup Main Project ---
-        mkdirSync(MAIN_PROJECT_DIR, {recursive: true});
-        copyPreparedMainProjectBase(SUFFIX); // Copy the template to the actual test dir
-        writeConfig(MAIN_PROJECT_DIR, CONFIG_MAIN_PROJECT, CONFIG_MAIN_PROJECT_ON_IMPORT_FUNCTION); // Write main config with onImport
-        const mainSrcDir = join(MAIN_PROJECT_DIR, 'src');
-        mkdirSync(mainSrcDir, {recursive: true});
-        // Main project needs its own lang tag def if it uses tags directly or for generated library files
-        writeFileSync(join(mainSrcDir, 'lang-tag.ts'), MAIN_PROJECT_LANG_TAG_DEFINITION.replace(/@ts-ignore/g, ""));
+    // --- Setup Library Project ---
 
-        // --- Setup Library Project ---
-
-        // language=typescript
-        const LIBRARY_LANG_TAG_DEFINITION = `
+    // language=typescript
+    const LIBRARY_LANG_TAG_DEFINITION = `
             // @ts-ignore
             import {
                 LangTagTranslationsConfig,
@@ -181,8 +199,8 @@ module.exports = config;`;
             }
         `;
 
-        // language=typescript
-        const LIBRARY_SOURCE_FILE = `
+    // language=typescript
+    const LIBRARY_SOURCE_FILE = `
             // @ts-ignore
             import {libTag} from "./lang-tag"; // Relative import within the library
 
@@ -195,115 +213,166 @@ module.exports = config;`;
                 "path": "farewells"
             });
         `;
-        mkdirSync(LIBRARY_PROJECT_DIR, {recursive: true});
-        copyPreparedMainProjectBase(SUFFIX, LIBRARY_PROJECT_DIR);
-        // Change package.json
-        const libraryPackageJSONPath = join(LIBRARY_PROJECT_DIR, 'package.json');
-        const libraryPackageJSON = JSON.parse(readFileSync(libraryPackageJSONPath, 'utf-8'));
-        libraryPackageJSON.name = TEST_LIBRARY_PACKAGE_NAME;
-        writeFileSync(libraryPackageJSONPath, JSON.stringify(libraryPackageJSON, null, 2));
-        // Library config
-        writeConfig(LIBRARY_PROJECT_DIR, CONFIG_LIBRARY);
-        // Library source code
-        const librarySrcDir = join(LIBRARY_PROJECT_DIR, 'src');
-        mkdirSync(librarySrcDir, {recursive: true});
-        writeFileSync(join(librarySrcDir, 'lang-tag.ts'), LIBRARY_LANG_TAG_DEFINITION.replace(/@ts-ignore/g, ""));
-        writeFileSync(join(librarySrcDir, 'translations.ts'), LIBRARY_SOURCE_FILE.replace(/@ts-ignore/g, ""));
+    mkdirSync(LIBRARY_PROJECT_DIR, { recursive: true });
+    copyPreparedMainProjectBase(SUFFIX, LIBRARY_PROJECT_DIR);
+    // Change package.json
+    const libraryPackageJSONPath = join(LIBRARY_PROJECT_DIR, 'package.json');
+    const libraryPackageJSON = JSON.parse(
+      readFileSync(libraryPackageJSONPath, 'utf-8')
+    );
+    libraryPackageJSON.name = TEST_LIBRARY_PACKAGE_NAME;
+    writeFileSync(
+      libraryPackageJSONPath,
+      JSON.stringify(libraryPackageJSON, null, 2)
+    );
+    // Library config
+    writeConfig(LIBRARY_PROJECT_DIR, CONFIG_LIBRARY);
+    // Library source code
+    const librarySrcDir = join(LIBRARY_PROJECT_DIR, 'src');
+    mkdirSync(librarySrcDir, { recursive: true });
+    writeFileSync(
+      join(librarySrcDir, 'lang-tag.ts'),
+      LIBRARY_LANG_TAG_DEFINITION.replace(/@ts-ignore/g, '')
+    );
+    writeFileSync(
+      join(librarySrcDir, 'translations.ts'),
+      LIBRARY_SOURCE_FILE.replace(/@ts-ignore/g, '')
+    );
 
-        // --- Build & Pack Library ---
-        // 1. Collect tags in the library
-        try {
-            execSync('npm run c', {cwd: LIBRARY_PROJECT_DIR, stdio: 'pipe'});
-        } catch (e: any) {
-            console.error("Error running 'npm run c' in library:", e.stdout?.toString(), e.stderr?.toString());
-            throw e;
-        }
+    // --- Build & Pack Library ---
+    // 1. Collect tags in the library
+    try {
+      execSync('npm run c', { cwd: LIBRARY_PROJECT_DIR, stdio: 'pipe' });
+    } catch (e: any) {
+      console.error(
+        "Error running 'npm run c' in library:",
+        e.stdout?.toString(),
+        e.stderr?.toString()
+      );
+      throw e;
+    }
 
-        // 2. Pack the library
-        execSync('npm pack', {cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore'}); // Creates $`libraryPackageJSON.name`-1.0.0.tgz
+    // 2. Pack the library
+    execSync('npm pack', { cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore' }); // Creates $`libraryPackageJSON.name`-1.0.0.tgz
 
-        // Test library compilation
-        execSync('npm run compile', {cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore'});
+    // Test library compilation
+    execSync('npm run compile', { cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore' });
 
-        // --- Install Library in Main Project ---
-        const libraryPackagePath = join(LIBRARY_PROJECT_DIR, libraryPackageJSON.name + '-1.0.0.tgz').replace(/\\/g, '/');
+    // --- Install Library in Main Project ---
+    const libraryPackagePath = join(
+      LIBRARY_PROJECT_DIR,
+      libraryPackageJSON.name + '-1.0.0.tgz'
+    ).replace(/\\/g, '/');
 
-        try {
-            // Install the packed library as a dependency
-            execSync(`npm install ${libraryPackagePath}`, {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
-        } catch (e: any) {
-            console.error("Error installing library package:", e.stdout?.toString(), e.stderr?.toString());
-            throw e;
-        }
+    try {
+      // Install the packed library as a dependency
+      execSync(`npm install ${libraryPackagePath}`, {
+        cwd: MAIN_PROJECT_DIR,
+        stdio: 'pipe',
+      });
+    } catch (e: any) {
+      console.error(
+        'Error installing library package:',
+        e.stdout?.toString(),
+        e.stderr?.toString()
+      );
+      throw e;
+    }
 
-        try {
-            execSync('npm run i', {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
-        } catch (e: any) {
-            console.error("Error running 'npm run i' in main project:", e.stdout?.toString(), e.stderr?.toString());
-            throw e;
-        }
+    try {
+      execSync('npm run i', { cwd: MAIN_PROJECT_DIR, stdio: 'pipe' });
+    } catch (e: any) {
+      console.error(
+        "Error running 'npm run i' in main project:",
+        e.stdout?.toString(),
+        e.stderr?.toString()
+      );
+      throw e;
+    }
 
-        // Test main project compilation
-        execSync('npm run compile', {cwd: MAIN_PROJECT_DIR, stdio: 'ignore'});
+    // Test main project compilation
+    execSync('npm run compile', { cwd: MAIN_PROJECT_DIR, stdio: 'ignore' });
 
-        // Check if the import directory exists
-        const importDir = join(MAIN_PROJECT_DIR, CONFIG_MAIN_PROJECT.import.dir);
-        expect(existsSync(importDir), `Import directory '${importDir}' should exist`).toBe(true);
+    // Check if the import directory exists
+    const importDir = join(MAIN_PROJECT_DIR, CONFIG_MAIN_PROJECT.import.dir);
+    expect(
+      existsSync(importDir),
+      `Import directory '${importDir}' should exist`
+    ).toBe(true);
 
-        // Check if the generated library config file exists (name modified by onImport)
-        const expectedLibConfigFileName = TEST_LIBRARY_PACKAGE_NAME + '.ts'; // Based on onImport function
-        const importedConfigPath = join(importDir, expectedLibConfigFileName);
-        expect(existsSync(importedConfigPath), `Generated library config '${importedConfigPath}' should exist`).toBe(true);
+    // Check if the generated library config file exists (name modified by onImport)
+    const expectedLibConfigFileName = TEST_LIBRARY_PACKAGE_NAME + '.ts'; // Based on onImport function
+    const importedConfigPath = join(importDir, expectedLibConfigFileName);
+    expect(
+      existsSync(importedConfigPath),
+      `Generated library config '${importedConfigPath}' should exist`
+    ).toBe(true);
 
-        // Check the content of the generated library config file
-        const importedConfigContent = readFileSync(importedConfigPath, 'utf-8');
+    // Check the content of the generated library config file
+    const importedConfigContent = readFileSync(importedConfigPath, 'utf-8');
 
-        const matches = parseContent(importedConfigContent, CONFIG_MAIN_PROJECT);
+    const matches = parseContent(importedConfigContent, CONFIG_MAIN_PROJECT);
 
-        expect(matches.length).toBe(2);
-        expect(matches[0].config.namespace).toEqual('conversational');
-        expect(matches[0].config.path).toEqual('greetings');
-        expect(matches[0].translations.libraryHello).toBeDefined();
-        expect(matches[0].translations.libraryHello).toEqual('Hello from Library');
-        expect(matches[1].config.namespace).toEqual('conversational');
-        expect(matches[1].config.path).toEqual('farewells');
-        expect(matches[1].translations.libraryBye).toBeDefined();
-        expect(matches[1].translations.libraryBye).toEqual('Bye from Library');
+    expect(matches.length).toBe(2);
+    expect(matches[0].config.namespace).toEqual('conversational');
+    expect(matches[0].config.path).toEqual('greetings');
+    expect(matches[0].translations.libraryHello).toBeDefined();
+    expect(matches[0].translations.libraryHello).toEqual('Hello from Library');
+    expect(matches[1].config.namespace).toEqual('conversational');
+    expect(matches[1].config.path).toEqual('farewells');
+    expect(matches[1].translations.libraryBye).toBeDefined();
+    expect(matches[1].translations.libraryBye).toEqual('Bye from Library');
 
-        try {
-            execSync('npm run c', {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
-        } catch (e: any) {
-            console.error("Error running 'npm run c' in main project:", e.stdout?.toString(), e.stderr?.toString());
-            throw e;
-        }
+    try {
+      execSync('npm run c', { cwd: MAIN_PROJECT_DIR, stdio: 'pipe' });
+    } catch (e: any) {
+      console.error(
+        "Error running 'npm run c' in main project:",
+        e.stdout?.toString(),
+        e.stderr?.toString()
+      );
+      throw e;
+    }
 
-        // Check the main project's final output directory
-        const mainOutputDir = join(MAIN_PROJECT_DIR, CONFIG_MAIN_PROJECT.outputDir);
-        const mainOutputFile = join(mainOutputDir, 'conversational.json'); // Default naming based on namespace 'lib'
-        expect(existsSync(mainOutputFile), `Main output file '${mainOutputFile}' should exist`).toBe(true);
+    // Check the main project's final output directory
+    const mainOutputDir = join(MAIN_PROJECT_DIR, CONFIG_MAIN_PROJECT.outputDir);
+    const mainOutputFile = join(mainOutputDir, 'conversational.json'); // Default naming based on namespace 'lib'
+    expect(
+      existsSync(mainOutputFile),
+      `Main output file '${mainOutputFile}' should exist`
+    ).toBe(true);
 
-        const mainOutputContent = JSON5.parse(readFileSync(mainOutputFile, 'utf-8'));
-        expect(mainOutputContent).toEqual({
-            greetings: {libraryHello: "Hello from Library"},
-            farewells: {libraryBye: "Bye from Library"}
-        });
+    const mainOutputContent = JSON5.parse(
+      readFileSync(mainOutputFile, 'utf-8')
+    );
+    expect(mainOutputContent).toEqual({
+      greetings: { libraryHello: 'Hello from Library' },
+      farewells: { libraryBye: 'Bye from Library' },
     });
+  });
 
-    it('should compile library and main project with flexible translations', () => {
-        // --- Setup Main Project ---
+  it('should compile library and main project with flexible translations', () => {
+    // --- Setup Main Project ---
 
-        mkdirSync(MAIN_PROJECT_DIR, {recursive: true});
-        copyPreparedMainProjectBase(SUFFIX); // Copy the template to the actual test dir
-        writeConfig(MAIN_PROJECT_DIR, CONFIG_MAIN_PROJECT, CONFIG_MAIN_PROJECT_ON_IMPORT_FUNCTION); // Write main config with onImport
-        const mainSrcDir = join(MAIN_PROJECT_DIR, 'src');
-        mkdirSync(mainSrcDir, {recursive: true});
-        // Main project needs its own lang tag def if it uses tags directly or for generated library files
-        writeFileSync(join(mainSrcDir, 'lang-tag.ts'), MAIN_PROJECT_LANG_TAG_DEFINITION.replace(/@ts-ignore/g, ""));
+    mkdirSync(MAIN_PROJECT_DIR, { recursive: true });
+    copyPreparedMainProjectBase(SUFFIX); // Copy the template to the actual test dir
+    writeConfig(
+      MAIN_PROJECT_DIR,
+      CONFIG_MAIN_PROJECT,
+      CONFIG_MAIN_PROJECT_ON_IMPORT_FUNCTION
+    ); // Write main config with onImport
+    const mainSrcDir = join(MAIN_PROJECT_DIR, 'src');
+    mkdirSync(mainSrcDir, { recursive: true });
+    // Main project needs its own lang tag def if it uses tags directly or for generated library files
+    writeFileSync(
+      join(mainSrcDir, 'lang-tag.ts'),
+      MAIN_PROJECT_LANG_TAG_DEFINITION.replace(/@ts-ignore/g, '')
+    );
 
-        // --- Setup Library Project ---
+    // --- Setup Library Project ---
 
-        // language=typescript
-        const LIBRARY_LANG_TAG_DEFINITION = `
+    // language=typescript
+    const LIBRARY_LANG_TAG_DEFINITION = `
             // @ts-ignore
             import {
                 LangTagTranslationsConfig,
@@ -321,8 +390,8 @@ module.exports = config;`;
             }
         `;
 
-        // language=typescript
-        const LIBRARY_SOURCE_FILE = `
+    // language=typescript
+    const LIBRARY_SOURCE_FILE = `
             // @ts-ignore
             import {libTag} from "./lang-tag"; // Relative import within the library
             // @ts-ignore
@@ -343,60 +412,89 @@ module.exports = config;`;
                 return 'Title: ' + nt.title() + 'Description: ' + nt.welcomeMessage({name: 'Paul'});
             }
         `;
-            
-        mkdirSync(LIBRARY_PROJECT_DIR, {recursive: true});
-        copyPreparedMainProjectBase(SUFFIX, LIBRARY_PROJECT_DIR);
-        // Change package.json
-        const libraryPackageJSONPath = join(LIBRARY_PROJECT_DIR, 'package.json');
-        const libraryPackageJSON = JSON.parse(readFileSync(libraryPackageJSONPath, 'utf-8'));
-        libraryPackageJSON.name = TEST_LIBRARY_PACKAGE_NAME;
-        writeFileSync(libraryPackageJSONPath, JSON.stringify(libraryPackageJSON, null, 2));
-        // Library config
-        writeConfig(LIBRARY_PROJECT_DIR, CONFIG_LIBRARY);
-        // Library source code
-        const librarySrcDir = join(LIBRARY_PROJECT_DIR, 'src');
-        mkdirSync(librarySrcDir, {recursive: true});
-        writeFileSync(join(librarySrcDir, 'lang-tag.ts'), LIBRARY_LANG_TAG_DEFINITION.replace(/@ts-ignore/g, ""));
-        writeFileSync(join(librarySrcDir, 'some-component.ts'), LIBRARY_SOURCE_FILE.replace(/@ts-ignore/g, ""));
 
-        // --- Build & Pack Library ---
-        // execSync('npm install react', {cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore'})
-        // execSync('npm install --save-dev @types/react', {cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore'})
+    mkdirSync(LIBRARY_PROJECT_DIR, { recursive: true });
+    copyPreparedMainProjectBase(SUFFIX, LIBRARY_PROJECT_DIR);
+    // Change package.json
+    const libraryPackageJSONPath = join(LIBRARY_PROJECT_DIR, 'package.json');
+    const libraryPackageJSON = JSON.parse(
+      readFileSync(libraryPackageJSONPath, 'utf-8')
+    );
+    libraryPackageJSON.name = TEST_LIBRARY_PACKAGE_NAME;
+    writeFileSync(
+      libraryPackageJSONPath,
+      JSON.stringify(libraryPackageJSON, null, 2)
+    );
+    // Library config
+    writeConfig(LIBRARY_PROJECT_DIR, CONFIG_LIBRARY);
+    // Library source code
+    const librarySrcDir = join(LIBRARY_PROJECT_DIR, 'src');
+    mkdirSync(librarySrcDir, { recursive: true });
+    writeFileSync(
+      join(librarySrcDir, 'lang-tag.ts'),
+      LIBRARY_LANG_TAG_DEFINITION.replace(/@ts-ignore/g, '')
+    );
+    writeFileSync(
+      join(librarySrcDir, 'some-component.ts'),
+      LIBRARY_SOURCE_FILE.replace(/@ts-ignore/g, '')
+    );
 
-        // 1. Collect tags in the library
-        try {
-            execSync('npm run c', {cwd: LIBRARY_PROJECT_DIR, stdio: 'pipe'});
-        } catch (e: any) {
-            console.error("Error running 'npm run c' in library:", e.stdout?.toString(), e.stderr?.toString());
-            throw e;
-        }
+    // --- Build & Pack Library ---
+    // execSync('npm install react', {cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore'})
+    // execSync('npm install --save-dev @types/react', {cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore'})
 
-        // 2. Pack the library
-        execSync('npm pack', {cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore'}); // Creates $`libraryPackageJSON.name`-1.0.0.tgz
+    // 1. Collect tags in the library
+    try {
+      execSync('npm run c', { cwd: LIBRARY_PROJECT_DIR, stdio: 'pipe' });
+    } catch (e: any) {
+      console.error(
+        "Error running 'npm run c' in library:",
+        e.stdout?.toString(),
+        e.stderr?.toString()
+      );
+      throw e;
+    }
 
-        // Test library compilation
-        execSync('npm run compile', {cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore'});
+    // 2. Pack the library
+    execSync('npm pack', { cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore' }); // Creates $`libraryPackageJSON.name`-1.0.0.tgz
 
-        // --- Install Library in Main Project ---
-        const libraryPackagePath = join(LIBRARY_PROJECT_DIR, libraryPackageJSON.name + '-1.0.0.tgz').replace(/\\/g, '/');
+    // Test library compilation
+    execSync('npm run compile', { cwd: LIBRARY_PROJECT_DIR, stdio: 'ignore' });
 
-        try {
-            // Install the packed library as a dependency
-            execSync(`npm install ${libraryPackagePath}`, {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
-        } catch (e: any) {
-            console.error("Error installing library package:", e.stdout?.toString(), e.stderr?.toString());
-            throw e;
-        }
+    // --- Install Library in Main Project ---
+    const libraryPackagePath = join(
+      LIBRARY_PROJECT_DIR,
+      libraryPackageJSON.name + '-1.0.0.tgz'
+    ).replace(/\\/g, '/');
 
-        try {
-            execSync('npm run i', {cwd: MAIN_PROJECT_DIR, stdio: 'pipe'});
-        } catch (e: any) {
-            console.error("Error running 'npm run i' in main project:", e.stdout?.toString(), e.stderr?.toString());
-            throw e;
-        }
+    try {
+      // Install the packed library as a dependency
+      execSync(`npm install ${libraryPackagePath}`, {
+        cwd: MAIN_PROJECT_DIR,
+        stdio: 'pipe',
+      });
+    } catch (e: any) {
+      console.error(
+        'Error installing library package:',
+        e.stdout?.toString(),
+        e.stderr?.toString()
+      );
+      throw e;
+    }
 
-        // language=typescript
-        const WRONG_MAIN_PROJECT_FILE = `
+    try {
+      execSync('npm run i', { cwd: MAIN_PROJECT_DIR, stdio: 'pipe' });
+    } catch (e: any) {
+      console.error(
+        "Error running 'npm run i' in main project:",
+        e.stdout?.toString(),
+        e.stderr?.toString()
+      );
+      throw e;
+    }
+
+    // language=typescript
+    const WRONG_MAIN_PROJECT_FILE = `
             // @ts-ignore
             import {ProfileComponent} from "test-library/src/some-component";
             // @ts-ignore
@@ -411,21 +509,24 @@ module.exports = config;`;
                 });
             }
         `;
-        writeFileSync(join(mainSrcDir, 'page.ts'), WRONG_MAIN_PROJECT_FILE.replace(/@ts-ignore/g, ""));
+    writeFileSync(
+      join(mainSrcDir, 'page.ts'),
+      WRONG_MAIN_PROJECT_FILE.replace(/@ts-ignore/g, '')
+    );
 
-        // Main project should fail compilation
-        try {
-            execSync('npm run compile', {
-                cwd: MAIN_PROJECT_DIR,
-                encoding: 'utf8',
-                stdio: ['pipe', 'ignore', 'pipe']
-            });
-        } catch (error: any) {
-            expect(error.message).toContain("Command failed: npm run compile")
-        }
+    // Main project should fail compilation
+    try {
+      execSync('npm run compile', {
+        cwd: MAIN_PROJECT_DIR,
+        encoding: 'utf8',
+        stdio: ['pipe', 'ignore', 'pipe'],
+      });
+    } catch (error: any) {
+      expect(error.message).toContain('Command failed: npm run compile');
+    }
 
-        // language=typescript
-        const PROPER_MAIN_PROJECT_FILE = `
+    // language=typescript
+    const PROPER_MAIN_PROJECT_FILE = `
             // @ts-ignore
             import {ProfileComponent} from "test-library/src/some-component";
             // @ts-ignore
@@ -444,10 +545,12 @@ module.exports = config;`;
                 });
             }
         `;
-        writeFileSync(join(mainSrcDir, 'page.ts'), PROPER_MAIN_PROJECT_FILE.replace(/@ts-ignore/g, ""));
+    writeFileSync(
+      join(mainSrcDir, 'page.ts'),
+      PROPER_MAIN_PROJECT_FILE.replace(/@ts-ignore/g, '')
+    );
 
-        // Test main project compilation
-        execSync('npm run compile', {cwd: MAIN_PROJECT_DIR, stdio: 'ignore'});
-    });
-
+    // Test main project compilation
+    execSync('npm run compile', { cwd: MAIN_PROJECT_DIR, stdio: 'ignore' });
+  });
 });

@@ -1,9 +1,12 @@
 'use client';
 
 import i18n from 'i18next';
-import { initReactI18next, useTranslation as useTranslationOrg } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { type ReactNode, useEffect } from 'react';
+import {
+  initReactI18next,
+  useTranslation as useTranslationOrg,
+} from 'react-i18next';
 
 // Import your translations
 import enCommon from './locales/en/common.json';
@@ -33,12 +36,21 @@ i18n
   });
 
 // Custom hook to ensure type safety with your resources
-export function useTranslation(ns?: keyof (typeof resources)['en'], lng?: string) {
+export function useTranslation(
+  ns?: keyof (typeof resources)['en'],
+  lng?: string
+) {
   return useTranslationOrg(ns, { lng });
 }
 
 // Provider component to wrap your layout or specific parts of the app
-export function I18nProviderClient({ children, locale }: { children: ReactNode, locale: string }): JSX.Element {
+export function I18nProviderClient({
+  children,
+  locale,
+}: {
+  children: ReactNode;
+  locale: string;
+}): JSX.Element {
   useEffect(() => {
     if (i18n.language !== locale) {
       i18n.changeLanguage(locale);
@@ -48,4 +60,4 @@ export function I18nProviderClient({ children, locale }: { children: ReactNode, 
   return <>{children}</>;
 }
 
-export default i18n; 
+export default i18n;

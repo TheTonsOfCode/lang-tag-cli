@@ -1,21 +1,19 @@
-import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/type.ts";
-import {LangTagCLILogger} from "@/logger.ts";
+import { LangTagCLILogger } from '@/logger';
+import { LangTagCLIConfig, LangTagCLIProcessedTag } from '@/type';
 
 export abstract class TranslationsCollector {
+  public config!: LangTagCLIConfig;
+  public logger!: LangTagCLILogger;
 
-    public config!: LangTagCLIConfig;
-    public logger!: LangTagCLILogger;
+  abstract aggregateCollection(namespace: string): string;
 
-    abstract aggregateCollection(namespace: string): string;
+  abstract transformTag(tag: LangTagCLIProcessedTag): LangTagCLIProcessedTag;
 
-    abstract transformTag(tag: LangTagCLIProcessedTag): LangTagCLIProcessedTag;
+  abstract preWrite(clean?: boolean): Promise<void>;
 
-    abstract preWrite(clean?: boolean): Promise<void>;
+  abstract resolveCollectionFilePath(collectionName: string): Promise<string>;
 
-    abstract resolveCollectionFilePath(collectionName: string): Promise<string>;
+  abstract onMissingCollection(collectionName: string): Promise<void>;
 
-    abstract onMissingCollection(collectionName: string): Promise<void>;
-
-    abstract postWrite(changedCollections: string[]): Promise<void>;
-
+  abstract postWrite(changedCollections: string[]): Promise<void>;
 }

@@ -1,6 +1,5 @@
 # Lang-tag CLI
 
-
 A professional solution for managing translations in modern JavaScript/TypeScript projects, especially those using component-based architectures. `lang-tag` simplifies internationalization by allowing you to define translation keys directly within the components where they are used. Translations become local, callable function objects with full TypeScript support, IntelliSense, and compile-time safety.
 
 ## Key Benefits
@@ -15,7 +14,7 @@ The core is optimized for performance, with a bundle size of just **~1KB** ([che
 
 ### Effortless translation structure
 
-Instead of manually managing centralized translation files, `lang-tag` lets you colocate keys within components and automatically organizes them into namespaces based on your project structure. For example, all components in `components/orders` or pages in `pages/order` share the `orders` namespace. You define a simple directory-to-namespace mapping once, and `lang-tag` handles merging and file organization—while you retain full control over how namespaces are merged. 
+Instead of manually managing centralized translation files, `lang-tag` lets you colocate keys within components and automatically organizes them into namespaces based on your project structure. For example, all components in `components/orders` or pages in `pages/order` share the `orders` namespace. You define a simple directory-to-namespace mapping once, and `lang-tag` handles merging and file organization—while you retain full control over how namespaces are merged.
 
 > Set your rules, then let `lang-tag` do the rest.
 
@@ -31,6 +30,7 @@ Full functionality is available through an advanced CLI that keeps your applicat
 ### Practical and Flexible Architecture
 
 The solution provides:
+
 - **Framework agnostic** – works with any JavaScript/TypeScript project and integrates easily with libraries like react-i18next
 - **Library ecosystem support** - create reusable component libraries with embedded lang-tag translations that consuming lang-tag applications can easily import/integrate and override
 - **Full TypeScript support** - complete type safety with IntelliSense for all translation keys and interpolation parameters
@@ -49,31 +49,34 @@ Instead of maintaining separate translation files and complex key mappings, tran
 // Component with colocated translations using custom i18n tag
 import { i18n } from '../utils/i18n';
 
-const translations = i18n({
+const translations = i18n(
+  {
     greeting: 'Welcome {{name}} to our store!',
     orderSummary: 'You have {{count}} items in your cart.',
     actions: {
-        proceed: 'Proceed to Payment',
-        cancel: 'Cancel Order'
-    }
-}, {
+      proceed: 'Proceed to Payment',
+      cancel: 'Cancel Order',
+    },
+  },
+  {
     namespace: 'orders',
-    path: 'components.checkout'
-});
+    path: 'components.checkout',
+  }
+);
 
 function CheckoutComponent({ name, count }) {
-    const t = translations.useT();
-    
-    return (
-        <div>
-            <h2>{t.greeting({ name })}</h2>
-            <p>{t.orderSummary({ count })}</p>
-            <div>
-                <button>{t.actions.proceed()}</button>
-                <button>{t.actions.cancel()}</button>
-            </div>
-        </div>
-    );
+  const t = translations.useT();
+
+  return (
+    <div>
+      <h2>{t.greeting({ name })}</h2>
+      <p>{t.orderSummary({ count })}</p>
+      <div>
+        <button>{t.actions.proceed()}</button>
+        <button>{t.actions.cancel()}</button>
+      </div>
+    </div>
+  );
 }
 ```
 
@@ -82,16 +85,19 @@ function CheckoutComponent({ name, count }) {
 The `lang-tag` ecosystem provides tooling to transform colocated definitions into production-ready translation files:
 
 **Collection & Organization**
+
 - The `lang-tag collect` command discovers translation tags throughout your codebase
 - Translations are organized into namespace-based JSON files (e.g., `public/locales/en/orders.json`)
 - Hierarchical key structures can be automatically generated based on configuration rules (eg.: based on component paths)
 
 **Dynamic Configuration Management**
+
 - Configuration parameters can be automatically generated using `onConfigGeneration` rules
 - Namespace and path assignments can be derived from custom logic (eg.: by file structure, component location)
 - The `lang-tag regenerate-tags` command updates source code configurations dynamically
 
 **Development-Time Optimization**
+
 - Watch mode (`lang-tag watch`) provides real-time translation collection during development
 - Changes to translation definitions trigger automatic regeneration of translation files
 - Full TypeScript integration ensures compile-time validation of translation keys and parameters
@@ -99,16 +105,19 @@ The `lang-tag` ecosystem provides tooling to transform colocated definitions int
 ### Enterprise Integration Capabilities
 
 **Framework Agnostic Architecture**
+
 - Core library provides building blocks (like `createCallableTranslations`) for creating custom tag functions
 - Seamless integration with existing i18n libraries (i18next, react-i18next, etc.)
 - Maintains compatibility with current translation workflows while enhancing developer experience
 
 **Library Ecosystem Support**
+
 - Component libraries can embed translations using `.lang-tag.exports.json` manifests
 - The `lang-tag import` command automatically discovers and integrates library translations
 - Consuming applications maintain full control over translation overrides and customization
 
 **Type-Safe Translation Experience**
+
 - Complete TypeScript support with IntelliSense for all translation keys
 - Compile-time validation of interpolation parameters
 - Callable translation objects provide intuitive API with full type inference

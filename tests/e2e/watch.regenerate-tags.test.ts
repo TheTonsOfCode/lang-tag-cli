@@ -1,32 +1,43 @@
-import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it} from 'vitest';
-import {execSync, spawn} from 'child_process';
-import {existsSync, mkdirSync, readFileSync, writeFileSync} from 'fs';
-import {join} from 'path';
+import process from 'node:process';
+
+import { execSync, spawn } from 'child_process';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { join } from 'path';
 import {
-    clearPreparedMainProjectBase,
-    clearTestsEnvironment,
-    copyPreparedMainProjectBase,
-    prepareMainProjectBase,
-    TESTS_TEST_DIR as _TESTS_TEST_DIR
-} from "./utils.ts";
-import {CONFIG_FILE_NAME} from '@/core/constants.ts';
-import process from "node:process";
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from 'vitest';
+
+import { CONFIG_FILE_NAME } from '@/core/constants';
+
+import {
+  TESTS_TEST_DIR as _TESTS_TEST_DIR,
+  clearPreparedMainProjectBase,
+  clearTestsEnvironment,
+  copyPreparedMainProjectBase,
+  prepareMainProjectBase,
+} from './utils';
 
 const SUFFIX = 'watch-regenerate-tags';
-const TESTS_TEST_DIR = _TESTS_TEST_DIR + "-" + SUFFIX;
+const TESTS_TEST_DIR = _TESTS_TEST_DIR + '-' + SUFFIX;
 
 describe('watch command e2e tests', () => {
-    beforeAll(() => {
-        prepareMainProjectBase(SUFFIX);
-    });
+  beforeAll(() => {
+    prepareMainProjectBase(SUFFIX);
+  });
 
-    beforeEach(() => {
-        clearTestsEnvironment(SUFFIX);
-        mkdirSync(TESTS_TEST_DIR, {recursive: true});
-        copyPreparedMainProjectBase(SUFFIX);
+  beforeEach(() => {
+    clearTestsEnvironment(SUFFIX);
+    mkdirSync(TESTS_TEST_DIR, { recursive: true });
+    copyPreparedMainProjectBase(SUFFIX);
 
-        // Create basic configuration
-        const configContent = `
+    // Create basic configuration
+    const configContent = `
 const config = {
     includes: ['src/**/*.{js,ts,jsx,tsx}', 'app/components/**/*.{js,ts}'],
     excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
@@ -38,29 +49,27 @@ const config = {
     }
 };
 module.exports = config;`;
-        writeFileSync(join(TESTS_TEST_DIR, CONFIG_FILE_NAME), configContent);
+    writeFileSync(join(TESTS_TEST_DIR, CONFIG_FILE_NAME), configContent);
 
-        // Create source directory and lang tag definition
-        const srcDir = join(TESTS_TEST_DIR, 'src');
-        mkdirSync(srcDir, {recursive: true});
+    // Create source directory and lang tag definition
+    const srcDir = join(TESTS_TEST_DIR, 'src');
+    mkdirSync(srcDir, { recursive: true });
 
-        const langTagDefinition = `
+    const langTagDefinition = `
     export function lang(translations: any, options: any) {
         return translations;
     }
 `;
-        writeFileSync(join(srcDir, 'lang-tag.ts'), langTagDefinition);
-    });
+    writeFileSync(join(srcDir, 'lang-tag.ts'), langTagDefinition);
+  });
 
-    afterEach(() => {
-        clearTestsEnvironment(SUFFIX);
-    });
+  afterEach(() => {
+    clearTestsEnvironment(SUFFIX);
+  });
 
-    afterAll(() => {
-        clearPreparedMainProjectBase(SUFFIX);
-    });
+  afterAll(() => {
+    clearPreparedMainProjectBase(SUFFIX);
+  });
 
-
-    it('should', async () => {
-    })
+  it('should', async () => {});
 });

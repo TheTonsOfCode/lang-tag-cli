@@ -1,10 +1,11 @@
 'use client';
 
 import { Button } from 'lib1';
-import { useTranslation } from '@/i18n';
 // import i18nInstance from '@/i18n'; // No longer needed directly if i18n from hook is sufficient
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+import { useTranslation } from '@/i18n';
 
 interface HomePageProps {
   params: { locale: string };
@@ -31,7 +32,7 @@ export default function HomePage({ params }: HomePageProps) {
   };
 
   if (!isMounted) {
-    return null; 
+    return null;
   }
 
   return (
@@ -46,20 +47,22 @@ export default function HomePage({ params }: HomePageProps) {
       <div className="mt-4">
         <p>{t('currentLanguage', { lng: i18n.language })}</p>
         {i18n.language !== 'en' && (
-          <button 
-            onClick={() => changeLanguage('en')} 
-            className="mr-2 p-2 bg-green-500 text-white rounded hover:bg-green-600">
+          <button
+            onClick={() => changeLanguage('en')}
+            className="mr-2 p-2 bg-green-500 text-white rounded hover:bg-green-600"
+          >
             {t('changeToEnglish')}
           </button>
         )}
         {i18n.language !== 'pl' && (
-          <button 
-            onClick={() => changeLanguage('pl')} 
-            className="p-2 bg-red-500 text-white rounded hover:bg-red-600">
+          <button
+            onClick={() => changeLanguage('pl')}
+            className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
+          >
             {t('changeToPolish')}
           </button>
         )}
       </div>
     </div>
   );
-} 
+}

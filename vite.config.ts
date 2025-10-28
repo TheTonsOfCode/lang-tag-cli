@@ -1,17 +1,17 @@
+import { resolve } from 'pathe';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-import { resolve } from 'pathe';
 
 export default defineConfig({
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src')
-    }
+      '@': resolve(__dirname, 'src'),
+    },
   },
   build: {
     lib: {
       entry: {
-        'index': resolve(__dirname, 'src/index.ts'),
+        index: resolve(__dirname, 'src/index.ts'),
         'algorithms/index': resolve(__dirname, 'src/algorithms/index.ts'),
       },
       formats: ['es', 'cjs'],
@@ -20,7 +20,7 @@ export default defineConfig({
           return `${entryName}.js`;
         }
         return `${entryName}.cjs`;
-      }
+      },
     },
     rollupOptions: {
       external: [
@@ -46,20 +46,20 @@ export default defineConfig({
         'events',
         'util',
         'os',
-        'chokidar'
+        'chokidar',
       ],
       output: [
         { format: 'es', chunkFileNames: 'chunks/[name].js' },
-        { format: 'cjs', chunkFileNames: 'chunks/[name].cjs' }
-      ]
+        { format: 'cjs', chunkFileNames: 'chunks/[name].cjs' },
+      ],
     },
     target: 'node18',
-    minify: false
+    minify: false,
   },
   plugins: [
     dts({
-      include: ["src/type.ts", "src/logger.ts", "src/algorithms/**/*.ts"],
+      include: ['src/type.ts', 'src/logger.ts', 'src/algorithms/**/*.ts'],
       // include: ['src/**/*.ts'],
-    })
-  ]
+    }),
+  ],
 });

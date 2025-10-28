@@ -11,14 +11,18 @@ For example, if your translation library expects keys like `product` for plurali
 ```ts
 // src/utils/i18n-tag.ts (example of your custom tag)
 import {
-  LangTagTranslationsConfig,
   LangTagTranslations,
+  LangTagTranslationsConfig,
+  TranslationKeyProcessor,
+  // For typing the processKey function
+  TranslationKeyProcessorContext,
+  // For typing the context passed to processKey
   createCallableTranslations,
   defaultTranslationTransformer,
-  TranslationKeyProcessor, // For typing the processKey function
-  TranslationKeyProcessorContext // For typing the context passed to processKey
-} from "lang-tag";
-import { useTranslation } from 'react-i18next'; // Assuming integration with react-i18next
+} from 'lang-tag';
+import { useTranslation } from 'react-i18next';
+
+// Assuming integration with react-i18next
 
 export function i18n<T extends LangTagTranslations>(
   translations: T,
@@ -36,7 +40,14 @@ export function i18n<T extends LangTagTranslations>(
     // Example: if key is "product_other", create a "product" key.
     // The actual translation value for "product" will be taken from "product_other".
     // This assumes your i18next (or similar) setup handles plural forms based on the base key + count.
-    if (key.endsWith('_one') || key.endsWith('_other') || key.endsWith('_many') || key.endsWith('_zero') || key.endsWith('_two') || key.endsWith('_few')) {
+    if (
+      key.endsWith('_one') ||
+      key.endsWith('_other') ||
+      key.endsWith('_many') ||
+      key.endsWith('_zero') ||
+      key.endsWith('_two') ||
+      key.endsWith('_few')
+    ) {
       const baseKey = key.substring(0, key.lastIndexOf('_'));
       // We need the original string value associated with `key` to pass to `addProcessedKey`.
       // This example assumes `addProcessedKey` can access it or it's passed correctly.
@@ -72,8 +83,8 @@ export function i18n<T extends LangTagTranslations>(
       if (key.endsWith('_plural')) {
         const baseName = key.substring(0, key.lastIndexOf('_plural'));
         // The `addProcessedKey` in `transformTranslationsToFunctions` gets `originalValue` from the loop.
-        addProcessedKey(baseName, "referencing_plural_form"); // The value here needs to be the actual string of `key`
-                                                           // The current `addProcessedKey` in my refactor of `index.ts` passes the correct value.
+        addProcessedKey(baseName, 'referencing_plural_form'); // The value here needs to be the actual string of `key`
+        // The current `addProcessedKey` in my refactor of `index.ts` passes the correct value.
       }
       // Add the original key too, so `t.message_plural()` also works.
       // (The refactored `transformTranslationsToFunctions` adds the original key by default if not added by processKey)
@@ -86,16 +97,16 @@ export function i18n<T extends LangTagTranslations>(
     // Example: direct key access (mainly for non-React contexts or to get raw keys)
     raw: createCallableTranslations(translations, config, {
       transform: defaultTranslationTransformer,
-      processKey: keyProcessor
+      processKey: keyProcessor,
     }),
     // Example: integration with react-i18next
     useT: () => {
       const { t } = useTranslation(config?.namespace || '');
       return createCallableTranslations(translations, config, {
         transform: ({ path, params }) => t(path, params), // `path` is the fully resolved key path
-        processKey: keyProcessor // Apply the same key processing logic
+        processKey: keyProcessor, // Apply the same key processing logic
       });
-    }
+    },
   };
 }
 ```
@@ -106,14 +117,17 @@ Assuming `processKey` is set up to alias `product_other` to `product`:
 
 ```tsx
 // Define translations with plural forms that your `processKey` understands
-const translations = i18n({
-  product_one: "{{count}} product",
-  product_other: "{{count}} products" // This might be aliased to 'product' by processKey
-}, { namespace: 'shop' });
+const translations = i18n(
+  {
+    product_one: '{{count}} product',
+    product_other: '{{count}} products', // This might be aliased to 'product' by processKey
+  },
+  { namespace: 'shop' }
+);
 
 function ProductCount({ count }: { count: number }) {
   const t = translations.useT(); // Get the i18next integrated t-function object
-  
+
   // If processKey aliased product_other to product, and react-i18next is configured for pluralization:
   // Calling t.product({ count }) could potentially work if i18next resolves it.
   // Or, if processKey simply created t.product() as an alias for t.product_other():
@@ -135,7 +149,8 @@ function ProductCount({ count }: { count: number }) {
   // How these are used with i18next plural rules depends on your i18next setup.
 }
 ```
-*The `processKey` functionality is powerful for advanced key transformations. The example above is illustrative; real-world pluralization often relies heavily on the i18n library's specific conventions (e.g., `i18next` looking for `_plural`, `_0`, `_1` suffixes based on a base key). `processKey` can help bridge gaps or implement custom schemes.*
+
+_The `processKey` functionality is powerful for advanced key transformations. The example above is illustrative; real-world pluralization often relies heavily on the i18n library's specific conventions (e.g., `i18next` looking for `_plural`, `_0`, `_1` suffixes based on a base key). `processKey` can help bridge gaps or implement custom schemes._
 
 ## Custom Configuration Extensions
 
@@ -145,7 +160,7 @@ Example: Adding `debugMode` and `manual` flags (as seen in CLI Usage docs for `o
 
 ```ts
 // src/types/app-i18n-config.ts
-import { LangTagTranslationsConfig } from "lang-tag";
+import { LangTagTranslationsConfig } from 'lang-tag';
 
 // Define your custom interface, extending the base type
 export interface MyAppTranslationsConfig extends LangTagTranslationsConfig {
@@ -156,17 +171,24 @@ export interface MyAppTranslationsConfig extends LangTagTranslationsConfig {
 
 ```ts
 // src/utils/i18n-tag.ts (your custom tag definition)
-import { LangTagTranslations, createCallableTranslations, defaultTranslationTransformer } from "lang-tag";
-import { MyAppTranslationsConfig } from "../types/app-i18n-config"; // Import your custom config type
+import {
+  LangTagTranslations,
+  createCallableTranslations,
+  defaultTranslationTransformer,
+} from 'lang-tag';
+
+import { MyAppTranslationsConfig } from '../types/app-i18n-config';
+
+// Import your custom config type
 
 export function i18n<T extends LangTagTranslations>(
   translations: T,
   config?: MyAppTranslationsConfig // Use the extended interface here
 ) {
   if (config?.debugMode) {
-    console.log("Lang-tag i18n (debug mode ON):", {
+    console.log('Lang-tag i18n (debug mode ON):', {
       translations,
-      config
+      config,
     });
   }
 
@@ -175,11 +197,11 @@ export function i18n<T extends LangTagTranslations>(
   if (config?.manual && config.path?.startsWith('!')) {
     effectivePath = config.path.substring(1); // Strip '!' if manual
   }
-  
+
   const finalConfig = { ...config, path: effectivePath };
 
   return createCallableTranslations(translations, finalConfig, {
-    transform: defaultTranslationTransformer
+    transform: defaultTranslationTransformer,
     // You could also make the transform function behave differently based on `config` flags
   });
 }
@@ -192,15 +214,15 @@ export function i18n<T extends LangTagTranslations>(
 import { i18n } from '../utils/i18n-tag';
 
 const translations = i18n(
-  { title: "My Component Title" }, 
-  { 
-    namespace: 'myFeature', 
+  { title: 'My Component Title' },
+  {
+    namespace: 'myFeature',
     path: '!myComponentPath', // Manual path, starts with '!'
-    debugMode: true, 
-    manual: true 
+    debugMode: true,
+    manual: true,
   }
 );
 
 // console output from i18n function due to debugMode: true
 // translations.title() will use the path 'myComponentPath' (without '!') if handled by the tag.
-``` 
+```
