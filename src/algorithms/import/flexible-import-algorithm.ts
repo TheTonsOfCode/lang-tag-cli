@@ -132,11 +132,34 @@ export interface FlexibleImportAlgorithmOptions {
     filePath?: FilePathOptions;
 
     /**
+     * Inclusion rules for filtering imports.
+     * If undefined, all packages and namespaces are processed.
+     * If defined, only matching packages and namespaces are processed.
+     */
+    include?: {
+        /**
+         * List of package name patterns to include from import.
+         * Supports wildcards with * (e.g., '@company/*', 'ui-*')
+         * @default undefined (include all)
+         */
+        packages?: string[];
+
+        /**
+         * List of namespace patterns to include from import.
+         * Supports wildcards with * (e.g., 'ui.*', '*.common')
+         * @default undefined (include all)
+         */
+        namespaces?: string[];
+    };
+
+    /**
      * Exclusion rules for filtering imports.
+     * Applied after inclusion rules.
      */
     exclude?: {
         /**
-         * List of package names to exclude from import.
+         * List of package name patterns to exclude from import.
+         * Supports wildcards with * (e.g., '@company/*', 'ui-*')
          * @default []
          */
         packages?: string[];
@@ -219,8 +242,12 @@ export interface FlexibleImportAlgorithmOptions {
  *         scopedPackageHandling: 'remove-scope', // '@scope/package' -> 'package'
  *         case: 'kebab' // 'package.ts' -> 'package.ts' (no change), 'my-file.ts' -> 'my-file.ts'
  *       },
+ *       include: {
+ *         packages: ['@company/*', 'ui-*'],
+ *         namespaces: ['ui.*', '*.common']
+ *       },
  *       exclude: {
- *         packages: ['internal-lib'],
+ *         packages: ['@company/internal-*'],
  *         namespaces: ['admin.*', '*.internal']
  *       }
  *     })
@@ -234,10 +261,12 @@ export function flexibleImportAlgorithm(
     const {
         variableName = {},
         filePath = {},
+        include,
         exclude = {},
         configRemap
     } = options;
 
+    const { packages: includePackages, namespaces: includeNamespaces } = include || {};
     const { packages: excludePackages = [], namespaces: excludeNamespaces = [] } = exclude;
 
     return (event: LangTagCLIImportEvent) => {
@@ -246,7 +275,12 @@ export function flexibleImportAlgorithm(
         for (const { packageJSON, exportData } of exports) {
             const packageName = packageJSON.name || 'unknown-package';
             
-            if (excludePackages.includes(packageName)) {
+            if (includePackages && !matchesAnyPattern(packageName, includePackages)) {
+                logger.debug(`Skipping package not in include list: ${packageName}`);
+                continue;
+            }
+            
+            if (matchesAnyPattern(packageName, excludePackages)) {
                 logger.debug(`Skipping excluded package: ${packageName}`);
                 continue;
             }
@@ -262,7 +296,13 @@ export function flexibleImportAlgorithm(
                     const tag = file.tags[i];
                     
                     const tagNamespace = (tag.config as any)?.namespace;
-                    if (tagNamespace && isNamespaceExcluded(tagNamespace, excludeNamespaces)) {
+                    
+                    if (includeNamespaces && tagNamespace && !matchesAnyPattern(tagNamespace, includeNamespaces)) {
+                        logger.debug(`Skipping namespace not in include list: ${tagNamespace}`);
+                        continue;
+                    }
+                    
+                    if (tagNamespace && matchesAnyPattern(tagNamespace, excludeNamespaces)) {
                         logger.debug(`Skipping excluded namespace: ${tagNamespace}`);
                         continue;
                     }
@@ -500,9 +540,9 @@ function applyCaseTransformToFileName(fileName: string, caseType: CaseType): str
 }
 
 /**
- * Checks if a namespace matches any of the exclusion patterns.
- * Supports wildcards with * (e.g., 'admin.*', '*.internal')
+ * Checks if a string matches any of the given patterns using micromatch.
+ * Supports glob patterns with * (e.g., '@company/*', 'ui-*', 'ui.*', '*.common')
  */
-function isNamespaceExcluded(namespace: string, excludePatterns: string[]): boolean {
-    return micromatch.isMatch(namespace, excludePatterns);
+function matchesAnyPattern(str: string, patterns: string[]): boolean {
+    return micromatch.isMatch(str, patterns);
 }

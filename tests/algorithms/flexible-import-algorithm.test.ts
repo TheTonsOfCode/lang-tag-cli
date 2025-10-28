@@ -795,6 +795,445 @@ describe('flexibleImportAlgorithm', () => {
         });
     });
 
+    describe('Inclusion options', () => {
+        it('should include only specified packages', () => {
+            const exports = [
+                createMockExportData('allowed-package', [
+                    {
+                        relativeFilePath: 'common.ts',
+                        tags: [createMockTag('greeting')]
+                    }
+                ]),
+                createMockExportData('excluded-package', [
+                    {
+                        relativeFilePath: 'common.ts',
+                        tags: [createMockTag('farewell')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true); // Enable debug
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    packages: ['allowed-package']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(1);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+                variableName: 'greeting'
+            }));
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: excluded-package');
+        });
+
+        it('should include only specified namespaces', () => {
+            const exports = [
+                createMockExportData('package1', [
+                    {
+                        relativeFilePath: 'common.ts',
+                        tags: [
+                            createMockTag('greeting', { hello: 'Hello' }, { namespace: 'common' }),
+                            createMockTag('admin_action', { action: 'Action' }, { namespace: 'admin.user' }),
+                            createMockTag('internal_util', { util: 'Util' }, { namespace: 'internal' })
+                        ]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true); // Enable debug
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    namespaces: ['common', 'admin.*']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+                variableName: 'greeting'
+            }));
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+                variableName: 'admin_action'
+            }));
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping namespace not in include list: internal');
+        });
+
+        it('should handle wildcard package patterns', () => {
+            const exports = [
+                createMockExportData('@company/ui-button', [
+                    {
+                        relativeFilePath: 'button.ts',
+                        tags: [createMockTag('primary')]
+                    }
+                ]),
+                createMockExportData('@company/ui-input', [
+                    {
+                        relativeFilePath: 'input.ts',
+                        tags: [createMockTag('text')]
+                    }
+                ]),
+                createMockExportData('@company/utils-helpers', [
+                    {
+                        relativeFilePath: 'helpers.ts',
+                        tags: [createMockTag('format')]
+                    }
+                ]),
+                createMockExportData('other-package', [
+                    {
+                        relativeFilePath: 'other.ts',
+                        tags: [createMockTag('other')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true); // Enable debug
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    packages: ['@company/ui-*']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('button.ts', expect.objectContaining({
+                variableName: 'primary'
+            }));
+            expect(event.importManager.importTag).toHaveBeenCalledWith('input.ts', expect.objectContaining({
+                variableName: 'text'
+            }));
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: @company/utils-helpers');
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: other-package');
+        });
+
+        it('should handle wildcard namespace patterns', () => {
+            const exports = [
+                createMockExportData('package1', [
+                    {
+                        relativeFilePath: 'common.ts',
+                        tags: [
+                            createMockTag('greeting', { hello: 'Hello' }, { namespace: 'ui.common' }),
+                            createMockTag('button', { text: 'Button' }, { namespace: 'ui.components' }),
+                            createMockTag('admin_user', { user: 'User' }, { namespace: 'admin.user' }),
+                            createMockTag('admin_settings', { settings: 'Settings' }, { namespace: 'admin.settings' }),
+                            createMockTag('internal_util', { util: 'Util' }, { namespace: 'internal.util' })
+                        ]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true); // Enable debug
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    namespaces: ['ui.*', 'admin.*']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(4);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+                variableName: 'greeting'
+            }));
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+                variableName: 'button'
+            }));
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+                variableName: 'admin_user'
+            }));
+            expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
+                variableName: 'admin_settings'
+            }));
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping namespace not in include list: internal.util');
+        });
+
+        it('should combine include and exclude patterns', () => {
+            const exports = [
+                createMockExportData('@company/ui-button', [
+                    {
+                        relativeFilePath: 'button.ts',
+                        tags: [
+                            createMockTag('primary', { text: 'Primary' }, { namespace: 'ui.common' }),
+                            createMockTag('admin_button', { text: 'Admin Button' }, { namespace: 'admin.ui' })
+                        ]
+                    }
+                ]),
+                createMockExportData('@company/ui-input', [
+                    {
+                        relativeFilePath: 'input.ts',
+                        tags: [
+                            createMockTag('text', { text: 'Text' }, { namespace: 'ui.common' }),
+                            createMockTag('admin_input', { text: 'Admin Input' }, { namespace: 'admin.ui' })
+                        ]
+                    }
+                ]),
+                createMockExportData('@company/internal-lib', [
+                    {
+                        relativeFilePath: 'internal.ts',
+                        tags: [
+                            createMockTag('secret', { text: 'Secret' }, { namespace: 'internal' })
+                        ]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true); // Enable debug
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    packages: ['@company/ui-*']
+                },
+                exclude: {
+                    namespaces: ['admin.*']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.importManager.importTag).toHaveBeenCalledWith('button.ts', expect.objectContaining({
+                variableName: 'primary'
+            }));
+            expect(event.importManager.importTag).toHaveBeenCalledWith('input.ts', expect.objectContaining({
+                variableName: 'text'
+            }));
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: @company/internal-lib');
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping excluded namespace: admin.ui');
+        });
+    });
+
+    describe('Pattern matching (matchesAnyPattern)', () => {
+        it('should match exact package names', () => {
+            const exports = [
+                createMockExportData('exact-match', [
+                    {
+                        relativeFilePath: 'test.ts',
+                        tags: [createMockTag('test')]
+                    }
+                ]),
+                createMockExportData('no-match', [
+                    {
+                        relativeFilePath: 'test.ts',
+                        tags: [createMockTag('test')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true);
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    packages: ['exact-match']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(1);
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: no-match');
+        });
+
+        it('should match wildcard patterns for packages', () => {
+            const exports = [
+                createMockExportData('ui-button', [
+                    {
+                        relativeFilePath: 'button.ts',
+                        tags: [createMockTag('button')]
+                    }
+                ]),
+                createMockExportData('ui-input', [
+                    {
+                        relativeFilePath: 'input.ts',
+                        tags: [createMockTag('input')]
+                    }
+                ]),
+                createMockExportData('utils-helpers', [
+                    {
+                        relativeFilePath: 'helpers.ts',
+                        tags: [createMockTag('helpers')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true);
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    packages: ['ui-*']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: utils-helpers');
+        });
+
+        it('should match scoped package patterns', () => {
+            const exports = [
+                createMockExportData('@company/ui-button', [
+                    {
+                        relativeFilePath: 'button.ts',
+                        tags: [createMockTag('button')]
+                    }
+                ]),
+                createMockExportData('@company/utils-helpers', [
+                    {
+                        relativeFilePath: 'helpers.ts',
+                        tags: [createMockTag('helpers')]
+                    }
+                ]),
+                createMockExportData('@other/ui-button', [
+                    {
+                        relativeFilePath: 'button.ts',
+                        tags: [createMockTag('button')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true);
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    packages: ['@company/*']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: @other/ui-button');
+        });
+
+        it('should match namespace patterns with dots', () => {
+            const exports = [
+                createMockExportData('package1', [
+                    {
+                        relativeFilePath: 'test.ts',
+                        tags: [
+                            createMockTag('ui_common', { text: 'UI Common' }, { namespace: 'ui.common' }),
+                            createMockTag('ui_components', { text: 'UI Components' }, { namespace: 'ui.components' }),
+                            createMockTag('admin_user', { text: 'Admin User' }, { namespace: 'admin.user' }),
+                            createMockTag('internal_util', { text: 'Internal Util' }, { namespace: 'internal.util' })
+                        ]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true);
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    namespaces: ['ui.*']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping namespace not in include list: admin.user');
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping namespace not in include list: internal.util');
+        });
+
+        it('should handle multiple patterns in include', () => {
+            const exports = [
+                createMockExportData('ui-button', [
+                    {
+                        relativeFilePath: 'button.ts',
+                        tags: [createMockTag('button')]
+                    }
+                ]),
+                createMockExportData('utils-helpers', [
+                    {
+                        relativeFilePath: 'helpers.ts',
+                        tags: [createMockTag('helpers')]
+                    }
+                ]),
+                createMockExportData('other-lib', [
+                    {
+                        relativeFilePath: 'other.ts',
+                        tags: [createMockTag('other')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true);
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    packages: ['ui-*', 'utils-*']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: other-lib');
+        });
+
+        it('should handle empty patterns array', () => {
+            const exports = [
+                createMockExportData('package1', [
+                    {
+                        relativeFilePath: 'test.ts',
+                        tags: [createMockTag('test')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true);
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    packages: []
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(0);
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: package1');
+        });
+
+        it('should handle complex wildcard patterns', () => {
+            const exports = [
+                createMockExportData('@company/ui-button-v2', [
+                    {
+                        relativeFilePath: 'button.ts',
+                        tags: [createMockTag('button')]
+                    }
+                ]),
+                createMockExportData('@company/ui-input-v1', [
+                    {
+                        relativeFilePath: 'input.ts',
+                        tags: [createMockTag('input')]
+                    }
+                ]),
+                createMockExportData('@company/utils-helpers-v3', [
+                    {
+                        relativeFilePath: 'helpers.ts',
+                        tags: [createMockTag('helpers')]
+                    }
+                ]),
+                createMockExportData('@other/ui-button-v2', [
+                    {
+                        relativeFilePath: 'button.ts',
+                        tags: [createMockTag('button')]
+                    }
+                ])
+            ];
+
+            const event = createMockEvent(exports, true);
+            const algorithm = flexibleImportAlgorithm({
+                include: {
+                    packages: ['@company/ui-*-v*']
+                }
+            });
+            
+            algorithm(event);
+
+            expect(event.importManager.importTag).toHaveBeenCalledTimes(2);
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: @company/utils-helpers-v3');
+            expect(event.logger.debug).toHaveBeenCalledWith('Skipping package not in include list: @other/ui-button-v2');
+        });
+    });
+
     describe('Complex scenarios', () => {
         it('should handle multiple packages with different configurations', () => {
             const exports = [
