@@ -27,10 +27,6 @@ export interface InitAnswers {
 }
 
 export function getDefaultAnswers(): InitAnswers {
-    const detectedDirectories = detectProjectDirectories();
-    const includeDirectories =
-        detectedDirectories.length > 0 ? [detectedDirectories[0]] : ['src'];
-
     return {
         projectType: 'project',
         tagName: 'lang',
@@ -47,7 +43,7 @@ export function getDefaultAnswers(): InitAnswers {
         },
         importLibraries: true,
         interfereWithCollection: false,
-        includeDirectories,
+        includeDirectories: ['src'],
         baseLanguageCode: 'en',
         addCommentGuides: false,
     };
