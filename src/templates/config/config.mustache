@@ -40,7 +40,9 @@ const config = {
 {{/isLibrary}}
     includes: [{{includes}}],
     excludes: [{{excludes}}],
+{{^isLibrary}}
     localesDirectory: '{{localesDirectory}}',
+{{/isLibrary}}
     baseLanguageCode: '{{baseLanguageCode}}',
 {{#hasConfigGeneration}}
 {{#usePathBased}}

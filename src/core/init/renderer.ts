@@ -127,8 +127,7 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
         hasConfigGeneration &&
         answers.configGeneration.useAlgorithm === 'custom';
 
-    const needsTagName =
-        answers.tagName !== 'lang' && answers.projectType === 'library';
+    const needsTagName = answers.tagName !== 'lang';
 
     const useKeeper = answers.configGeneration.keepVariables || false;
     const isDictionary = answers.collectorType === 'dictionary';
