@@ -1,19 +1,31 @@
-{{#addComments}}/**
+/**
  * Lang Tag CLI Configuration
  * 
  * This file was generated. You can modify it to customize your translation workflow.
  * Documentation: https://github.com/TheTonsOfCode/lang-tag-cli
  */
 
-{{/addComments}}
-{{#needsPathBasedImport}}{{#isCJS}}const { pathBasedConfigGenerator{{#useKeeper}}, configKeeper{{/useKeeper}} } = require('@lang-tag/cli/algorithms');{{/isCJS}}{{^isCJS}}import { pathBasedConfigGenerator{{#useKeeper}}, configKeeper{{/useKeeper}} } from '@lang-tag/cli/algorithms';{{/isCJS}}
+{{#isCJS}}const{{/isCJS}}{{^isCJS}}import{{/isCJS}} {
+{{#needsPathBasedImport}}
+    pathBasedConfigGenerator,
 {{/needsPathBasedImport}}
-{{#isDictionary}}{{#isCJS}}const { DictionaryCollector } = require('@lang-tag/cli/algorithms');{{/isCJS}}{{^isCJS}}import { DictionaryCollector } from '@lang-tag/cli/algorithms';{{/isCJS}}
+{{#useKeeper}}
+    configKeeper,
+{{/useKeeper}}
+{{#isDictionary}}
+    DictionaryCollector,
 {{/isDictionary}}
-{{#importLibraries}}{{#isCJS}}const { flexibleImportAlgorithm } = require('@lang-tag/cli/algorithms');{{/isCJS}}{{^isCJS}}import { flexibleImportAlgorithm } from '@lang-tag/cli/algorithms';{{/isCJS}}
+{{#importLibraries}}
+    flexibleImportAlgorithm,
 {{/importLibraries}}
-{{#needsPathBasedImport}}{{>generation-algorithm}}
-{{#useKeeper}}const keeper = configKeeper({ propertyName: 'keep' });
+} {{#isCJS}}= require('@lang-tag/cli/algorithms');{{/isCJS}}{{^isCJS}}from '@lang-tag/cli/algorithms';{{/isCJS}}
+{{#needsPathBasedImport}}
+
+{{>generation-algorithm}}
+
+{{#useKeeper}}
+const keeper = configKeeper({ propertyName: 'keep' });
+
 {{/useKeeper}}
 {{/needsPathBasedImport}}
 /** @type {import('@lang-tag/cli/type').LangTagCLIConfig} */
@@ -24,7 +36,9 @@ const config = {
     excludes: [{{excludes}}],
     localesDirectory: '{{localesDirectory}}',
     baseLanguageCode: '{{baseLanguageCode}}',
-{{#hasConfigGeneration}}{{#usePathBased}}    onConfigGeneration: async event => {
+{{#hasConfigGeneration}}
+{{#usePathBased}}
+    onConfigGeneration: async event => {
         // We do not modify imported configurations
         if (event.isImportedLibrary) return;
 {{#useKeeper}}
@@ -32,10 +46,14 @@ const config = {
         if (event.config?.keep === 'both') return;
 {{/useKeeper}}
         
-        await generationAlgorithm(event);{{#useKeeper}}
-        await keeper(event);{{/useKeeper}}
+        await generationAlgorithm(event);
+{{#useKeeper}}
+        await keeper(event);
+{{/useKeeper}}
     },
-{{/usePathBased}}{{#useCustom}}    onConfigGeneration: async event => {
+{{/usePathBased}}
+{{#useCustom}}
+    onConfigGeneration: async event => {
         // We do not modify imported configurations
         if (event.isImportedLibrary) return;
 
@@ -45,14 +63,22 @@ const config = {
         //     path: 'your.path'
         // };
     },
-{{/useCustom}}{{/hasConfigGeneration}}{{#showConfigGenerationComment}}    // onConfigGeneration: async event => {
+{{/useCustom}}
+{{/hasConfigGeneration}}
+{{#showConfigGenerationComment}}
+    // onConfigGeneration: async event => {
     //     // Configure how tag configs are generated
     //     // See documentation for available algorithms
     // },
-{{/showConfigGenerationComment}}    collect: {
-{{#isDictionary}}        collector: new DictionaryCollector(),
-{{/isDictionary}}{{^isDictionary}}        defaultNamespace: '{{defaultNamespace}}',
-{{/isDictionary}}        onConflictResolution: async event => {
+{{/showConfigGenerationComment}}
+    collect: {
+{{#isDictionary}}
+        collector: new DictionaryCollector(),
+{{/isDictionary}}
+{{^isDictionary}}
+        defaultNamespace: '{{defaultNamespace}}',
+{{/isDictionary}}
+        onConflictResolution: async event => {
             await event.logger.conflict(event.conflict, true);
             // By default, continue processing even if conflicts occur
             // Call event.exit(); to terminate the process upon the first conflict
@@ -61,17 +87,21 @@ const config = {
             if (event.conflicts.length) event.exit(); // Stop the process to avoid merging on conflict
         }
     },
-{{#importLibraries}}    import: {
+{{#importLibraries}}
+    import: {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { {{tagName}} } from "@/my-lang-tag-path"',
         onImport: flexibleImportAlgorithm({ filePath: { includePackageInPath: true } })
     },
-{{/importLibraries}}{{#showImportComment}}    // import: {
+{{/importLibraries}}
+{{#showImportComment}}
+    // import: {
     //     dir: 'src/lang-libraries',
     //     tagImportPath: 'import { {{tagName}} } from "@/my-lang-tag-path"',
     //     onImport: flexibleImportAlgorithm({ filePath: { includePackageInPath: true } })
     // },
-{{/showImportComment}}    translationArgPosition: 1,
+{{/showImportComment}}
+    translationArgPosition: 1,
     debug: false,
 };
 
