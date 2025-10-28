@@ -30,6 +30,9 @@
 
 {{/needsPathBasedImport}}
 {{#useKeeper}}
+{{#addComments}}
+// Preserves tags marked with keep property. Example: {{tagName}}({ text: 'text'}, { namespace: 'custom', keep: 'namespace' })
+{{/addComments}}
     const keeper = configKeeper({ propertyName: 'keep' });
 
 {{/useKeeper}}
@@ -41,14 +44,31 @@ const config = {
 {{#isLibrary}}
     isLibrary: true,
 {{/isLibrary}}
+{{#addComments}}
+    // Directories where we’re going to look for language tags
+{{/addComments}}
     includes: [{{includes}}],
     excludes: [{{excludes}}],
 {{^isLibrary}}
     localesDirectory: '{{localesDirectory}}',
 {{/isLibrary}}
+{{#addComments}}
+    // The source translations language used in your code (e.g., 'en', 'pl')
+{{/addComments}}
     baseLanguageCode: '{{baseLanguageCode}}',
 {{#hasConfigGeneration}}
 {{#usePathBased}}
+{{#addComments}}
+    /**
+     * Automatically generates namespace/path from file location.
+     * Example: src/features/auth/LoginForm.tsx → { namespace: 'auth', path: 'loginForm' }
+     * 
+     * To customize, modify generationAlgorithm options above or add custom logic:
+     * - Change case formatting (namespaceCase, pathCase)
+     * - Ignore specific directories (ignoreDirectories)
+     * - Add path transformation rules (pathRules)
+     */
+{{/addComments}}
     onConfigGeneration: async event => {
         // We do not modify imported configurations
         if (event.isImportedLibrary) return;
@@ -63,6 +83,20 @@ const config = {
     },
 {{/usePathBased}}
 {{#useCustom}}
+{{#addComments}}
+    /**
+     * Custom hook to generate namespace/path for each tag based on file location.
+     * 
+     * Sample properties:
+     * - event.relativePath: File path relative to project root (e.g., 'src/auth/Login.tsx')
+     * - event.config: Current tag config (may be undefined or contain user-provided values)
+     * - event.save(newConfig): Save new config. Example: event.save({ namespace: 'auth', path: 'login' })
+     * 
+     * Example - generate from directory structure:
+     *   const segments = event.relativePath.split('/').slice(1, -1);
+     *   event.save({ namespace: segments[0], path: segments.slice(1).join('.') });
+     */
+{{/addComments}}
     onConfigGeneration: async event => {
         // We do not modify imported configurations
         if (event.isImportedLibrary) return;
@@ -71,10 +105,10 @@ const config = {
         if (event.config?.keep === 'both') return;
 {{/useKeeper}}
         // TODO: Implement your custom config generation logic here
-        // event.config = {
+        // event.save({
         //     namespace: 'your-namespace',
         //     path: 'your.path'
-        // };
+        // });
 {{#useKeeper}}
         await keeper(event);
 {{/useKeeper}}
@@ -84,22 +118,43 @@ const config = {
 {{#hasCollectContent}}
     collect: {
 {{#isDictionaryCollector}}
+{{#addComments}}
+        // All translations in one file per language. Change to NamespaceCollector() for separate files per namespace.
+{{/addComments}}
         collector: new DictionaryCollector(),
 {{/isDictionaryCollector}}
 {{#isModifiedNamespaceCollector}}
+{{#addComments}}
+        // Separate file per namespace (e.g., locales/en/auth.json, locales/en/dashboard.json)
+{{/addComments}}
         collector: new NamespaceCollector(),
 {{/isModifiedNamespaceCollector}}
 {{^isDictionary}}
 {{^isDefaultNamespace}}
+{{#addComments}}
+        // Tags without config or namespace in config will use this
+{{/addComments}}
         defaultNamespace: '{{defaultNamespace}}',
 {{/isDefaultNamespace}}
 {{/isDictionary}}
 {{#interfereWithCollection}}
+{{#addComments}}
+        /**
+         * Called for each duplicate key conflict (same namespace + path, different values).
+         * To stop on first conflict, call event.exit() here instead of in onCollectFinish.
+         */
+{{/addComments}}
         onConflictResolution: async event => {
             await event.logger.conflict(event.conflict, true);
             // By default, continue processing even if conflicts occur
             // Call event.exit(); to terminate the process upon the first conflict
         },
+{{#addComments}}
+        /**
+         * Called after collection completes. Check event.conflicts array to handle all conflicts.
+         * Remove this hook to allow merging despite conflicts.
+         */
+{{/addComments}}
         onCollectFinish: event => {
             if (event.conflicts.length) event.exit(); // Stop the process to avoid merging on conflict
         }
@@ -107,6 +162,14 @@ const config = {
     },
 {{/hasCollectContent}}
 {{#importLibraries}}
+{{#addComments}}
+    /**
+     * Imports translations from external libraries (node modules packages containing exported 'lang-tags.json').
+     * - dir: Where to generate import files
+     * - tagImportPath: Update path to your tag function
+     * - onImport: Controls file naming/structure (see flexibleImportAlgorithm options)
+     */
+{{/addComments}}
     import: {
         dir: 'src/lang-libraries',
         tagImportPath: 'import { {{tagName}} } from "@/my-lang-tag-path"',
