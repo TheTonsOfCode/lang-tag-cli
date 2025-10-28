@@ -41,6 +41,7 @@ export async function checkAndRegenerateFileLangTags(
 
         const event = {
             langTagConfig: config,
+            logger,
             config: frozenConfig,
             absolutePath: file,
             relativePath: path,

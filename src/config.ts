@@ -275,6 +275,8 @@ export interface LangTagCLIConfigGenerationEvent {
      */
     readonly config: Readonly<LangTagTranslationsConfig> | undefined;
 
+    readonly logger: LangTagCLILogger;
+
     readonly langTagConfig: LangTagCLIConfig
 
     /**

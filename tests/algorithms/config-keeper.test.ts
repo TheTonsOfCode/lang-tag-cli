@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { configKeeper } from '@/algorithms/config-generation/config-keeper.ts';
-import { LangTagCLIConfigGenerationEvent } from '@/config.ts';
-import { LangTagTranslationsConfig } from 'lang-tag';
+import { LangTagCLIConfigGenerationEvent, LangTagCLIConflict} from '@/config.ts';
+import {LangTagTranslationsConfig} from 'lang-tag';
 
 describe('configKeeper', () => {
     const createMockEvent = (
@@ -16,6 +16,14 @@ describe('configKeeper', () => {
             absolutePath: '/test/file.tsx',
             relativePath: 'src/test/file.tsx',
             isImportedLibrary: false,
+            logger: {
+                info: () => {},
+                success: () => {},
+                warn: () => {},
+                error: () => {},
+                debug: () => {},
+                conflict: async () => {},
+            },
             config: originalConfig,
             langTagConfig: {} as any,
             isSaved: currentIsSaved,
