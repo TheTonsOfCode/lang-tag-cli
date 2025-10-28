@@ -47,6 +47,10 @@ export default defineConfig({
         'util',
         'os',
         'chokidar'
+      ],
+      output: [
+        { format: 'es', chunkFileNames: 'chunks/[name].js' },
+        { format: 'cjs', chunkFileNames: 'chunks/[name].cjs' }
       ]
     },
     target: 'node18',
