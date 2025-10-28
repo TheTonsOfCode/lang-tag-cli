@@ -1,0 +1,193 @@
+import checkbox from '@inquirer/checkbox';
+import confirm from '@inquirer/confirm';
+import input from '@inquirer/input';
+import select from '@inquirer/select';
+
+import { detectProjectFolders } from './detect-folders';
+
+export interface InitAnswers {
+    projectType: 'project' | 'library';
+    tagName: string;
+    collectorType: 'dictionary' | 'namespace';
+    namespaceOptions?: {
+        modifyOptions: boolean;
+        defaultNamespace?: string;
+    };
+    localesDirectory: string;
+    configGeneration: {
+        enabled: boolean;
+        useAlgorithm?: 'custom' | 'path-based';
+        keepVariables?: boolean;
+    };
+    importLibraries: boolean;
+    includeDirectories: string[];
+    baseLanguageCode: string;
+    addCommentGuides: boolean;
+}
+
+export async function askProjectSetupQuestions(): Promise<InitAnswers> {
+    const projectType = await select<'project' | 'library'>({
+        message: 'Is this a project or a library?',
+        choices: [
+            {
+                name: 'Project (application that consumes translations)',
+                value: 'project',
+                description: 'For applications that use translations',
+            },
+            {
+                name: 'Library (exports translations for other projects)',
+                value: 'library',
+                description: 'For packages that provide translations',
+            },
+        ],
+    });
+
+    const tagName = await input({
+        message: 'What name would you like for your translation tag function?',
+        default: 'lang',
+    });
+
+    let collectorType: 'dictionary' | 'namespace' = 'namespace';
+    let namespaceOptions: InitAnswers['namespaceOptions'];
+    let localesDirectory = 'locales';
+
+    if (projectType === 'project') {
+        collectorType = await select<'dictionary' | 'namespace'>({
+            message: 'How would you like to collect translations?',
+            choices: [
+                {
+                    name: 'Dictionary (flat structure, all translations in one file)',
+                    value: 'dictionary',
+                    description: 'Simple flat dictionary structure',
+                },
+                {
+                    name: 'Namespace (organized by modules/features)',
+                    value: 'namespace',
+                    description: 'Organized structure with namespaces',
+                },
+            ],
+        });
+
+        if (collectorType === 'namespace') {
+            const modifyOptions = await confirm({
+                message: 'Would you like to customize namespace options?',
+                default: false,
+            });
+
+            if (modifyOptions) {
+                const defaultNamespace = await input({
+                    message:
+                        'Default namespace for tags without explicit namespace:',
+                    default: 'common',
+                });
+
+                namespaceOptions = {
+                    modifyOptions: true,
+                    defaultNamespace,
+                };
+            } else {
+                namespaceOptions = {
+                    modifyOptions: false,
+                    defaultNamespace: 'common',
+                };
+            }
+        }
+
+        localesDirectory = await input({
+            message: 'Where should the translation files be stored?',
+            default: 'public/locales',
+        });
+    } else {
+        namespaceOptions = {
+            modifyOptions: false,
+            defaultNamespace: 'common',
+        };
+    }
+
+    const enableConfigGeneration = await confirm({
+        message: 'Do you want to enable automatic config generation for tags?',
+        default: true,
+    });
+
+    let configGeneration: InitAnswers['configGeneration'] = {
+        enabled: enableConfigGeneration,
+    };
+
+    if (enableConfigGeneration) {
+        const algorithmChoice = await select<'path-based' | 'custom'>({
+            message: 'Which config generation approach would you like?',
+            choices: [
+                {
+                    name: 'Path-based (automatic based on file structure)',
+                    value: 'path-based',
+                    description:
+                        'Generates namespace and path from file location',
+                },
+                {
+                    name: 'Custom (write your own algorithm)',
+                    value: 'custom',
+                    description: 'Implement custom config generation logic',
+                },
+            ],
+        });
+
+        const keepVariables = await confirm({
+            message:
+                'Keep existing variables and protect them from overwriting?',
+            default: true,
+        });
+
+        configGeneration = {
+            enabled: true,
+            useAlgorithm: algorithmChoice,
+            keepVariables,
+        };
+    }
+
+    const importLibraries = await confirm({
+        message:
+            'Do you plan to import translation tags from external libraries?',
+        default: false,
+    });
+
+    const detectedDirectories = detectProjectFolders();
+    const includeDirectories = await checkbox({
+        message:
+            'Select directories where lang tags will be used (you can add more later):',
+        choices: detectedDirectories.map((directory) => ({
+            name: directory,
+            value: directory,
+            checked: directory === 'src' || detectedDirectories.length === 1,
+        })),
+        required: true,
+    });
+
+    const baseLanguageCode = await input({
+        message: 'Base language code:',
+        default: 'en',
+        validate: (value: string) => {
+            if (!value || value.length < 2) {
+                return 'Please enter a valid language code (e.g., en, pl, fr, de, es)';
+            }
+            return true;
+        },
+    });
+
+    const addCommentGuides = await confirm({
+        message: 'Would you like guides in comments?',
+        default: false,
+    });
+
+    return {
+        projectType,
+        tagName,
+        collectorType,
+        namespaceOptions,
+        localesDirectory,
+        configGeneration,
+        importLibraries,
+        includeDirectories,
+        baseLanguageCode,
+        addCommentGuides,
+    };
+}
