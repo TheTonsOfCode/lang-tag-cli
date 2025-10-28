@@ -1551,6 +1551,210 @@ describe('flexibleImportAlgorithm', () => {
             );
         });
 
+        it('should use customVariableName when provided', () => {
+            const mockEvent = createMockEvent([
+                createMockExportData('test-package', [
+                    {
+                        relativeFilePath: 'components/Button.ts',
+                        tags: [
+                            createMockTag('originalName', { hello: 'Hello' }, { namespace: 'ui' }),
+                            createMockTag('anotherName', { goodbye: 'Goodbye' }, { namespace: 'ui' })
+                        ]
+                    }
+                ])
+            ]);
+
+            const algorithm = flexibleImportAlgorithm({
+                variableName: {
+                    customVariableName: (context) => {
+                        // Generate custom names based on package and file
+                        const packagePrefix = context.packageName.replace('-', '');
+                        const fileBase = context.fileName.split('/').pop()?.replace('.ts', '') || 'unknown';
+                        return `${packagePrefix}_${fileBase}_${context.tagIndex + 1}`;
+                    }
+                }
+            });
+
+            algorithm(mockEvent);
+
+            expect(mockEvent.importManager.importTag).toHaveBeenCalledTimes(2);
+            
+            // First tag should have custom name
+            expect(mockEvent.importManager.importTag).toHaveBeenNthCalledWith(1,
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'testpackage_Button_1',
+                    translations: { hello: 'Hello' },
+                    config: { namespace: 'ui' }
+                })
+            );
+            
+            // Second tag should have custom name
+            expect(mockEvent.importManager.importTag).toHaveBeenNthCalledWith(2,
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'testpackage_Button_2',
+                    translations: { goodbye: 'Goodbye' },
+                    config: { namespace: 'ui' }
+                })
+            );
+        });
+
+        it('should apply transformations to customVariableName result', () => {
+            const mockEvent = createMockEvent([
+                createMockExportData('test-package', [
+                    {
+                        relativeFilePath: 'components/Button.ts',
+                        tags: [
+                            createMockTag('originalName', { hello: 'Hello' }, { namespace: 'ui' })
+                        ]
+                    }
+                ])
+            ]);
+
+            const algorithm = flexibleImportAlgorithm({
+                variableName: {
+                    customVariableName: (context) => {
+                        // Return a name that will be transformed
+                        return `custom_name_with_underscores`;
+                    },
+                    case: 'camel', // This should transform the custom name
+                    prefixWithPackageName: true, // This should add prefix
+                    sanitizeVariableName: true // This should sanitize
+                }
+            });
+
+            algorithm(mockEvent);
+
+            expect(mockEvent.importManager.importTag).toHaveBeenCalledWith(
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'testPackageCustomNameWithUnderscores', // camelCase + prefix + sanitized
+                    translations: { hello: 'Hello' },
+                    config: { namespace: 'ui' }
+                })
+            );
+        });
+
+        it('should fall back to original naming when customVariableName returns null', () => {
+            const mockEvent = createMockEvent([
+                createMockExportData('fallback-package', [
+                    {
+                        relativeFilePath: 'components/Button.ts',
+                        tags: [
+                            createMockTag('originalName', { hello: 'Hello' }, { namespace: 'ui' })
+                        ]
+                    }
+                ])
+            ]);
+
+            const algorithm = flexibleImportAlgorithm({
+                variableName: {
+                    customVariableName: (context) => {
+                        // Return null to fall back to original naming
+                        return null;
+                    }
+                }
+            });
+
+            algorithm(mockEvent);
+
+            expect(mockEvent.importManager.importTag).toHaveBeenCalledWith(
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'originalName',
+                    translations: { hello: 'Hello' },
+                    config: { namespace: 'ui' }
+                })
+            );
+        });
+
+        it('should provide correct context to customVariableName function', () => {
+            const mockEvent = createMockEvent([
+                createMockExportData('context-test', [
+                    {
+                        relativeFilePath: 'admin/User.ts',
+                        tags: [
+                            createMockTag('userName', { name: 'John' }, { namespace: 'common' })
+                        ]
+                    }
+                ])
+            ]);
+
+            const customVariableNameSpy = vi.fn((context) => context.originalVariableName);
+
+            const algorithm = flexibleImportAlgorithm({
+                variableName: {
+                    customVariableName: customVariableNameSpy
+                }
+            });
+
+            algorithm(mockEvent);
+
+            expect(customVariableNameSpy).toHaveBeenCalledWith({
+                packageName: 'context-test',
+                fileName: 'admin/User.ts',
+                originalVariableName: 'userName',
+                tagIndex: 0,
+                tag: expect.objectContaining({
+                    variableName: 'userName',
+                    translations: { name: 'John' },
+                    config: { namespace: 'common' }
+                })
+            });
+        });
+
+        it('should handle mixed custom and fallback naming', () => {
+            const mockEvent = createMockEvent([
+                createMockExportData('mixed-package', [
+                    {
+                        relativeFilePath: 'components/Button.ts',
+                        tags: [
+                            createMockTag('customName', { hello: 'Hello' }, { namespace: 'ui' }),
+                            createMockTag('fallbackName', { goodbye: 'Goodbye' }, { namespace: 'ui' })
+                        ]
+                    }
+                ])
+            ]);
+
+            const algorithm = flexibleImportAlgorithm({
+                variableName: {
+                    customVariableName: (context) => {
+                        // Use custom naming for specific variable names
+                        if (context.originalVariableName === 'customName') {
+                            return `custom_${context.tagIndex + 1}`;
+                        }
+                        // Fall back to original naming for others
+                        return null;
+                    }
+                }
+            });
+
+            algorithm(mockEvent);
+
+            expect(mockEvent.importManager.importTag).toHaveBeenCalledTimes(2);
+            
+            // First tag should have custom name
+            expect(mockEvent.importManager.importTag).toHaveBeenNthCalledWith(1,
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'custom_1',
+                    translations: { hello: 'Hello' },
+                    config: { namespace: 'ui' }
+                })
+            );
+            
+            // Second tag should have original name (fallback)
+            expect(mockEvent.importManager.importTag).toHaveBeenNthCalledWith(2,
+                'components/Button.ts',
+                expect.objectContaining({
+                    variableName: 'fallbackName',
+                    translations: { goodbye: 'Goodbye' },
+                    config: { namespace: 'ui' }
+                })
+            );
+        });
+
         it('should work without configRemap function', () => {
             const mockEvent = createMockEvent([
                 createMockExportData('no-remap', [

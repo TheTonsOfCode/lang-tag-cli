@@ -56,6 +56,35 @@ export interface VariableNameOptions {
      * @default 'auto-generate'
      */
     handleMissingVariableName?: 'skip' | 'auto-generate' | ((tag: any, packageName: string, fileName: string, index: number) => string);
+
+    /**
+     * Custom function to generate variable names, completely overriding original names from export.
+     * When provided, this function will be used instead of the original variableName from the export.
+     * 
+     * Note: The returned custom name will still be processed by all other transformations
+     * (case transformation, sanitization, prefixWithPackageName, etc.).
+     * 
+     * @param context - Context information about the import
+     * @returns The custom variable name, or null to fall back to original naming logic
+     * 
+     * @example
+     * ```typescript
+     * customVariableName: (context) => {
+     *   // Generate names based on package and file structure
+     *   const packagePrefix = context.packageName.replace('@company/', '').replace('-', '');
+     *   const fileBase = context.fileName.split('/').pop()?.replace('.ts', '') || 'unknown';
+     *   return `${packagePrefix}_${fileBase}_${context.tagIndex + 1}`;
+     *   // This will still be processed by case transformation, sanitization, etc.
+     * }
+     * ```
+     */
+    customVariableName?: (context: {
+        packageName: string;
+        fileName: string;
+        originalVariableName: string | undefined;
+        tagIndex: number;
+        tag: any;
+    }) => string | null;
 }
 
 export interface FilePathOptions {
@@ -198,24 +227,6 @@ export interface FlexibleImportAlgorithmOptions {
  *   }
  * };
  * ```
- * 
- * @example
- * ```typescript
- * // Custom function for handling missing variable names
- * export default {
- *   import: {
- *     onImport: flexibleImportAlgorithm({
- *       variableName: {
- *         handleMissingVariableName: (tag, packageName, fileName, index) => {
- *           // Generate predictable names based on package and file
- *           const baseName = fileName.replace('.ts', '');
- *           return `${packageName}_${baseName}_${index + 1}`;
- *         }
- *       }
- *     })
- *   }
- * };
- * ```
  */
 export function flexibleImportAlgorithm(
     options: FlexibleImportAlgorithmOptions = {}
@@ -256,14 +267,13 @@ export function flexibleImportAlgorithm(
                         continue;
                     }
 
-                    const finalVariableName = generateVariableName(tag.variableName, packageName, originalFileName, i, variableName);
+                    const finalVariableName = generateVariableName(tag.variableName, packageName, originalFileName, i, variableName, tag);
 
                     if (finalVariableName === null) {
                         logger.debug(`Skipping tag without variableName in ${join(packageName, originalFileName)}`);
                         continue;
                     }
 
-                    // Apply config remapping if provided
                     let finalConfig: any | null = tag.config;
                     if (configRemap) {
                         const remappedConfig = configRemap(tag.config, {
@@ -384,15 +394,31 @@ function generateVariableName(
     packageName: string,
     fileName: string,
     index: number,
-    options: VariableNameOptions
+    options: VariableNameOptions,
+    tag: any
 ): string | null {
     const { 
         prefixWithPackageName = false, 
         scopedPackageHandling = 'replace', 
         case: caseType = 'no',
         sanitizeVariableName: shouldSanitize = true,
-        handleMissingVariableName = 'auto-generate'
+        handleMissingVariableName = 'auto-generate',
+        customVariableName
     } = options;
+    
+    if (customVariableName) {
+        const customName = customVariableName({
+            packageName,
+            fileName,
+            originalVariableName,
+            tagIndex: index,
+            tag
+        });
+        
+        if (customName !== null) {
+            originalVariableName = customName;
+        }
+    }
     
     if (!originalVariableName) {
         switch (handleMissingVariableName) {
