@@ -80,7 +80,7 @@ export function i18n<T extends LangTagTranslations>(
 
 ### 2. Configure `react-i18next`
 
-Set up `react-i18next` to load translation resources. Ensure the `loadPath` in the backend configuration points to where `lang-tag` will output the JSON files (defined by `outputDir` in `.lang-tag.config.js`).
+Set up `react-i18next` to load translation resources. Ensure the `loadPath` in the backend configuration points to where `lang-tag` will output the JSON files (defined by `outputDir` in `lang-tag.config.js`).
 
 ```typescript
 // src/i18next-config.ts (or your i18next setup file)
@@ -124,12 +124,12 @@ export default i18n;
 ```
 *Remember to initialize this configuration in your application's entry point (e.g., `main.tsx`, `app.tsx`, or `_app.js`).*
 
-### 3. Configure `lang-tag` (`.lang-tag.config.js`)
+### 3. Configure `lang-tag` (`lang-tag.config.js`)
 
-Create or update your `.lang-tag.config.js` file in your project root. This tells the `lang-tag` CLI how to find your translations and where to output the generated JSON files.
+Create or update your `lang-tag.config.js` file in your project root. This tells the `lang-tag` CLI how to find your translations and where to output the generated JSON files.
 
 ```javascript
-// .lang-tag.config.js
+// lang-tag.config.js
 const path = require('path'); // Optional, if you need to resolve paths
 
 /** @type {import('lang-tag').LangTagConfig} */

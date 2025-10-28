@@ -15,8 +15,8 @@ vi.mock('url');
 
 describe('readConfig', () => {
     const projectPath = '/fake/project';
-    const expectedConfigPath = '/fake/project/.lang-tag.config.js';
-    const configUrl = 'file:///fake/project/.lang-tag.config.js';
+    const expectedConfigPath = '/fake/project/lang-tag.config.js';
+    const configUrl = 'file:///fake/project/lang-tag.config.js';
 
     beforeEach(() => {
         vi.resetAllMocks();

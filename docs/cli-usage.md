@@ -21,20 +21,20 @@ lang-tag watch # or langtag watch
 
 The `collect` command gathers all translations from your source files (identified by `tagName` in your config) and merges them into namespace-based JSON files in your `outputDir`.
 
-The `regenerate-tags` command (alias: `rt`) applies the `onConfigGeneration` function (if defined in your `.lang-tag.config.js`) to all language tags in your project, updating their configuration inline within your source files. This is useful for standardizing translation structures.
+The `regenerate-tags` command (alias: `rt`) applies the `onConfigGeneration` function (if defined in your `lang-tag.config.js`) to all language tags in your project, updating their configuration inline within your source files. This is useful for standardizing translation structures.
 
 The `watch` command monitors your source files for changes and automatically runs the `collect` process when changes related to your translation tags are detected.
 
 ## Automatic Configuration Generation (`onConfigGeneration`)
 
-The `onConfigGeneration` option in your `.lang-tag.config.js` allows you to define a function that automatically determines the `namespace` and `path` configuration for your `lang-tag` calls based on the file's location. This configuration is then written back into your source code by the `regenerate-tags` command.
+The `onConfigGeneration` option in your `lang-tag.config.js` allows you to define a function that automatically determines the `namespace` and `path` configuration for your `lang-tag` calls based on the file's location. This configuration is then written back into your source code by the `regenerate-tags` command.
 
 ### Example 1: Using a '!' Prefix for Manual Overrides
 
 This approach uses a '!' prefix in the `path` config within your source file to signal that `onConfigGeneration` should *not* modify this specific tag's configuration. The actual stripping of the '!' from the path used for key generation would happen in your custom tag's `transform` function.
 
 ```javascript
-// In .lang-tag.config.js
+// In lang-tag.config.js
 module.exports = {
   // ... other config options (tagName, includes, outputDir, etc.)
   
@@ -127,7 +127,7 @@ export function i18n<T extends LangTagTranslations>(
 This approach adds a custom boolean flag (e.g., `manual: true`) to the configuration object within your source file to prevent `onConfigGeneration` from modifying it. Your `LangTagTranslationsConfig` would need to be extended.
 
 ```javascript
-// In .lang-tag.config.js
+// In lang-tag.config.js
 module.exports = {
   // ... other config options
   onConfigGeneration: (params) => {

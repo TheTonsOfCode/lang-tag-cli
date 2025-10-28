@@ -22,11 +22,11 @@ Begin by running the initialization command in your project root:
 lang-tag init # or langtag init
 ```
 
-This creates a `.lang-tag.config.js` file with default settings that you can customize for your project needs.
+This creates a `lang-tag.config.js` file with default settings that you can customize for your project needs.
 
 ## Configure Your Project
 
-The configuration file (`.lang-tag.config.js`) contains several important settings. Here's an example with default values:
+The configuration file (`lang-tag.config.js`) contains several important settings. Here's an example with default values:
 
 ```js
 module.exports = {

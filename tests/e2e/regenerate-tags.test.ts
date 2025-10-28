@@ -516,7 +516,7 @@ describe('regenerate-tags command e2e tests', () => {
             // If we get here, the test should fail
             expect(true).toBe(false);
         } catch (error: any) {
-            expect(error.message).toContain("No \".lang-tag.config.js\" detected")
+            expect(error.message).toContain("No \"lang-tag.config.js\" detected")
         }
     });
 

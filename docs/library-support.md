@@ -6,10 +6,10 @@
 
 ## Library Project Configuration (`isLibrary`)
 
-To designate your project as a library that exports its translations for consumption by other `lang-tag` enabled projects, set the `isLibrary` flag to `true` in your `.lang-tag.config.js`:
+To designate your project as a library that exports its translations for consumption by other `lang-tag` enabled projects, set the `isLibrary` flag to `true` in your `lang-tag.config.js`:
 
 ```javascript
-// .lang-tag.config.js for your library project
+// lang-tag.config.js for your library project
 module.exports = {
   // ... other configurations (tagName, includes, language, etc.)
   isLibrary: true,
@@ -54,10 +54,10 @@ For an application to consume translations from your `lang-tag` enabled library:
     ```
 
 2.  **Configure `lang-tag` in the application:**
-    The application's `.lang-tag.config.js` should specify where to look for imported library tags and how to integrate them. This is done via the `import` section of the configuration.
+    The application's `lang-tag.config.js` should specify where to look for imported library tags and how to integrate them. This is done via the `import` section of the configuration.
 
     ```javascript
-    // .lang-tag.config.js for the consuming application
+    // lang-tag.config.js for the consuming application
     module.exports = {
       // ... other app configurations (tagName, includes, outputDir, language, etc.)
       import: {
