@@ -68,7 +68,7 @@ export interface FilePathOptions {
     /**
      * How to handle scoped package names in file paths (e.g., '@scope/package').
      * - 'remove-scope': Remove @scope/ part, keep only package name
-     * - 'replace': Remove @ and replace / with underscores
+     * - 'replace': Remove @ and replace / with dashes
      * @default 'replace'
      */
     scopedPackageHandling?: 'remove-scope' | 'replace';
@@ -298,16 +298,27 @@ function applyCaseTransformToPath(filePath: string, caseType: FilePathCaseType):
  */
 function normalizePackageName(
     packageName: string,
-    scopedPackageHandling: 'remove-scope' | 'replace' = 'replace'
+    scopedPackageHandling: 'remove-scope' | 'replace' = 'replace',
+    context: 'variableName' | 'filePath' = 'variableName'
 ): string {
     switch (scopedPackageHandling) {
         case 'remove-scope':
             // Remove @scope/ part, keep only package name
-            return packageName.replace(/^@[^/]+\//, '');
+            let result = packageName.replace(/^@[^/]+\//, '');
+            // For variableName context, ensure valid JavaScript identifier
+            if (context === 'variableName') {
+                result = result.replace(/[^a-zA-Z0-9_$]/g, '_');
+            }
+            return result;
         case 'replace':
         default:
-            // Remove @ and replace / with underscores
-            return packageName.replace(/@/g, '').replace(/\//g, '_');
+            // Remove @ and replace / with appropriate separator based on context
+            let normalized = packageName.replace(/@/g, '').replace(/\//g, context === 'variableName' ? '_' : '-');
+            // For variableName context, ensure valid JavaScript identifier
+            if (context === 'variableName') {
+                normalized = normalized.replace(/[^a-zA-Z0-9_$]/g, '_');
+            }
+            return normalized;
     }
 }
 
@@ -348,7 +359,7 @@ function generateVariableName(
     let finalName = originalVariableName;
 
     if (prefixWithPackageName) {
-        const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling);
+        const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling, 'variableName');
         finalName = `${normalizedPackageName}_${originalVariableName}`;
     }
 
@@ -367,12 +378,12 @@ function generateFilePath(
 
     if (groupByPackage) {
         // Group all translations from this package into one file
-        const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling);
+        const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling, 'filePath');
         const fileName = `${normalizedPackageName}.ts`;
         return applyCaseTransformToFileName(fileName, typeof caseType === 'string' ? caseType : caseType.files || 'no');
     } else if (includePackageInPath) {
         // Include package name in the path
-        const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling);
+        const normalizedPackageName = normalizePackageName(packageName, scopedPackageHandling, 'filePath');
         
         if (typeof caseType === 'string') {
             // Apply case per segment for both package name and file path
