@@ -12,3 +12,10 @@ export {
     type VariableNameCaseType
 } from './flexible-import-algorithm.ts';
 
+export {
+    simpleMappingImportAlgorithm,
+    type SimpleMappingImportAlgorithmOptions,
+    type PackageMapping,
+    type FileMapping
+} from './simple-mapping-import-algorithm.ts';
+
