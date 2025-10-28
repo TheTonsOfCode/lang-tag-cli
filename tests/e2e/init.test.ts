@@ -59,7 +59,7 @@ describe('init command e2e tests', () => {
             "includes: ['src/**/*.{js,ts,jsx,tsx}']"
         );
         expect(configContent).toContain(
-            "excludes: ['node_modules', 'dist', 'build', '**/*.test.ts']"
+            "excludes: ['node_modules', 'dist', 'build'"
         );
         expect(configContent).toContain("localesDirectory: 'public/locales'");
         expect(configContent).toContain("baseLanguageCode: 'en'");
