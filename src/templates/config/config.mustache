@@ -13,9 +13,12 @@
 {{#useKeeper}}
     configKeeper,
 {{/useKeeper}}
-{{#isDictionary}}
+{{#isDictionaryCollector}}
     DictionaryCollector,
-{{/isDictionary}}
+{{/isDictionaryCollector}}
+{{#isModifiedNamespaceCollector}}
+    NamespaceCollector,
+{{/isModifiedNamespaceCollector}}
 {{#importLibraries}}
     flexibleImportAlgorithm,
 {{/importLibraries}}
@@ -79,9 +82,12 @@ const config = {
 {{/useCustom}}
 {{/hasConfigGeneration}}
     collect: {
-{{#isDictionary}}
+{{#isDictionaryCollector}}
         collector: new DictionaryCollector(),
-{{/isDictionary}}
+{{/isDictionaryCollector}}
+{{#isModifiedNamespaceCollector}}
+        collector: new NamespaceCollector(),
+{{/isModifiedNamespaceCollector}}
 {{^isDictionary}}
         defaultNamespace: '{{defaultNamespace}}',
 {{/isDictionary}}

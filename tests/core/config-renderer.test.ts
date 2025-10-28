@@ -9,7 +9,7 @@ describe('Config Renderer', () => {
             projectType: 'project',
             collectorType: 'namespace',
             namespaceOptions: {
-                modifyOptions: false,
+                modifyNamespaceOptions: false,
                 defaultNamespace: 'common',
             },
             configGeneration: {
@@ -75,7 +75,7 @@ describe('Config Renderer', () => {
             projectType: 'project',
             collectorType: 'namespace',
             namespaceOptions: {
-                modifyOptions: false,
+                modifyNamespaceOptions: false,
                 defaultNamespace: 'common',
             },
             configGeneration: {
@@ -105,7 +105,7 @@ describe('Config Renderer', () => {
             projectType: 'project',
             collectorType: 'namespace',
             namespaceOptions: {
-                modifyOptions: true,
+                modifyNamespaceOptions: true,
                 defaultNamespace: 'translations',
             },
             configGeneration: {
@@ -141,7 +141,7 @@ describe('Config Renderer', () => {
             projectType: 'project',
             collectorType: 'namespace',
             namespaceOptions: {
-                modifyOptions: false,
+                modifyNamespaceOptions: false,
                 defaultNamespace: 'common',
             },
             configGeneration: {
@@ -173,7 +173,7 @@ describe('Config Renderer', () => {
             projectType: 'project',
             collectorType: 'namespace',
             namespaceOptions: {
-                modifyOptions: false,
+                modifyNamespaceOptions: false,
                 defaultNamespace: 'common',
             },
             configGeneration: {

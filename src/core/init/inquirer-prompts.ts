@@ -10,7 +10,7 @@ export interface InitAnswers {
     tagName: string;
     collectorType: 'dictionary' | 'namespace';
     namespaceOptions?: {
-        modifyOptions: boolean;
+        modifyNamespaceOptions: boolean;
         defaultNamespace?: string;
     };
     localesDirectory: string;
@@ -70,28 +70,23 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
         });
 
         if (collectorType === 'namespace') {
-            const modifyOptions = await confirm({
-                message: 'Would you like to customize namespace options?',
-                default: false,
+            const modifyOptions = false;
+            // Note: for now, we don't have modifyOptions for namespace
+            // const modifyOptions = await confirm({
+            //     message: 'Would you like to customize namespace options?',
+            //     default: false,
+            // });
+
+            const defaultNamespace = await input({
+                message:
+                    'Default namespace for tags without explicit namespace:',
+                default: 'common',
             });
 
-            if (modifyOptions) {
-                const defaultNamespace = await input({
-                    message:
-                        'Default namespace for tags without explicit namespace:',
-                    default: 'common',
-                });
-
-                namespaceOptions = {
-                    modifyOptions: true,
-                    defaultNamespace,
-                };
-            } else {
-                namespaceOptions = {
-                    modifyOptions: false,
-                    defaultNamespace: 'common',
-                };
-            }
+            namespaceOptions = {
+                modifyNamespaceOptions: true,
+                defaultNamespace,
+            };
         }
 
         localesDirectory = await input({
@@ -100,7 +95,7 @@ export async function askProjectSetupQuestions(): Promise<InitAnswers> {
         });
     } else {
         namespaceOptions = {
-            modifyOptions: false,
+            modifyNamespaceOptions: false,
             defaultNamespace: 'common',
         };
     }

@@ -16,7 +16,8 @@ interface TemplateData {
     needsAlgorithms: boolean;
     needsPathBasedImport: boolean;
     useKeeper: boolean;
-    isDictionary: boolean;
+    isDictionaryCollector: boolean;
+    isModifiedNamespaceCollector: boolean;
     importLibraries: boolean;
     needsTagName: boolean;
     tagName: string;
@@ -130,12 +131,19 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
     const needsTagName = answers.tagName !== 'lang';
 
     const useKeeper = answers.configGeneration.keepVariables || false;
-    const isDictionary = answers.collectorType === 'dictionary';
+    const isDictionaryCollector = answers.collectorType === 'dictionary';
+    const isModifiedNamespaceCollector =
+        answers.collectorType === 'namespace' &&
+        !!answers.namespaceOptions?.modifyNamespaceOptions;
     const importLibraries = answers.importLibraries;
 
     // Check if any algorithms are needed
     const needsAlgorithms =
-        needsPathBasedImport || useKeeper || isDictionary || importLibraries;
+        needsPathBasedImport ||
+        useKeeper ||
+        isDictionaryCollector ||
+        isModifiedNamespaceCollector ||
+        importLibraries;
 
     return {
         isCJS: moduleSystem === 'cjs',
@@ -143,7 +151,8 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
         needsAlgorithms,
         needsPathBasedImport,
         useKeeper,
-        isDictionary,
+        isDictionaryCollector,
+        isModifiedNamespaceCollector,
         importLibraries,
         needsTagName,
         tagName: answers.tagName,
