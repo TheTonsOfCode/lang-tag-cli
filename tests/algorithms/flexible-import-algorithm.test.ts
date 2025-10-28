@@ -128,9 +128,9 @@ describe('flexibleImportAlgorithm', () => {
                         relativeFilePath: 'common.ts',
                         tags: [
                             createMockTag('valid'),
-                            { ...createMockTag('auto-name'), variableName: undefined },
-                            { ...createMockTag('auto-name2'), variableName: undefined },
-                            createMockTag('another-valid')
+                            { ...createMockTag('auto_name'), variableName: undefined },
+                            { ...createMockTag('auto_name2'), variableName: undefined },
+                            createMockTag('another_valid')
                         ]
                     }
                 ])
@@ -158,7 +158,7 @@ describe('flexibleImportAlgorithm', () => {
                 config: { namespace: 'common' }
             });
             expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
-                variableName: 'another-valid',
+                variableName: 'another_valid',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
@@ -172,7 +172,7 @@ describe('flexibleImportAlgorithm', () => {
                         tags: [
                             createMockTag('valid'),
                             { ...createMockTag('invalid'), variableName: undefined },
-                            createMockTag('another-valid')
+                            createMockTag('another_valid')
                         ]
                     }
                 ])
@@ -192,7 +192,7 @@ describe('flexibleImportAlgorithm', () => {
                 variableName: 'valid'
             }));
             expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', expect.objectContaining({
-                variableName: 'another-valid'
+                variableName: 'another_valid'
             }));
             expect(event.logger.debug).toHaveBeenCalledWith('Skipping tag without variableName in package1/common.ts');
         });
@@ -219,7 +219,7 @@ describe('flexibleImportAlgorithm', () => {
             algorithm(event);
 
             expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
-                variableName: 'my-package_greeting',
+                variableName: 'my_package_greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
@@ -284,7 +284,7 @@ describe('flexibleImportAlgorithm', () => {
                 createMockExportData('my-package', [
                     {
                         relativeFilePath: 'common.ts',
-                        tags: [createMockTag('my-variable')]
+                        tags: [createMockTag('my_variable')]
                     }
                 ])
             ];
@@ -311,7 +311,7 @@ describe('flexibleImportAlgorithm', () => {
                 createMockExportData('my-package', [
                     {
                         relativeFilePath: 'common.ts',
-                        tags: [createMockTag('my-variable')]
+                        tags: [createMockTag('my_variable')]
                     }
                 ])
             ];
@@ -327,7 +327,7 @@ describe('flexibleImportAlgorithm', () => {
             algorithm(event);
 
             expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
-                variableName: 'my-package_my-variable',
+                variableName: 'my_package_my_variable',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
@@ -340,9 +340,9 @@ describe('flexibleImportAlgorithm', () => {
                         relativeFilePath: 'common.ts',
                         tags: [
                             createMockTag('valid'),
-                            { ...createMockTag('auto-name'), variableName: undefined },
-                            { ...createMockTag('auto-name2'), variableName: undefined },
-                            createMockTag('another-valid')
+                            { ...createMockTag('auto_name'), variableName: undefined },
+                            { ...createMockTag('auto_name2'), variableName: undefined },
+                            createMockTag('another_valid')
                         ]
                     }
                 ])
@@ -374,7 +374,7 @@ describe('flexibleImportAlgorithm', () => {
                 config: { namespace: 'common' }
             });
             expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
-                variableName: 'another-valid',
+                variableName: 'another_valid',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
@@ -382,13 +382,13 @@ describe('flexibleImportAlgorithm', () => {
 
         it('should use custom function for handling missing variable names', () => {
             const exports = [
-                createMockExportData('my-package', [
+                createMockExportData('my_package', [
                     {
                         relativeFilePath: 'common.ts',
                         tags: [
                             createMockTag('valid'),
                             { ...createMockTag('invalid'), variableName: undefined },
-                            { ...createMockTag('another-invalid'), variableName: undefined }
+                            { ...createMockTag('another_invalid'), variableName: undefined }
                         ]
                     }
                 ])
@@ -413,12 +413,12 @@ describe('flexibleImportAlgorithm', () => {
                 config: { namespace: 'common' }
             });
             expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
-                variableName: 'my-package_common_2',
+                variableName: 'my_package_common_2',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
             expect(event.importManager.importTag).toHaveBeenCalledWith('common.ts', {
-                variableName: 'my-package_common_3',
+                variableName: 'my_package_common_3',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
             });
@@ -534,7 +534,7 @@ describe('flexibleImportAlgorithm', () => {
             
             algorithm(event);
 
-            expect(event.importManager.importTag).toHaveBeenCalledWith('scope_package.ts', {
+            expect(event.importManager.importTag).toHaveBeenCalledWith('scope-package.ts', {
                 variableName: 'greeting',
                 translations: { hello: 'Hello' },
                 config: { namespace: 'common' }
@@ -609,8 +609,8 @@ describe('flexibleImportAlgorithm', () => {
                         relativeFilePath: 'common.ts',
                         tags: [
                             createMockTag('greeting', { hello: 'Hello' }, { namespace: 'common' }),
-                            createMockTag('admin-action', { action: 'Action' }, { namespace: 'admin.user' }),
-                            createMockTag('internal-util', { util: 'Util' }, { namespace: 'internal' })
+                            createMockTag('admin_action', { action: 'Action' }, { namespace: 'admin.user' }),
+                            createMockTag('internal_util', { util: 'Util' }, { namespace: 'internal' })
                         ]
                     }
                 ])
@@ -640,9 +640,9 @@ describe('flexibleImportAlgorithm', () => {
                         relativeFilePath: 'common.ts',
                         tags: [
                             createMockTag('greeting', { hello: 'Hello' }, { namespace: 'common' }),
-                            createMockTag('admin-user', { user: 'User' }, { namespace: 'admin.user' }),
-                            createMockTag('admin-settings', { settings: 'Settings' }, { namespace: 'admin.settings' }),
-                            createMockTag('internal-util', { util: 'Util' }, { namespace: 'internal.util' })
+                            createMockTag('admin_user', { user: 'User' }, { namespace: 'admin.user' }),
+                            createMockTag('admin_settings', { settings: 'Settings' }, { namespace: 'admin.settings' }),
+                            createMockTag('internal_util', { util: 'Util' }, { namespace: 'internal.util' })
                         ]
                     }
                 ])
