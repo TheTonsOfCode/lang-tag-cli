@@ -58,7 +58,7 @@ export default defineConfig({
   },
   plugins: [
     dts({
-      include: ["src/config.ts", "src/logger.ts", "src/algorithms/**/*.ts"],
+      include: ["src/type.ts", "src/logger.ts", "src/algorithms/**/*.ts"],
       // include: ['src/**/*.ts'],
     })
   ]
