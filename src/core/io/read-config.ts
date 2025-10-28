@@ -3,7 +3,7 @@ import {CONFIG_FILE_NAME} from "@/core/constants.ts";
 import {existsSync} from "fs";
 import {pathToFileURL} from "url";
 import {LangTagCLIConfig} from "@/config.ts";
-import {LANG_TAG_DEFAULT_CONFIG} from "@/default-config.ts";
+import {LANG_TAG_DEFAULT_CONFIG} from "@/core/default-config.ts";
 
 export async function $LT_ReadConfig(projectPath: string): Promise<LangTagCLIConfig> {
     const configPath = resolve(projectPath, CONFIG_FILE_NAME);

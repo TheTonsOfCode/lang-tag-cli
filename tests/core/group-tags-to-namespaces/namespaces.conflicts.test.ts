@@ -3,7 +3,7 @@ import { $LT_GroupTagsToCollections } from '@/core/collect/group-tags-to-collect
 import { $LT_TagCandidateFile } from '@/core/collect/collect-tags.ts';
 import {LangTagCLIProcessedTag, LangTagCLIConfig} from '@/config.ts';
 import { LangTagCLILogger } from '@/logger.ts';
-import {LANG_TAG_DEFAULT_CONFIG} from "@/default-config.ts";
+import {LANG_TAG_DEFAULT_CONFIG} from "@/core/default-config.ts";
 
 // Mock logger
 const mockLogger: LangTagCLILogger = {
