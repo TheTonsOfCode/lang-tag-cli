@@ -1,4 +1,4 @@
-import { LangTagCLIImportEvent } from "@/config.ts";
+import { LangTagCLIImportEvent } from "@/type.ts";
 import { join } from "pathe";
 import { CaseType, applyCaseTransform } from "../case-utils";
 import micromatch from "micromatch";

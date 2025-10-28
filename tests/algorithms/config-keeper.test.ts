@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { configKeeper } from '@/algorithms/config-generation/config-keeper.ts';
-import { LangTagCLIConfigGenerationEvent, LangTagCLIConflict} from '@/config.ts';
+import { LangTagCLIConfigGenerationEvent, LangTagCLIConflict} from '@/type.ts';
 import {LangTagTranslationsConfig} from 'lang-tag';
 
 describe('configKeeper', () => {

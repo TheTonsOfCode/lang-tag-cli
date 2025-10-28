@@ -1,4 +1,4 @@
-import { LangTagCLIImportEvent } from "@/config.ts";
+import { LangTagCLIImportEvent } from "@/type.ts";
 
 /**
  * Mapping for a specific file within a package.

@@ -1,6 +1,6 @@
 import {$LT_TagCandidateFile} from "@/core/collect/collect-tags.ts";
 import {$LT_ReadJSON} from "@/core/io/file.ts";
-import {LangTagCLIConfig, LangTagCLIExportData} from "@/config";
+import {LangTagCLIConfig, LangTagCLIExportData} from "@/type.ts";
 import {EXPORTS_FILE_NAME} from "@/core/constants.ts";
 import path from "path";
 import {LangTagCLILogger} from "@/logger.ts";

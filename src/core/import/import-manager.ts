@@ -1,4 +1,4 @@
-import {LangTagCLIImportedTag, LangTagCLIImportedTagsFile, LangTagCLIImportManager} from "@/config.ts";
+import {LangTagCLIImportedTag, LangTagCLIImportedTagsFile, LangTagCLIImportManager} from "@/type.ts";
 
 export class ImportManager implements LangTagCLIImportManager {
     private readonly importedFiles: LangTagCLIImportedTagsFile[] = [];

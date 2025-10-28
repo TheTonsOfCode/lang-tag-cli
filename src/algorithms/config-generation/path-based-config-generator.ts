@@ -1,4 +1,4 @@
-import { LangTagCLIConfigGenerationEvent } from "@/config.ts";
+import { LangTagCLIConfigGenerationEvent } from "@/type.ts";
 import { sep } from "pathe";
 import { CaseType, applyCaseTransform } from "../case-utils";
 

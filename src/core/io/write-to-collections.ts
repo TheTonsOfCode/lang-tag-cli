@@ -1,4 +1,4 @@
-import {LangTagCLIConfig} from "@/config.ts";
+import {LangTagCLIConfig} from "@/type.ts";
 import {$LT_ReadJSON, $LT_WriteJSON} from "@/core/io/file.ts";
 import {deepMergeTranslations} from "@/core/merge.ts";
 import {LangTagCLILogger} from "@/logger.ts";

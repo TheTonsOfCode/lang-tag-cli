@@ -4,7 +4,7 @@ import {readFileSync} from "fs";
 
 import {globby} from "globby";
 
-import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/config.ts";
+import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/type.ts";
 import {LangTagCLILogger} from "@/logger.ts";
 import {$LT_TagProcessor} from "@/core/processor.ts";
 import {$LT_FilterEmptyNamespaceTags, $LT_FilterInvalidTags} from "@/core/collect/fillters.ts";

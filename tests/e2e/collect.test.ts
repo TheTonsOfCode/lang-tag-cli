@@ -10,7 +10,7 @@ import {
     TESTS_TEST_DIR as _TESTS_TEST_DIR
 } from "./utils.ts";
 import {CONFIG_FILE_NAME, EXPORTS_FILE_NAME} from '@/core/constants.ts';
-import {LangTagCLIConfig} from "@/config.ts";
+import {LangTagCLIConfig} from "@/type.ts";
 import JSON5 from "json5";
 import {$LT_TagProcessor} from "@/core/processor.ts";
 

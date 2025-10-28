@@ -1,7 +1,7 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import {DictionaryCollector} from '@/algorithms/collector/dictionary-collector';
 import {NamespaceCollector} from '@/algorithms/collector/namespace-collector';
-import {LangTagCLIConfig, LangTagCLIProcessedTag} from '@/config';
+import {LangTagCLIConfig, LangTagCLIProcessedTag} from '@/type.ts';
 import {LangTagCLILogger} from '@/logger';
 
 const mockConfig: LangTagCLIConfig = {

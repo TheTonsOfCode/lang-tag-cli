@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { simpleMappingImportAlgorithm, type SimpleMappingImportAlgorithmOptions } from '@/algorithms/import/simple-mapping-import-algorithm';
-import type { LangTagCLIImportEvent, LangTagCLIImportManager } from '@/config';
+import type { LangTagCLIImportEvent, LangTagCLIImportManager } from '@/type.ts';
 import type {LangTagCLILogger} from "@/logger.ts";
 
 describe('simpleMappingImportAlgorithm', () => {

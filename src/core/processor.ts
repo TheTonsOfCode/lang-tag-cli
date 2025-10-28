@@ -1,4 +1,4 @@
-import {LangTagCLIProcessedTag, LangTagCLIConfig} from "@/config.ts";
+import {LangTagCLIProcessedTag, LangTagCLIConfig} from "@/type.ts";
 import JSON5 from "json5";
 
 export interface $LT_TagReplaceData {

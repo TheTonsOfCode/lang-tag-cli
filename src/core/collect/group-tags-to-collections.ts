@@ -1,6 +1,6 @@
 import {$LT_TagCandidateFile} from "@/core/collect/collect-tags.ts";
 import {LangTagCLILogger} from "@/logger.ts";
-import {LangTagCLITagConflictInfo, LangTagCLIConflict, LangTagCLIConfig} from "@/config.ts";
+import {LangTagCLITagConflictInfo, LangTagCLIConflict, LangTagCLIConfig} from "@/type.ts";
 
 type ValueTracker = {
     get(path: string): LangTagCLITagConflictInfo | undefined;

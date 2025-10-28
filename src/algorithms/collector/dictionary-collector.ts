@@ -1,5 +1,5 @@
 import {TranslationsCollector} from "@/algorithms/collector/type.ts";
-import {LangTagCLIProcessedTag} from "@/config.ts";
+import {LangTagCLIProcessedTag} from "@/type.ts";
 import path, {resolve} from "pathe";
 import {mkdir, rm} from 'fs/promises';
 import process from "node:process";

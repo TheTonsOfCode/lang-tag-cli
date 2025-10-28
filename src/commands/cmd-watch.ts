@@ -1,6 +1,6 @@
 import path from 'path';
 import micromatch from 'micromatch';
-import {LangTagCLIConfig} from '@/config.ts';
+import {LangTagCLIConfig} from '@/type.ts';
 import {checkAndRegenerateFileLangTags} from "@/core/regenerate/regenerate-config.ts";
 import {$LT_WriteToCollections} from "@/core/io/write-to-collections.ts";
 import {$LT_GetCommandEssentials} from "@/commands/setup.ts";

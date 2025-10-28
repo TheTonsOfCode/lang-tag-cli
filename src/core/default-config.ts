@@ -1,4 +1,4 @@
-import {LangTagCLIConfig} from "@/config.ts";
+import {LangTagCLIConfig} from "@/type.ts";
 import {NamespaceCollector} from "@/algorithms";
 
 export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {

@@ -1,5 +1,5 @@
 import { $LT_ReadFileContent } from '../io/file.ts';
-import {LangTagCLIConflict, LangTagCLITagConflictInfo} from '../../config.ts';
+import {LangTagCLIConflict, LangTagCLITagConflictInfo} from '../../type.ts';
 import { parseObjectAST, markConflictNodes, ASTNode } from './ast-parser.ts';
 import { colorizeFromAST } from './ast-colorizer.ts';
 import * as path from 'path';

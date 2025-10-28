@@ -1,4 +1,4 @@
-import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/config.ts";
+import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/type.ts";
 import {LangTagCLILogger} from "@/logger.ts";
 
 export abstract class TranslationsCollector {

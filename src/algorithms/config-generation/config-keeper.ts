@@ -1,4 +1,4 @@
-import { LangTagCLIConfigGenerationEvent } from "@/config.ts";
+import { LangTagCLIConfigGenerationEvent } from "@/type.ts";
 
 const TRIGGER_NAME = "config-keeper";
 

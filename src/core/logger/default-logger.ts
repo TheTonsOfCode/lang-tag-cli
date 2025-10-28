@@ -1,5 +1,5 @@
 import { LangTagCLILogger } from '@/logger.ts';
-import { LangTagCLIConflict } from '../../config.ts';
+import { LangTagCLIConflict } from '../../type.ts';
 import { $LT_LogConflict } from './conflict-log.ts';
 
 const ANSI_COLORS: Record<string, string> = {

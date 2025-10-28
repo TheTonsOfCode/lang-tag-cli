@@ -70,7 +70,7 @@ const generationAlgorithm = pathBasedConfigGenerator({
 });
 const keeper = configKeeper({ propertyName: 'keep' });
 
-/** @type {import('@lang-tag/cli/config').LangTagCLIConfig} */
+/** @type {import('@lang-tag/cli/type').LangTagCLIConfig} */
 const config = {
     tagName: 'lang',
     isLibrary: false,

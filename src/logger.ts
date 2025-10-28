@@ -1,4 +1,4 @@
-import { LangTagCLIConflict } from './config.ts';
+import { LangTagCLIConflict } from './type.ts';
 
 export interface LangTagCLILogger {
     info(message: string, params?: Record<string, any>): void;

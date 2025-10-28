@@ -1,4 +1,4 @@
-import {LangTagCLIConfig} from "@/config.ts";
+import {LangTagCLIConfig} from "@/type.ts";
 import {describe, expect, it} from 'vitest';
 import {$LT_TagProcessor} from '@/core/processor.ts';
 

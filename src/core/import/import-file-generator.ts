@@ -6,7 +6,7 @@ import { writeFile } from 'fs/promises';
 import { resolve } from 'pathe';
 import * as process from "node:process";
 import { $LT_EnsureDirectoryExists } from '@/core/io/file.ts';
-import {LangTagCLIConfig, LangTagCLIImportedTagsFile, LangTagCLIImportManager} from '@/config.ts';
+import {LangTagCLIConfig, LangTagCLIImportedTagsFile, LangTagCLIImportManager} from '@/type.ts';
 import { LangTagCLILogger } from '@/logger.ts';
 import JSON5 from 'json5';
 

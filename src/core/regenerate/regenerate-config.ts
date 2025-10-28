@@ -1,4 +1,4 @@
-import {LangTagCLIConfig} from "@/config.ts";
+import {LangTagCLIConfig} from "@/type.ts";
 import {readFileSync} from "fs";
 import {writeFile} from "fs/promises";
 import JSON5 from "json5";

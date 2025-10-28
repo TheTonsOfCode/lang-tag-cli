@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { pathBasedConfigGenerator } from '../../src/algorithms/config-generation/path-based-config-generator';
-import { LangTagCLIConfigGenerationEvent } from '../../src/config';
+import { LangTagCLIConfigGenerationEvent } from '@/type.ts';
 
 const TRIGGER_NAME = "path-based-config-generator"
 

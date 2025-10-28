@@ -1,5 +1,5 @@
 import {LangTagCLILogger} from "@/logger.ts";
-import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/config.ts";
+import {LangTagCLIConfig, LangTagCLIProcessedTag} from "@/type.ts";
 
 export function $LT_FilterInvalidTags(tags: LangTagCLIProcessedTag[], config: LangTagCLIConfig, logger: LangTagCLILogger) {
     return tags.filter((tag) => {

@@ -1,7 +1,7 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 import {$LT_CMD_Collect} from '@/commands/cmd-collect';
 import {DictionaryCollector} from '@/algorithms/collector/dictionary-collector';
-import {LangTagCLIConfig, LangTagCLIProcessedTag, LangTagCLIConflictResolutionEvent, LangTagCLICollectFinishEvent, LangTagCLICollectConfigFixEvent} from '@/config';
+import {LangTagCLIConfig, LangTagCLIProcessedTag, LangTagCLIConflictResolutionEvent, LangTagCLICollectFinishEvent, LangTagCLICollectConfigFixEvent} from '@/type.ts';
 import {LangTagCLILogger} from '@/logger';
 import {$LT_TagCandidateFile} from '@/core/collect/collect-tags';
 

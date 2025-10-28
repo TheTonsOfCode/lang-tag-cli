@@ -1,5 +1,5 @@
 import {$LT_ReadJSON} from "@/core/io/file.ts";
-import {LangTagCLIConfig, LangTagCLIExportData, LangTagCLIImportedTag, LangTagCLIImportedTagsFile} from "@/config.ts";
+import {LangTagCLIConfig, LangTagCLIExportData, LangTagCLIImportedTag, LangTagCLIImportedTagsFile} from "@/type.ts";
 import {LangTagCLILogger} from "@/logger.ts";
 import {$LT_CollectExportFiles} from "@/core/import/collect-export-files.ts";
 import {generateImportFiles} from "@/core/import/import-file-generator.ts";

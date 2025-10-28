@@ -1,6 +1,6 @@
 import {getBasePath} from "@/core/watch/path-utils.ts";
 import chokidar from 'chokidar';
-import {LangTagCLIConfig} from "@/config.ts";
+import {LangTagCLIConfig} from "@/type.ts";
 
 export function $LT_CreateChokidarWatcher(config: LangTagCLIConfig) {
     const cwd = process.cwd();

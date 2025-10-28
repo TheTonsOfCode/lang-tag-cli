@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { flexibleImportAlgorithm } from '@/algorithms/import/flexible-import-algorithm.ts';
-import { LangTagCLIImportEvent } from '../../src/config';
+import { LangTagCLIImportEvent } from '@/type.ts';
 import { ImportManager } from '../../src/core/import/import-manager.ts';
 
 // Helper function to create a mock event
