@@ -1,0 +1,193 @@
+import { readFileSync } from 'fs';
+import mustache from 'mustache';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+import { InitAnswers } from './inquirer-prompts';
+
+export interface ConfigRenderOptions {
+    answers: InitAnswers;
+    moduleSystem: 'esm' | 'cjs';
+}
+
+interface TemplateData {
+    isCJS: boolean;
+    addComments: boolean;
+    needsAlgorithms: boolean;
+    needsPathBasedImport: boolean;
+    useKeeper: boolean;
+    isDictionaryCollector: boolean;
+    isModifiedNamespaceCollector: boolean;
+    importLibraries: boolean;
+    needsTagName: boolean;
+    tagName: string;
+    isLibrary: boolean;
+    includes: string;
+    excludes: string;
+    localesDirectory: string;
+    baseLanguageCode: string;
+    hasConfigGeneration: boolean;
+    usePathBased: boolean;
+    useCustom: boolean;
+    defaultNamespace: string;
+    isDefaultNamespace: boolean;
+    interfereWithCollection: boolean;
+    hasCollectContent: boolean;
+}
+
+function renderTemplate(
+    template: string,
+    data: Record<string, any>,
+    partials?: Record<string, string>
+): string {
+    return mustache.render(template, data, partials, {
+        escape: (text) => text,
+    });
+}
+
+function loadTemplateFile(
+    filename: string,
+    required: boolean = true
+): string | null {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = dirname(__filename);
+
+    // After build path
+    let templatePath = join(__dirname, 'templates', 'config', filename);
+
+    try {
+        return readFileSync(templatePath, 'utf-8');
+    } catch {
+        // Try sources (tests purposes)
+        templatePath = join(
+            __dirname,
+            '..',
+            '..',
+            'templates',
+            'config',
+            filename
+        );
+        try {
+            return readFileSync(templatePath, 'utf-8');
+        } catch (error) {
+            if (required) {
+                throw new Error(
+                    `Failed to load template "${filename}": ${error}`
+                );
+            }
+            return null;
+        }
+    }
+}
+
+function loadTemplate(): string {
+    return loadTemplateFile('config.mustache', true)!;
+}
+
+function loadPartials(): Record<string, string> {
+    const partials: Record<string, string> = {};
+
+    const generationAlgorithm = loadTemplateFile(
+        'generation-algorithm.mustache',
+        false
+    );
+    if (generationAlgorithm) {
+        partials['generation-algorithm'] = generationAlgorithm;
+    }
+
+    return partials;
+}
+
+function buildIncludesPattern(directories: string[]): string {
+    return directories
+        .map((directory) => `'${directory}/**/*.{js,ts,jsx,tsx}'`)
+        .join(', ');
+}
+
+function buildExcludesPattern(): string {
+    const excludes = [
+        'node_modules',
+        'dist',
+        'build',
+        '**/*.test.ts',
+        '**/*.spec.ts',
+    ];
+    return excludes.map((e) => `'${e}'`).join(', ');
+}
+
+function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
+    const { answers, moduleSystem } = options;
+
+    const needsPathBasedImport =
+        answers.configGeneration.enabled &&
+        answers.configGeneration.useAlgorithm === 'path-based';
+
+    const hasConfigGeneration = answers.configGeneration.enabled;
+    const usePathBased =
+        hasConfigGeneration &&
+        answers.configGeneration.useAlgorithm === 'path-based';
+    const useCustom =
+        hasConfigGeneration &&
+        answers.configGeneration.useAlgorithm === 'custom';
+
+    const needsTagName = answers.tagName !== 'lang';
+
+    const useKeeper = answers.configGeneration.keepVariables || false;
+    const isDictionaryCollector = answers.collectorType === 'dictionary';
+    const isModifiedNamespaceCollector =
+        answers.collectorType === 'namespace' &&
+        !!answers.namespaceOptions?.modifyNamespaceOptions;
+    const importLibraries = answers.importLibraries;
+
+    const defaultNamespace =
+        answers.namespaceOptions?.defaultNamespace || 'common';
+    const isDefaultNamespace = defaultNamespace === 'common';
+
+    // Check if collect section has any content
+    const hasCollectContent =
+        isDictionaryCollector ||
+        isModifiedNamespaceCollector ||
+        answers.interfereWithCollection ||
+        !isDefaultNamespace;
+
+    // Check if any algorithms are needed
+    const needsAlgorithms =
+        needsPathBasedImport ||
+        useKeeper ||
+        isDictionaryCollector ||
+        isModifiedNamespaceCollector ||
+        importLibraries;
+
+    return {
+        isCJS: moduleSystem === 'cjs',
+        addComments: answers.addCommentGuides,
+        needsAlgorithms,
+        needsPathBasedImport,
+        useKeeper,
+        isDictionaryCollector,
+        isModifiedNamespaceCollector,
+        importLibraries,
+        needsTagName,
+        tagName: answers.tagName,
+        isLibrary: answers.projectType === 'library',
+        includes: buildIncludesPattern(answers.includeDirectories),
+        excludes: buildExcludesPattern(),
+        localesDirectory: answers.localesDirectory,
+        baseLanguageCode: answers.baseLanguageCode,
+        hasConfigGeneration,
+        usePathBased,
+        useCustom,
+        defaultNamespace,
+        isDefaultNamespace,
+        interfereWithCollection: answers.interfereWithCollection,
+        hasCollectContent,
+    };
+}
+
+export function renderConfigTemplate(options: ConfigRenderOptions): string {
+    const template = loadTemplate();
+    const templateData = prepareTemplateData(options);
+    const partials = loadPartials();
+
+    return renderTemplate(template, templateData, partials);
+}

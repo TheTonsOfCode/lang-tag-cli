@@ -1,0 +1,73 @@
+{{#addComments}}
+/**
+ * Generates namespace/path from directory structure (filename is excluded).
+ * 
+ * Example with current settings (assuming includes: ['src/**']):
+ *   File: src/(admin)/features/auth/utils/LoginForm.tsx
+ *   1. Remove filename → src/(admin)/features/auth/utils
+ *   2. Remove root 'src' → (admin)/features/auth/utils
+ *   3. Remove bracketed '(admin)' → features/auth/utils
+ *   4. Remove 'utils' (in ignoreDirectories) → features/auth
+ *   5. First segment = namespace, rest = path → namespace: 'features', path: 'auth'
+ */
+{{/addComments}}
+const generationAlgorithm = pathBasedConfigGenerator({
+{{#addComments}}
+    // Removes root directory from includes patterns (e.g., 'src' if includes: ['src/**'])
+{{/addComments}}
+    ignoreIncludesRootDirectories: true,
+{{#addComments}}
+    // Directories with () or [] are NOT used for namespace/path generation
+    // true: app/(admin)/[id]/page.tsx → app/page (completely removed)
+    // false: app/(admin)/[id]/page.tsx → app/admin/id/page (brackets removed, names kept)
+{{/addComments}}
+    removeBracketedDirectories: true,
+{{#addComments}}
+    // Case for namespace. Options: 'kebab', 'camel', 'pascal', 'snake'
+{{/addComments}}
+    namespaceCase: 'kebab',
+{{#addComments}}
+    // Case for path. Options: 'kebab', 'camel', 'pascal', 'snake'
+{{/addComments}}
+    pathCase: 'camel',
+{{#addComments}}
+    // If namespace equals defaultNamespace, omit it from config (namespace becomes undefined)
+{{/addComments}}
+    clearOnDefaultNamespace: true,
+{{#addComments}}
+    // Skip these directory names globally when building namespace/path
+{{/addComments}}
+    ignoreDirectories: ['core', 'utils', 'helpers'],{{#addComments}}
+    /**
+     * Advanced: pathRules for hierarchical transformations
+     * 
+     * Special operators:
+     * - _: false → ignore current directory, continue with nested rules
+     * - '>': 'newName' → rename directory in namespace
+     * - '>>': redirect → jump to different namespace
+     *   - '>>': 'namespace' → use specified namespace, remaining segments become path
+     *   - '>>': { namespace: 'ui', pathPrefix: 'admin' } → jump to 'ui' namespace with 'admin.' prefix
+     *   - '>>': '' or null → use current directory as namespace
+     * 
+     * Example usage:
+     */
+    // pathRules: {
+    //     app: {
+    //         dashboard: {
+    //             _: false,          // ignore "dashboard" but continue with nested rules
+    //             modules: false     // also ignore "modules"
+    //         },
+    //         admin: {
+    //             '>': 'management', // rename "admin" to "management"
+    //             users: false       // ignore "users"
+    //         },
+    //         components: {
+    //             '>>': {            // jump to 'ui' namespace, prefix all paths with 'components'
+    //                 namespace: 'ui',
+    //                 pathPrefix: 'components'
+    //             }
+    //         }
+    //     }
+    // }{{/addComments}}
+});
+

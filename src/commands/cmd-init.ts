@@ -3,6 +3,11 @@ import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { CONFIG_FILE_NAME } from '@/core/constants';
+import {
+    askProjectSetupQuestions,
+    getDefaultAnswers,
+} from '@/core/init/inquirer-prompts';
+import { renderConfigTemplate } from '@/core/init/renderer';
 import { $LT_CreateDefaultLogger } from '@/core/logger/default-logger';
 import { LangTagCLILogger } from '@/logger';
 
@@ -30,99 +35,74 @@ async function detectModuleSystem(): Promise<'esm' | 'cjs'> {
     }
 }
 
-async function generateDefaultConfig(): Promise<string> {
-    const moduleSystem = await detectModuleSystem();
-    const importStatement =
-        moduleSystem === 'esm'
-            ? `import { pathBasedConfigGenerator, configKeeper } from '@lang-tag/cli/algorithms';`
-            : `const { pathBasedConfigGenerator, configKeeper } = require('@lang-tag/cli/algorithms');`;
-    const exportStatement =
-        moduleSystem === 'esm'
-            ? 'export default config;'
-            : 'module.exports = config;';
-
-    return `${importStatement}
-
-const generationAlgorithm = pathBasedConfigGenerator({
-    ignoreIncludesRootDirectories: true,
-    removeBracketedDirectories: true,
-    namespaceCase: 'kebab',
-    pathCase: 'camel',
-    clearOnDefaultNamespace: true,
-    ignoreDirectories: ['core', 'utils', 'helpers'],
-    // Advanced: Use pathRules for hierarchical transformations with ignore and rename
-    // pathRules: {
-    //     app: {
-    //         dashboard: {
-    //             _: false,          // ignore "dashboard" but continue with nested rules
-    //             modules: false     // also ignore "modules"
-    //         },
-    //         admin: {
-    //             '>': 'management', // rename "admin" to "management"
-    //             users: false       // ignore "users",
-    //             ui: {
-    //                 '>>': {        // 'redirect' - ignore everything, jump to 'ui' namespace and prefix all paths with 'admin'
-    //                     namespace: 'ui',
-    //                     pathPrefix: 'admin'
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-});
-const keeper = configKeeper({ propertyName: 'keep' });
-
-/** @type {import('@lang-tag/cli/type').LangTagCLIConfig} */
-const config = {
-    tagName: 'lang',
-    isLibrary: false,
-    includes: ['src/**/*.{js,ts,jsx,tsx}'],
-    excludes: ['node_modules', 'dist', 'build', '**/*.test.ts'],
-    localesDirectory: 'public/locales',
-    baseLanguageCode: 'en',
-    onConfigGeneration: async event => {
-        // We do not modify imported configurations
-        if (event.isImportedLibrary) return;
-
-        if (event.config?.keep === 'both') return;
-        
-        await generationAlgorithm(event);
-        
-        await keeper(event);
-    },
-    collect: {
-        defaultNamespace: 'common',
-        onConflictResolution: async event => {
-            await event.logger.conflict(event.conflict, true);
-            // By default, continue processing even if conflicts occur
-            // Call event.exit(); to terminate the process upon the first conflict
-        },
-        onCollectFinish: event => {
-            if (event.conflicts.length) event.exit(); // Stop the process to avoid merging on conflict
-        }
-    },
-    translationArgPosition: 1,
-    debug: false,
-};
-
-${exportStatement}`;
+interface InitOptions {
+    yes?: boolean;
 }
 
-export async function $LT_CMD_InitConfig() {
+export async function $LT_CMD_InitConfig(options: InitOptions = {}) {
     const logger: LangTagCLILogger = $LT_CreateDefaultLogger();
 
     if (existsSync(CONFIG_FILE_NAME)) {
-        logger.success(
-            'Configuration file already exists. Please remove the existing configuration file before creating a new default one'
+        logger.error(
+            'Configuration file already exists. Please remove the existing configuration file before creating a new one'
         );
         return;
     }
 
+    console.log('');
+    logger.info('Welcome to Lang Tag CLI Setup!');
+    console.log('');
+
     try {
-        const configContent = await generateDefaultConfig();
+        const answers = options.yes
+            ? getDefaultAnswers()
+            : await askProjectSetupQuestions();
+
+        if (options.yes) {
+            logger.info('Using default configuration (--yes flag detected)...');
+        }
+
+        const moduleSystem = await detectModuleSystem();
+
+        const configContent = renderConfigTemplate({
+            answers,
+            moduleSystem,
+        });
+
         await writeFile(CONFIG_FILE_NAME, configContent, 'utf-8');
-        logger.success('Configuration file created successfully');
+
+        logger.success('Configuration file created successfully!');
+        logger.success('Created {configFile}', {
+            configFile: CONFIG_FILE_NAME,
+        });
+
+        logger.info('Next steps:');
+        logger.info('  1. Review and customize {configFile}', {
+            configFile: CONFIG_FILE_NAME,
+        });
+        logger.info(
+            '  2. Since you have installed all basic libraries (React, TypeScript, etc.)'
+        );
+        logger.info(
+            '     and the initialized basic tag is based on what you use in your project,'
+        );
+        logger.info(
+            '     we recommend using "npx lang-tag init-tag" to generate an initial version of the tag'
+        );
+        logger.info(
+            '  3. Use your tag in the project under the include directories'
+        );
+        logger.info('  4. Run "npx lang-tag collect" to collect translations');
+        if (answers.projectType === 'project') {
+            logger.info('  5. Your translations will be in {dir}', {
+                dir: answers.localesDirectory,
+            });
+        }
     } catch (error: any) {
-        logger.error(error?.message);
+        if (error.name === 'ExitPromptError') {
+            logger.warn('Setup cancelled');
+            return;
+        }
+        logger.error(error?.message || 'An error occurred during setup');
     }
 }
