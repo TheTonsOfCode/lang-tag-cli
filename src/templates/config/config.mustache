@@ -30,8 +30,12 @@ const keeper = configKeeper({ propertyName: 'keep' });
 {{/needsPathBasedImport}}
 /** @type {import('@lang-tag/cli/type').LangTagCLIConfig} */
 const config = {
+{{#needsTagName}}
     tagName: '{{tagName}}',
-    isLibrary: {{isLibrary}},
+{{/needsTagName}}
+{{#isLibrary}}
+    isLibrary: true,
+{{/isLibrary}}
     includes: [{{includes}}],
     excludes: [{{excludes}}],
     localesDirectory: '{{localesDirectory}}',
@@ -42,7 +46,6 @@ const config = {
         // We do not modify imported configurations
         if (event.isImportedLibrary) return;
 {{#useKeeper}}
-
         if (event.config?.keep === 'both') return;
 {{/useKeeper}}
         

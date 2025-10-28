@@ -17,6 +17,7 @@ interface TemplateData {
     useKeeper: boolean;
     isDictionary: boolean;
     importLibraries: boolean;
+    needsTagName: boolean;
     tagName: string;
     isLibrary: boolean;
     includes: string;
@@ -130,6 +131,9 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
     const showImportComment =
         !answers.importLibraries && answers.addCommentGuides;
 
+    const needsTagName =
+        answers.tagName !== 'lang' && answers.projectType === 'library';
+
     return {
         isCJS: moduleSystem === 'cjs',
         addComments: answers.addCommentGuides,
@@ -137,6 +141,7 @@ function prepareTemplateData(options: ConfigRenderOptions): TemplateData {
         useKeeper: answers.configGeneration.keepVariables || false,
         isDictionary: answers.collectorType === 'dictionary',
         importLibraries: answers.importLibraries,
+        needsTagName,
         tagName: answers.tagName,
         isLibrary: answers.projectType === 'library',
         includes: buildIncludesPattern(answers.includeDirectories),
