@@ -1,20 +1,4 @@
 
-    cmd init generuje z template
-
-        i zadaje pytania ktore mozna strzalkami yes / no ogarnac jak w init nexta
-
-        Pytania:
-        - Czy to projekt czy biblioteka
-        - czy collectowac chce do dictionary czy namespace
-             - jesli namespace to czy chcesz modyfikowac jego opcje?
-        - czy chce generowac configi
-            - jesli tak to czy chce napisac sam algorytm
-            - czy uzyc predefiniowanego na podstawie tego w jakich plikach w sciezce sie znajduja tagi
-            - czy chcesz keepowac zmienne i chronic je przed nadpisywaniem
-        - czy zamierzasz importowac zewnetrzne biblioteki
-        - wybierz conajmniej 1 folder z roota pod ktorym beda uzywane lang tagi
-        - exclude jest z automatu
-        - czy chce poradniki w komentarzach
 
 
     - argument o translacji pozycji schowac bo w 99% bedzie to 1 a jesli nie to w dokumentacji se ktos doczyta
