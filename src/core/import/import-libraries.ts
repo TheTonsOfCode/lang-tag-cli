@@ -1,7 +1,7 @@
 import { $LT_CollectExportFiles } from '@/core/import/collect-export-files';
 import { generateImportFiles } from '@/core/import/import-file-generator';
 import { ImportManager } from '@/core/import/import-manager';
-import { $LT_ReadJSON } from '@/core/io/file';
+import { $LT_EnsureDirectoryExists, $LT_ReadJSON } from '@/core/io/file';
 import { LangTagCLILogger } from '@/logger';
 import { LangTagCLIConfig, LangTagCLIExportData } from '@/type';
 
@@ -35,6 +35,8 @@ export async function $LT_ImportLibraries(
         logger.warn('No tags were imported from any library files');
         return;
     }
+
+    await $LT_EnsureDirectoryExists(config.import.dir);
 
     // TODO: load current imported tag files
     //       check for current tags
