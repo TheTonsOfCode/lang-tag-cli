@@ -30,6 +30,10 @@ Wspierac typ generyczny w langtagach, bo processor teraz nie rozpoznaje
 
 --------------
 
+sprawdzic testy dictionary jak odwrocilem podstawową flage na true to czy dobre nazwy testow nadal są
+
+--------------
+
 - pathBaseGenerator
     - najpierw brac savedConfig, potem w alternatywie zwykly config aby latwiej mozna bylo kombinowac algorytmy
 
