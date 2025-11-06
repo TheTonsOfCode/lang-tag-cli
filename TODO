@@ -1,12 +1,45 @@
 
+
+
+
+
+type ValidationTranslations = {
+	id?: {
+		invalid?: string;
+	},
+	name?: {
+		min?: string;
+		max?: string;
+		regex?: string;
+	}
+}
+
+export const formValidationTranslations = lang<ValidationTranslations>({
+	id: {
+		invalid: 'Nie poprawne ID'
+	},
+	name: {
+		max: 'Wartość name musi być miedzy {{min}} a {{max}}'
+	}
+})
+
+Wspierac typ generyczny w langtagach, bo processor teraz nie rozpoznaje
+
+
+
+
+--------------
+
 - pathBaseGenerator
     - najpierw brac savedConfig, potem w alternatywie zwykly config aby latwiej mozna bylo kombinowac algorytmy
 
 
+--------------
 
 - w debugu w import ma listowac pliki lang-tags.json file:// aby mozna bylo se kliknąć i sprawdzić
 
 
+--------------
 
 -ma zbierac tez bez konfiguracji
 
@@ -37,6 +70,9 @@
             variantDependenciesErrors: "Product variants dependencies errors",
             clickToExpand: "Click to expand",
     })". Tag configuration not defined. (Check lang-tag config at collect.onCollectConfigFix)
+
+
+--------------
 
 
     w init-tag
