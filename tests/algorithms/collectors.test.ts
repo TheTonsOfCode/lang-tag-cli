@@ -29,7 +29,7 @@ describe('DictionaryCollector', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        collector = new DictionaryCollector();
+        collector = new DictionaryCollector({ appendNamespaceToPath: false });
         collector.config = mockConfig;
         collector.logger = mockLogger;
     });

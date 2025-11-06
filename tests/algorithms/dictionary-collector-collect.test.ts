@@ -90,7 +90,9 @@ const createFileWithTags = (
 });
 
 const setupConfig = (
-    collectorOptions?: { appendNamespaceToPath: boolean },
+    collectorOptions: { appendNamespaceToPath: boolean } = {
+        appendNamespaceToPath: false,
+    },
     configOverrides?: any
 ) => {
     const collector = new DictionaryCollector(collectorOptions);
