@@ -15,7 +15,7 @@ export class DictionaryCollector extends TranslationsCollector {
 
     constructor(
         private readonly options: Options = {
-            appendNamespaceToPath: false,
+            appendNamespaceToPath: true,
         }
     ) {
         super();
