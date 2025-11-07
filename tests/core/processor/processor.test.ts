@@ -104,6 +104,70 @@ describe('findLangMatches', () => {
         expect(tags).toHaveLength(0);
     });
 
+    it('should find lang tag with generic type', () => {
+        const content =
+            "export const formValidationTranslations = lang<ValidationTranslations>({ id: { invalid: 'Nie poprawne ID' } });";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(1);
+        expect(tags[0].fullMatch).toBe(
+            " formValidationTranslations = lang<ValidationTranslations>({ id: { invalid: 'Nie poprawne ID' } })"
+        );
+        expect(tags[0].variableName).toBe('formValidationTranslations');
+        expect(tags[0].genericType).toBe('ValidationTranslations');
+        expect(tags[0].parameter1Text).toBe(
+            "{ id: { invalid: 'Nie poprawne ID' } }"
+        );
+        expect(tags[0].parameterTranslations.id.invalid).toBe(
+            'Nie poprawne ID'
+        );
+    });
+
+    it('should find lang tag with generic type and two parameters', () => {
+        const content =
+            "const translations = lang<MyType>({ key: 'hello' }, { namespace: 'common' });";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(1);
+        expect(tags[0].genericType).toBe('MyType');
+        expect(tags[0].parameter1Text).toBe("{ key: 'hello' }");
+        expect(tags[0].parameter2Text).toBe("{ namespace: 'common' }");
+        expect(tags[0].parameterTranslations.key).toBe('hello');
+        expect(tags[0].parameterConfig.namespace).toBe('common');
+    });
+
+    it('should find multiple lang tags with and without generic types', () => {
+        const content =
+            "const t1 = lang({ key: 'hello' }); const t2 = lang<MyType>({ key: 'hi' });";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(2);
+        expect(tags[0].genericType).toBeUndefined();
+        expect(tags[0].parameterTranslations.key).toBe('hello');
+        expect(tags[1].genericType).toBe('MyType');
+        expect(tags[1].parameterTranslations.key).toBe('hi');
+    });
+
+    it('should find lang tag with nested generic type', () => {
+        const content = "const t = lang<Array<string>>({ items: ['a', 'b'] });";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(1);
+        expect(tags[0].genericType).toBe('Array<string>');
+        expect(tags[0].parameterTranslations.items).toEqual(['a', 'b']);
+    });
+
+    it('should find lang tag with generic type containing object type', () => {
+        const content =
+            "const t = lang<{ id: string; name: string }>({ id: '123', name: 'test' });";
+        const tags = processor.extractTags(content);
+
+        expect(tags).toHaveLength(1);
+        expect(tags[0].genericType).toBe('{ id: string; name: string }');
+        expect(tags[0].parameterTranslations.id).toBe('123');
+        expect(tags[0].parameterTranslations.name).toBe('test');
+    });
+
     // that test does not mean we handle array translations
     it('should find lang match with nested objects and arrays', () => {
         const content = `const translations = lang({
@@ -1175,6 +1239,138 @@ describe('replaceLangMatches', () => {
         expect(tag2.parameterTranslations.message).toBe('Hi there');
         expect(tag2.parameterConfig.namespace).toBe('admin');
         expect(tag2.parameterConfig.debug).toBe(false);
+    });
+
+    it('should preserve generic type when replacing translations', () => {
+        const content =
+            "const t = lang<ValidationTranslations>({ id: { invalid: 'Error' } });";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            {
+                tag: tags[0],
+                translations: {
+                    id: { invalid: 'New Error' },
+                    name: { min: 'Min' },
+                },
+            },
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        expect(finalTags[0].genericType).toBe('ValidationTranslations');
+        expect(finalTags[0].parameterTranslations.id.invalid).toBe('New Error');
+        expect(finalTags[0].parameterTranslations.name.min).toBe('Min');
+        expect(result).toContain('lang<ValidationTranslations>');
+    });
+
+    it('should preserve generic type when replacing config', () => {
+        const content =
+            "const t = lang<MyType>({ key: 'hello' }, { namespace: 'common' });";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            {
+                tag: tags[0],
+                config: { namespace: 'ui', path: 'test' },
+            },
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        expect(finalTags[0].genericType).toBe('MyType');
+        expect(finalTags[0].parameterConfig.namespace).toBe('ui');
+        expect(finalTags[0].parameterConfig.path).toBe('test');
+        expect(result).toContain('lang<MyType>');
+    });
+
+    it('should preserve generic type when replacing both translations and config', () => {
+        const content =
+            "const t = lang<ValidationTranslations>({ id: { invalid: 'Error' } }, { namespace: 'common' });";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            {
+                tag: tags[0],
+                translations: {
+                    id: { invalid: 'New Error' },
+                    name: { min: 'Min' },
+                },
+                config: { namespace: 'ui', path: 'validation' },
+            },
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        expect(finalTags[0].genericType).toBe('ValidationTranslations');
+        expect(finalTags[0].parameterTranslations.id.invalid).toBe('New Error');
+        expect(finalTags[0].parameterTranslations.name.min).toBe('Min');
+        expect(finalTags[0].parameterConfig.namespace).toBe('ui');
+        expect(finalTags[0].parameterConfig.path).toBe('validation');
+        expect(result).toContain('lang<ValidationTranslations>');
+    });
+
+    it('should preserve complex generic type when replacing', () => {
+        const content = "const t = lang<Array<string>>({ items: ['a', 'b'] });";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            {
+                tag: tags[0],
+                translations: { items: ['x', 'y', 'z'] },
+            },
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        expect(finalTags[0].genericType).toBe('Array<string>');
+        expect(finalTags[0].parameterTranslations.items).toEqual([
+            'x',
+            'y',
+            'z',
+        ]);
+        expect(result).toContain('lang<Array<string>>');
+    });
+
+    it('should preserve generic type with object type when replacing', () => {
+        const content =
+            "const t = lang<{ id: string; name: string }>({ id: '123', name: 'test' }, {namespace: 'abc'});";
+
+        const tags = processor.extractTags(content);
+
+        const replacements: $LT_TagReplaceData[] = [
+            {
+                tag: tags[0],
+                translations: { id: '456', name: 'updated' },
+            },
+        ];
+
+        const result = processor.replaceTags(content, replacements);
+
+        const finalTags = processor.extractTags(result);
+
+        expect(finalTags).toHaveLength(1);
+        expect(finalTags[0].genericType).toBe('{ id: string; name: string }');
+        expect(finalTags[0].parameterTranslations.id).toBe('456');
+        expect(finalTags[0].parameterTranslations.name).toBe('updated');
+        expect(finalTags[0].parameterConfig.namespace).toBe('abc');
+        expect(result).toContain('lang<{ id: string; name: string }>');
     });
 });
 

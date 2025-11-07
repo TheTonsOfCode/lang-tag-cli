@@ -28,21 +28,122 @@ export class $LT_TagProcessor {
         // Build position maps for comments and strings to skip them
         const skipRanges = this.buildSkipRanges(fileContent);
 
-        // Create a regex to find the start of a lang tag
-        const startPattern = new RegExp(
-            `${optionalVariableAssignment}${tagName}\\(\\s*\\{`,
+        // Create a regex to find the start of a lang tag (with or without generic type)
+        // First match the tag name, then check for generic type
+        const tagNamePattern = new RegExp(
+            `${optionalVariableAssignment}${tagName}`,
             'g'
         );
 
         while (true) {
-            // Find the next potential match
-            startPattern.lastIndex = currentIndex;
-            const startMatch = startPattern.exec(fileContent);
+            // Find the next potential tag name match
+            tagNamePattern.lastIndex = currentIndex;
+            const tagNameMatch = tagNamePattern.exec(fileContent);
 
-            if (!startMatch) break;
+            if (!tagNameMatch) break;
 
-            const matchStartIndex = startMatch.index;
-            const variableName = startMatch[1] || undefined;
+            const tagNameStartIndex = tagNameMatch.index;
+            const variableName = tagNameMatch[1] || undefined;
+
+            // Check if this match is inside a comment or string literal
+            if (this.isInSkipRange(tagNameStartIndex, skipRanges)) {
+                currentIndex = tagNameStartIndex + 1;
+                continue;
+            }
+
+            // Find where the tag name ends
+            let i = tagNameStartIndex + tagNameMatch[0].length;
+
+            // Check for generic type: <...>
+            let genericType: string | undefined = undefined;
+            let matchStartIndex = tagNameStartIndex;
+
+            // Skip whitespace
+            while (i < fileContent.length && /\s/.test(fileContent[i])) {
+                i++;
+            }
+
+            if (i < fileContent.length && fileContent[i] === '<') {
+                // Found potential generic type start
+                const genericStart = i;
+                let angleCount = 1;
+                i++; // Skip '<'
+
+                // Parse nested generic type (e.g., Array<string>, { a: { b: string } })
+                while (i < fileContent.length && angleCount > 0) {
+                    const char = fileContent[i];
+                    if (char === '<') angleCount++;
+                    else if (char === '>') angleCount--;
+                    else if (
+                        (char === '"' || char === "'" || char === '`') &&
+                        !this.isInSkipRange(i, skipRanges)
+                    ) {
+                        // Skip string literals inside generic type
+                        const stringStart = i;
+                        i++;
+                        while (i < fileContent.length) {
+                            if (fileContent[i] === '\\') {
+                                i += 2; // Skip escaped character
+                                continue;
+                            }
+                            if (fileContent[i] === char) {
+                                i++;
+                                break;
+                            }
+                            i++;
+                        }
+                        continue;
+                    }
+                    i++;
+                }
+
+                if (angleCount === 0) {
+                    // Successfully parsed generic type
+                    genericType = fileContent
+                        .substring(genericStart + 1, i - 1)
+                        .trim();
+                    matchStartIndex = tagNameStartIndex;
+                } else {
+                    // Malformed generic type, skip this match
+                    currentIndex = tagNameStartIndex + 1;
+                    continue;
+                }
+            } else {
+                // No generic type, tag name is followed directly by '('
+                matchStartIndex = tagNameStartIndex;
+            }
+
+            // Now look for opening parenthesis and brace
+            // Skip whitespace
+            while (i < fileContent.length && /\s/.test(fileContent[i])) {
+                i++;
+            }
+
+            // Must have opening parenthesis followed by opening brace
+            if (
+                i >= fileContent.length ||
+                fileContent[i] !== '(' ||
+                i + 1 >= fileContent.length
+            ) {
+                currentIndex = tagNameStartIndex + 1;
+                continue;
+            }
+
+            i++; // Skip '('
+
+            // Skip whitespace after '('
+            while (i < fileContent.length && /\s/.test(fileContent[i])) {
+                i++;
+            }
+
+            // Must have opening brace
+            if (i >= fileContent.length || fileContent[i] !== '{') {
+                currentIndex = tagNameStartIndex + 1;
+                continue;
+            }
+
+            // Found valid tag start - i is now at the opening brace '{'
+            const braceStartIndex = i;
 
             // Check if this match is inside a comment or string literal
             if (this.isInSkipRange(matchStartIndex, skipRanges)) {
@@ -52,7 +153,7 @@ export class $LT_TagProcessor {
 
             // Find the matching closing brace for the first object
             let braceCount = 1;
-            let i = matchStartIndex + startMatch[0].length;
+            i++; // Move past the opening '{'
 
             while (i < fileContent.length && braceCount > 0) {
                 if (fileContent[i] === '{') braceCount++;
@@ -67,10 +168,7 @@ export class $LT_TagProcessor {
             }
 
             // Check if there's a second parameter
-            let parameter1Text = fileContent.substring(
-                matchStartIndex + startMatch[0].length - 1,
-                i
-            );
+            let parameter1Text = fileContent.substring(braceStartIndex, i);
             let parameter2Text: string | undefined;
 
             // After first object, we expect either ',' (then second object) or ')' (end of call)
@@ -173,6 +271,7 @@ export class $LT_TagProcessor {
             i++;
 
             const fullMatch = fileContent.substring(matchStartIndex, i);
+            // fullMatch should include: variable assignment (if any) + tagName + genericType (if any) + ( + parameters + )
 
             const { line, column } = getLineAndColumn(
                 fileContent,
@@ -238,6 +337,7 @@ export class $LT_TagProcessor {
             matches.push({
                 fullMatch,
                 variableName,
+                genericType,
                 parameter1Text,
                 parameter2Text,
                 parameterTranslations,
@@ -321,7 +421,12 @@ export class $LT_TagProcessor {
                     ? newConfigString
                     : newTranslationsString;
 
-            let tagFunction = `${this.config.tagName}(${arg1}`;
+            // Preserve generic type if it was present in the original tag
+            const genericTypePart = tag.genericType
+                ? `<${tag.genericType}>`
+                : '';
+
+            let tagFunction = `${this.config.tagName}${genericTypePart}(${arg1}`;
             if (arg2) tagFunction += `, ${arg2}`;
             tagFunction += ')';
 

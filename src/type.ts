@@ -186,6 +186,9 @@ export interface LangTagCLIProcessedTag {
 
     variableName?: string;
 
+    /** Generic type parameter if present (e.g., "ValidationTranslations" from "lang<ValidationTranslations>(...)") */
+    genericType?: string;
+
     /** Character index in the whole text where the match starts */
     index: number;
     /** Line number (1-based) where the match was found */
