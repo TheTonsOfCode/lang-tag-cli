@@ -84,8 +84,11 @@ export async function generateImportFiles(
         await $LT_EnsureDirectoryExists(dirname(filePath));
         await writeFile(filePath, content, 'utf-8');
 
+        const encodedFilePath = encodeURI(filePath);
+
         logger.success('Created tag file: "{file}"', {
             file: importedFile.pathRelativeToImportDir,
         });
+        logger.debug(' └── link: file://{path}', { path: encodedFilePath });
     }
 }

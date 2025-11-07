@@ -7,10 +7,6 @@
     - najpierw brac savedConfig, potem w alternatywie zwykly config aby latwiej mozna bylo kombinowac algorytmy
 
 
---------------
-
-- w debugu w import ma listowac pliki lang-tags.json file:// aby mozna bylo se kliknąć i sprawdzić
-
 
 --------------
 
