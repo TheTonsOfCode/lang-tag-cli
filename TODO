@@ -3,33 +3,6 @@
 
 
 
-type ValidationTranslations = {
-	id?: {
-		invalid?: string;
-	},
-	name?: {
-		min?: string;
-		max?: string;
-		regex?: string;
-	}
-}
-
-export const formValidationTranslations = lang<ValidationTranslations>({
-	id: {
-		invalid: 'Nie poprawne ID'
-	},
-	name: {
-		max: 'Wartość name musi być miedzy {{min}} a {{max}}'
-	}
-})
-
-Wspierac typ generyczny w langtagach, bo processor teraz nie rozpoznaje
-
-
-
-
---------------
-
 sprawdzic testy dictionary jak odwrocilem podstawową flage na true to czy dobre nazwy testow nadal są
 
 --------------
