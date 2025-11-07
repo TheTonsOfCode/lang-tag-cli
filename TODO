@@ -66,3 +66,17 @@ sprawdzic testy dictionary jak odwrocilem podstawową flage na true to czy dobre
         lookupTranslation
     } from 'lang-tag';
     import React, {
+
+
+
+--------------
+
+moze biblioteki powinny miec langtagi z prefixem "_"
+    w sensie: "_lang" aby potem w .d.ts jak sie skompilują to nie były podpowiadane jak se ludzie biblioteki popiszą
+    i albo to w init-tag robic, albo w
+    configu przy generowaniu w
+        tagName: "_lang"
+        ale lepiej:
+        tagName: "lang"
+        i wygenerowany tag to "_lang", bo ktos na chama sobie config poprawi, a potem skompiluje biblioteke z widocznym na
+        zewnątrz lang-tagiem ktory nie powinien byc podpowiadany
