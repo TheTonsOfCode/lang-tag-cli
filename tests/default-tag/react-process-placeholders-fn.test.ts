@@ -286,8 +286,7 @@ describe('reactProcessPlaceholders', () => {
                 'Value: {{nullValue}}, Other: {{undefinedValue}}',
                 { nullValue: null, undefinedValue: undefined }
             );
-            expect(Array.isArray(result)).toBe(true);
-            expect(result).toEqual(['Value: ', null, ', Other: ', undefined]);
+            expect(result).toEqual('Value: , Other: ');
         });
 
         it('should handle boolean values in params', () => {
@@ -295,8 +294,7 @@ describe('reactProcessPlaceholders', () => {
                 'Status: {{isActive}}, Debug: {{debug}}',
                 { isActive: true, debug: false }
             );
-            expect(Array.isArray(result)).toBe(true);
-            expect(result).toEqual(['Status: ', true, ', Debug: ', false]);
+            expect(result).toEqual('Status: true, Debug: false');
         });
 
         it('should handle number values in params', () => {
@@ -304,24 +302,21 @@ describe('reactProcessPlaceholders', () => {
                 'Count: {{count}}, Price: {{price}}',
                 { count: 42, price: 19.99 }
             );
-            expect(Array.isArray(result)).toBe(true);
-            expect(result).toEqual(['Count: ', 42, ', Price: ', 19.99]);
+            expect(result).toEqual('Count: 42, Price: 19.99');
         });
 
         it('should handle zero as a parameter value', () => {
             const result = reactProcessPlaceholders('Count: {{count}}', {
                 count: 0,
             });
-            expect(Array.isArray(result)).toBe(true);
-            expect(result).toEqual(['Count: ', 0]);
+            expect(result).toEqual('Count: 0');
         });
 
         it('should handle negative numbers as parameter values', () => {
             const result = reactProcessPlaceholders('Temperature: {{temp}}°C', {
                 temp: -10,
             });
-            expect(Array.isArray(result)).toBe(true);
-            expect(result).toEqual(['Temperature: ', -10, '°C']);
+            expect(result).toEqual('Temperature: -10°C');
         });
     });
 

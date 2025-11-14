@@ -30,8 +30,16 @@ export function processPlaceholders(
         }
 
         const key = placeholder.trim();
-        if (params && key in params) {
-            parts.push(params[key]);
+        const value = params?.[key];
+
+        if (React.isValidElement(value)) {
+            parts.push(value);
+        } else if (
+            typeof value === 'string' ||
+            typeof value === 'number' ||
+            typeof value === 'boolean'
+        ) {
+            parts.push(String(value));
         } else {
             parts.push('');
         }
@@ -49,12 +57,11 @@ export function processPlaceholders(
         return parts.join('');
     }
 
-    return parts.map((part, index) => {
-        if (React.isValidElement(part)) {
-            return React.cloneElement(part, { key: index });
-        }
-        return React.createElement(React.Fragment, { key: index }, part);
-    }){{#isTypeScript}} as unknown as string{{/isTypeScript}};
+    return parts.map((part, index) =>
+        React.isValidElement(part)
+            ? React.cloneElement(part, { key: index })
+            : React.createElement(React.Fragment, { key: index }, part)
+    ){{#isTypeScript}} as unknown as string{{/isTypeScript}};
 }
 {{/isReact}}
 
