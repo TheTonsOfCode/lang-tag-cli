@@ -479,6 +479,68 @@ describe('regenerate-tags command e2e tests', () => {
         expect(matches2[0].config.path).toEqual('bar');
     });
 
+    it('should preserve generic type when regenerating tags', () => {
+        // Create a test file with generic type
+        const fileWithGeneric = `
+            // @ts-ignore
+            import {lang} from "./lang-tag";
+
+            interface ValidationTranslations {
+                id?: {
+                    invalid?: string;
+                },
+                name?: {
+                    min?: string;
+                    max?: string;
+                    regex?: string;
+                }
+            }
+
+            export const formValidationTranslations = lang<ValidationTranslations>({
+                id: {
+                    invalid: 'Nie poprawne ID'
+                },
+                name: {
+                    max: 'Wartość name musi być miedzy {{min}} a {{max}}'
+                }
+            });
+        `;
+
+        mkdirSync(join(TESTS_TEST_DIR, 'src/validations'), {
+            recursive: true,
+        });
+        writeFileSync(
+            join(TESTS_TEST_DIR, 'src/validations/form.ts'),
+            fileWithGeneric
+        );
+
+        // Run the regenerate-tags command
+        execSync('npm run rt', { cwd: TESTS_TEST_DIR, stdio: 'ignore' });
+
+        // Read the file content after running the command
+        const fileContent = readFileSync(
+            join(TESTS_TEST_DIR, 'src/validations/form.ts'),
+            'utf-8'
+        );
+
+        // Verify the generic type is preserved
+        expect(fileContent).toContain('lang<ValidationTranslations>');
+
+        // Verify the file was still processed correctly
+        const processor = new $LT_TagProcessor(testConfig);
+        const tags = processor.extractTags(fileContent);
+        expect(tags.length).toBe(1);
+        expect(tags[0].genericType).toBe('ValidationTranslations');
+        expect(tags[0].parameterConfig.namespace).toEqual('validations');
+        expect(tags[0].parameterConfig.path).toEqual('');
+        expect(tags[0].parameterTranslations.id.invalid).toBe(
+            'Nie poprawne ID'
+        );
+        expect(tags[0].parameterTranslations.name.max).toBe(
+            'Wartość name musi być miedzy {{min}} a {{max}}'
+        );
+    });
+
     it('should handle files with no lang tags', () => {
         // Create a test file with no lang tags
         const noTagsFile = `
