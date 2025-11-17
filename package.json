@@ -59,7 +59,8 @@
         "json5": "^2.2.3",
         "micromatch": "^4.0.8",
         "mustache": "^4.2.0",
-        "pathe": "^2.0.3"
+        "pathe": "^2.0.3",
+        "ts-morph": "^24.0.0"
     },
     "devDependencies": {
         "@trivago/prettier-plugin-sort-imports": "^5.2.2",

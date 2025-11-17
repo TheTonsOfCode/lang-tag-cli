@@ -70,6 +70,7 @@ This will enable import of language tags from external packages.
         },
     },
     translationArgPosition: 1,
+    hideDistDir: 'dist',
     onConfigGeneration: async (event) => {
         event.logger.info(
             'Config generation event is not configured. Add onConfigGeneration handler to customize config generation.'

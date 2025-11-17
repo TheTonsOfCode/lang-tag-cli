@@ -52,6 +52,7 @@ export default defineConfig({
                 'micromatch',
                 'events',
                 'util',
+                'ts-morph',
                 'os',
                 'chokidar',
                 '@inquirer/prompts',

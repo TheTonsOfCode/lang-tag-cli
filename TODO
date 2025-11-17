@@ -1,5 +1,49 @@
 
 
+
+
+
+
+
+
+
+
+teraz jest źle i ten hide łapie zawsze po basename zamiast po relatywnym,
+bo:
+przykładową translacje trzymamy w src/translations.ts
+a w dist jest jako
+dist/translations.d.ts
+
+i nie znajduje po
+dist/src/translations.d.ts
+
+trzeba dodać że jako drugi step próbuje odjąć 'src' na podstawie tego co mamy w includes w configu lang-taga
+
+a po base name jako trzeci krok
+
+
+---
+
+
+wydzielic kod na poszczególne pliki, jak szukanie matchujących .d.ts
+replace itd.
+
+a potem w testach robić test na tej prosztej funkcji a nie na całym ts-morph....
+
+
+
+
+
+
+
+
+
+
+
+
+--------------
+
+
 pathToFileURL z node zastąpić ręczne file://
 
 
