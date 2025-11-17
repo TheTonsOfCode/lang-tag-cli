@@ -37,11 +37,6 @@ a potem w testach robić test na tej prosztej funkcji a nie na całym ts-morph..
 
 
 
-
-
-
-
-
 --------------
 
 
@@ -120,3 +115,9 @@ moze biblioteki powinny miec langtagi z prefixem "_"
         tagName: "lang"
         i wygenerowany tag to "_lang", bo ktos na chama sobie config poprawi, a potem skompiluje biblioteke z widocznym na
         zewnątrz lang-tagiem ktory nie powinien byc podpowiadany
+zrobic do tego opcje ze mozna wylączyć enforcowanie tego
+
+--------------
+
+
+dodać komende która wyciąga powielone definicje w useTranslation|initTranslations|Type itd. robi na górze pliku typ jeden dla wszystkich i podmienia to we wszystkich miejscach
