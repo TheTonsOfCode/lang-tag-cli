@@ -21,7 +21,7 @@ trzeba dodać że jako drugi step próbuje odjąć 'src' na podstawie tego co ma
 
 a po base name jako trzeci krok
 
-
+(( testować tą strategie matchowania też, bo chce basename jako OSTATECZNOŚC !!!!!!!!! ))
 ---
 
 
@@ -29,6 +29,7 @@ wydzielic kod na poszczególne pliki, jak szukanie matchujących .d.ts
 replace itd.
 
 a potem w testach robić test na tej prosztej funkcji a nie na całym ts-morph....
+
 
 
 
