@@ -218,7 +218,11 @@ module.exports = config;`;
 
     it('should handle library mode correctly', () => {
         // Modify config for library mode
-        const libraryConfig = { ...testConfig, isLibrary: true };
+        const libraryConfig = {
+            ...testConfig,
+            isLibrary: true,
+            enforceLibraryTagPrefix: false,
+        };
         writeConfig(libraryConfig);
 
         // Run the collect command
