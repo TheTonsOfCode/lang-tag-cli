@@ -45,27 +45,6 @@
 
 --------------
 
-w package template cos jest ustawione ze to wymusza
-
-    w init-tag
-    wspierac verbalism modules cos tam
-    i generowac z "type" w import:
-
-    import {
-        type CallableTranslations,
-        type LangTagTranslations,
-        type LangTagTranslationsConfig,
-        type PartialFlexibleTranslations,
-        createCallableTranslations,
-        normalizeTranslations,
-        lookupTranslation
-    } from 'lang-tag';
-    import React, {
-
-
-
---------------
-
 moze biblioteki powinny miec langtagi z prefixem "_"
     w sensie: "_lang" aby potem w .d.ts jak sie skompilują to nie były podpowiadane jak se ludzie biblioteki popiszą
     i albo to w init-tag robic, albo w
