@@ -5,11 +5,6 @@
 
 
 
-pathToFileURL z node zastąpić ręczne file://
-
-
---------------
-
 - pathBaseGenerator
     - najpierw brac savedConfig, potem w alternatywie zwykly config aby latwiej mozna bylo kombinowac algorytmy
 

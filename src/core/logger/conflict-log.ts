@@ -1,4 +1,5 @@
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 
 import { LangTagCLIConflict, LangTagCLITagConflictInfo } from '../../type';
 import { $LT_ReadFileContent } from '../io/file';
@@ -295,10 +296,10 @@ async function logTagConflictInfo(
             }
         }
 
-        // Print file path with the updated line number (encode URI to handle special characters like [])
-        const encodedPath = encodeURI(filePath);
+        // Print file path with the updated line number
+        const fileUrl = pathToFileURL(filePath).href;
         console.log(
-            `${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}file://${encodedPath}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`
+            `${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}${fileUrl}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`
         );
 
         printLines(colorizedWhole.split('\n'), startLine, errorLines, condense);
