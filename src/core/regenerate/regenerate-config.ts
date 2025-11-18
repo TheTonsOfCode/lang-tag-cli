@@ -3,10 +3,10 @@ import { writeFile } from 'fs/promises';
 import JSON5 from 'json5';
 import { LangTagTranslationsConfig } from 'lang-tag';
 import { sep } from 'path';
-import { pathToFileURL } from 'url';
 
 import { $LT_FilterInvalidTags } from '@/core/collect/fillters';
 import { $LT_TagProcessor, $LT_TagReplaceData } from '@/core/processor';
+import { formatFileUrlForDisplay } from '@/core/utils';
 import { deepFreezeObject } from '@/core/utils';
 import { LangTagCLILogger } from '@/logger';
 import { LangTagCLIConfig } from '@/type';
@@ -105,7 +105,7 @@ export async function checkAndRegenerateFileLangTags(
     if (replacements.length) {
         const newContent = processor.replaceTags(fileContent, replacements);
         await writeFile(file, newContent, 'utf-8');
-        const fileUrl = pathToFileURL(file).href;
+        const fileUrl = formatFileUrlForDisplay(file);
         logger.info(
             'Lang tag configurations written for file "{path}" ({url}:{line})',
             { path, url: fileUrl, line: lastUpdatedLine }

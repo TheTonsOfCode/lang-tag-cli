@@ -6,9 +6,10 @@ import JSON5 from 'json5';
 import mustache from 'mustache';
 import { dirname, join } from 'path';
 import { resolve } from 'pathe';
-import { fileURLToPath, pathToFileURL } from 'url';
+import { fileURLToPath } from 'url';
 
 import { $LT_EnsureDirectoryExists } from '@/core/io/file';
+import { formatFileUrlForDisplay } from '@/core/utils';
 import { LangTagCLILogger } from '@/logger';
 import {
     LangTagCLIConfig,
@@ -84,7 +85,7 @@ export async function generateImportFiles(
         await $LT_EnsureDirectoryExists(dirname(filePath));
         await writeFile(filePath, content, 'utf-8');
 
-        const fileUrl = pathToFileURL(filePath).href;
+        const fileUrl = formatFileUrlForDisplay(filePath);
 
         logger.success('Created tag file: "{file}"', {
             file: importedFile.pathRelativeToImportDir,
