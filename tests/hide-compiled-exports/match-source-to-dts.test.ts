@@ -277,42 +277,47 @@ describe('findMatchingDtsFile', () => {
                 path.join(distPath, 'src', 'App.d.ts')
             );
         });
-    });
 
-    describe('Strategy 3: relative-path-without-ext', () => {
-        it('should match by relative path without extension', () => {
-            const sourceFilePath = path.join(cwd, 'src', 'App.tsx');
-            const sourceRelativePath = 'src/App.tsx';
-            // Strategy 1 uses relativePathKey = "src/App" (sourceRelativePath.replace(/\.(ts|tsx|js|jsx)$/, ''))
-            // Strategy 3 uses sourcePathWithoutExt = "src/App" (same thing)
-            // They're the same! So we can't really test strategy 3 separately from strategy 1
-            // Let's test a case where strategy 1 key doesn't exist but strategy 3 would work
-            // Actually, they're identical, so this strategy is redundant in practice
-            // But we can test that it works when strategy 1 key is missing
-            const dtsFileMap = new Map<string, string>();
-            // Don't add "src/App" key (strategy 1), but strategy 3 uses the same key
-            // So this test is actually testing the same as strategy 1
-            // Let's just verify the strategy name is correct when it matches
-            dtsFileMap.set('src/App', path.join(distPath, 'src', 'App.d.ts'));
+        it('should strip src prefix from nested paths', () => {
+            const sourceFilePath = path.join(
+                cwd,
+                'src',
+                'components',
+                'Button.tsx'
+            );
+            const sourceRelativePath = 'src/components/Button.tsx';
+            // After stripping "src/" prefix, we get "components/Button" which contains a separator
+            // Strategy 2 should match this nested path
+            const dtsFileMap = createDtsFileMap([
+                {
+                    relativePath: 'components/Button.d.ts',
+                    absolutePath: path.join(
+                        distPath,
+                        'components',
+                        'Button.d.ts'
+                    ),
+                },
+            ]);
+
+            const config = createMinimalConfig({
+                includes: ['src/**/*.{js,ts,jsx,tsx}'],
+            });
 
             const result = findMatchingDtsFile(
                 sourceFilePath,
                 sourceRelativePath,
-                dtsFileMap
+                dtsFileMap,
+                config
             );
 
-            // Strategy 1 will match first, so we get 'relative-path'
-            // Strategy 3 is only reached if strategy 1 doesn't match, but they use the same key
-            // So this test verifies that strategy 3 logic exists, even if it's hard to trigger
+            expect(result.strategy).toBe('includes-prefix-stripped');
             expect(result.dtsFilePath).toBe(
-                path.join(distPath, 'src', 'App.d.ts')
+                path.join(distPath, 'components', 'Button.d.ts')
             );
-            // Note: Strategy 1 will match, not strategy 3, because they use the same key
-            expect(result.strategy).toBe('relative-path');
         });
     });
 
-    describe('Strategy 4: base-name', () => {
+    describe('Strategy 3: base-name', () => {
         it('should match by base name when other strategies fail', () => {
             const sourceFilePath = path.join(
                 cwd,
