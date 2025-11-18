@@ -15,6 +15,7 @@ export interface InitTagOptions {
 interface Config {
     isLibrary: boolean;
     tagName: string;
+    enforceLibraryTagPrefix?: boolean;
 }
 
 async function readPackageJson(): Promise<any> {
@@ -70,7 +71,16 @@ export async function detectInitTagOptions(
     const isLibrary =
         options.library !== undefined ? options.library : config.isLibrary;
 
-    const tagName = options.name || config.tagName || 'lang';
+    let tagName = options.name || config.tagName || 'lang';
+
+    // Add "_" prefix for libraries if enforceLibraryTagPrefix is enabled
+    if (
+        isLibrary &&
+        (config.enforceLibraryTagPrefix ?? true) &&
+        !tagName.startsWith('_')
+    ) {
+        tagName = `_${tagName}`;
+    }
     const fileExtension =
         isLibrary && isReact
             ? isTypeScript

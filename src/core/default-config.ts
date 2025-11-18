@@ -4,6 +4,7 @@ import { LangTagCLIConfig } from '@/type';
 export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     tagName: 'lang',
     isLibrary: false,
+    enforceLibraryTagPrefix: true,
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build'],
     localesDirectory: 'locales',

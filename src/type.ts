@@ -49,6 +49,18 @@ export interface LangTagCLIConfig {
      */
     isLibrary: boolean;
 
+    /**
+     * When true and isLibrary is true, automatically adds "_" prefix to tagName
+     * to prevent the tag from being suggested in TypeScript autocomplete after compilation.
+     * This ensures that library tags remain internal and are not exposed in .d.ts files.
+     * @default true
+     * @example
+     * // With enforceLibraryTagPrefix: true and tagName: "lang"
+     * // Generated tag function will be: export function _lang(...)
+     * // Config tagName also will be automatically set to "_lang"
+     */
+    enforceLibraryTagPrefix?: boolean;
+
     collect?: {
         /**
          * Translation collector that defines how translation tags are organized into output files.

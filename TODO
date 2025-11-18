@@ -2,18 +2,6 @@
 
 
 
-moze biblioteki powinny miec langtagi z prefixem "_"
-    w sensie: "_lang" aby potem w .d.ts jak sie skompilują to nie były podpowiadane jak se ludzie biblioteki popiszą
-    i albo to w init-tag robic, albo w
-    configu przy generowaniu w
-        tagName: "_lang"
-        ale lepiej:
-        tagName: "lang"
-        i wygenerowany tag to "_lang", bo ktos na chama sobie config poprawi, a potem skompiluje biblioteke z widocznym na
-        zewnątrz lang-tagiem ktory nie powinien byc podpowiadany
-zrobic do tego opcje ze mozna wylączyć enforcowanie tego
-
---------------
 
 
 dodać komende która wyciąga powielone definicje w useTranslation|initTranslations|Type itd. robi na górze pliku typ jeden dla wszystkich i podmienia to we wszystkich miejscach
