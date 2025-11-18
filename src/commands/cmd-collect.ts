@@ -2,10 +2,12 @@ import { $LT_CollectCandidateFilesWithTags } from '@/core/collect/collect-tags';
 import { $LT_GroupTagsToCollections } from '@/core/collect/group-tags-to-collections';
 import { $LT_WriteAsExportFile } from '@/core/io/write-as-export-file';
 import { $LT_WriteToCollections } from '@/core/io/write-to-collections';
+import { formatExecutionTime } from '@/core/utils';
 
 import { $LT_GetCommandEssentials } from './setup';
 
 export async function $LT_CMD_Collect(options?: { clean?: boolean }) {
+    const startTime = Date.now();
     const { config, logger } = await $LT_GetCommandEssentials();
 
     logger.info('Collecting translations from source files...');
@@ -22,6 +24,8 @@ export async function $LT_CMD_Collect(options?: { clean?: boolean }) {
 
     if (config.isLibrary) {
         await $LT_WriteAsExportFile({ config, logger, files });
+        const executionTime = formatExecutionTime(Date.now() - startTime);
+        logger.debug('Collection completed ({time})', { time: executionTime });
         return;
     }
 
@@ -44,10 +48,17 @@ export async function $LT_CMD_Collect(options?: { clean?: boolean }) {
             logger,
             clean: options?.clean,
         });
+
+        const executionTime = formatExecutionTime(Date.now() - startTime);
+        logger.debug('Collection completed ({time})', { time: executionTime });
     } catch (e: any) {
         const prefix = 'LangTagConflictResolution:';
         if (e.message.startsWith(prefix)) {
             logger.error(e.message.substring(prefix.length));
+            const executionTime = formatExecutionTime(Date.now() - startTime);
+            logger.debug('Collection completed ({time})', {
+                time: executionTime,
+            });
             return;
         }
         throw e;

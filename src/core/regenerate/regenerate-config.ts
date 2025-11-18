@@ -66,11 +66,14 @@ export async function checkAndRegenerateFileLangTags(
                 event.isSaved = true;
                 event.savedConfig = updatedConfig;
                 logger.debug(
-                    'Called save for "{path}" with config "{config}" triggered by: ("{trigger}")',
+                    'Called save for "{path}"{varName} with config "{config}" triggered by: ("{trigger}")',
                     {
                         path,
                         config: JSON.stringify(updatedConfig),
                         trigger: triggerName || '-',
+                        varName: tag.variableName
+                            ? `(${tag.variableName})`
+                            : '',
                     }
                 );
             },
