@@ -65,7 +65,6 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
         );
         logger.info('3. Run "lang-tag collect" to extract translations');
 
-        // Show info about prefix enforcement for libraries
         if (
             renderOptions.isLibrary &&
             renderOptions.tagName.startsWith('_') &&
