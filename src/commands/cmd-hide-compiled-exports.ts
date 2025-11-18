@@ -24,7 +24,11 @@ export async function $LT_CMD_HideCompiledExports(options?: {
 
     logger.info('Scanning source files for lang-tag variables...');
 
-    const files = await $LT_CollectCandidateFilesWithTags({ config, logger });
+    const files = await $LT_CollectCandidateFilesWithTags({
+        config,
+        logger,
+        skipEmptyNamespaceCheck: true,
+    });
 
     const matches = await $LT_MatchSourceToDtsFiles(
         files,

@@ -12,7 +12,11 @@ export async function $LT_CMD_Collect(options?: { clean?: boolean }) {
 
     logger.info('Collecting translations from source files...');
 
-    const files = await $LT_CollectCandidateFilesWithTags({ config, logger });
+    const files = await $LT_CollectCandidateFilesWithTags({
+        config,
+        logger,
+        skipEmptyNamespaceCheck: config.isLibrary,
+    });
     if (config.debug) {
         for (let file of files) {
             logger.debug('Found {count} translations tags inside: {file}', {

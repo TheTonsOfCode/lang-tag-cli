@@ -21,6 +21,7 @@ interface Props {
     config: LangTagCLIConfig;
     logger: LangTagCLILogger;
     filesToScan?: string[];
+    skipEmptyNamespaceCheck?: boolean;
 }
 
 export async function $LT_CollectCandidateFilesWithTags(
@@ -65,7 +66,9 @@ export async function $LT_CollectCandidateFilesWithTags(
         }
 
         // Note: onCollectConfigFix should always fix empty namespace tags to be directed to default namespace
-        tags = $LT_FilterEmptyNamespaceTags(tags, logger);
+        if (!props.skipEmptyNamespaceCheck) {
+            tags = $LT_FilterEmptyNamespaceTags(tags, logger);
+        }
 
         const relativeFilePath = path.relative(cwd, filePath);
 
