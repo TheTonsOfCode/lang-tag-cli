@@ -26,7 +26,27 @@ export async function $LT_CMD_Collect(options?: { clean?: boolean }) {
         }
     }
 
+    const totalTags = files.reduce((sum, file) => sum + file.tags.length, 0);
+
     if (config.isLibrary) {
+        if (
+            totalTags === 0 &&
+            (config.enforceLibraryTagPrefix ?? true) &&
+            config.tagName
+        ) {
+            const baseTagName = config.tagName.startsWith('_')
+                ? config.tagName.substring(1)
+                : config.tagName;
+            console.log('');
+            logger.warn(
+                '⚠️  No translation tags found in your library code.\n' +
+                    '\tThis might be because enforceLibraryTagPrefix is enabled.\n' +
+                    '\tRemember: your tag function must be named {prefixedBaseTagName} (with "_" prefix), not {baseTagName}.\n' +
+                    '\tExample: export function {prefixedBaseTagName}(...) instead of export function {baseTagName}(...)\n' +
+                    '\tThe prefix prevents the tag from appearing in TypeScript autocomplete after compilation.',
+                { prefixedBaseTagName: `_${baseTagName}`, baseTagName }
+            );
+        }
         await $LT_WriteAsExportFile({ config, logger, files });
         const executionTime = formatExecutionTime(Date.now() - startTime);
         logger.debug('Collection completed ({time})', { time: executionTime });
@@ -40,10 +60,6 @@ export async function $LT_CMD_Collect(options?: { clean?: boolean }) {
             config,
         });
 
-        const totalTags = files.reduce(
-            (sum, file) => sum + file.tags.length,
-            0
-        );
         logger.debug('Found {totalTags} translation tags', { totalTags });
 
         await $LT_WriteToCollections({
