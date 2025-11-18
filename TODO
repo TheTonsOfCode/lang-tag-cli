@@ -1,77 +1,7 @@
 
 
-pathToFileURL z node zastąpić ręczne file://
-
-
---------------
-
-- pathBaseGenerator
-    - najpierw brac savedConfig, potem w alternatywie zwykly config aby latwiej mozna bylo kombinowac algorytmy
 
 
 
---------------
 
--ma zbierac tez bez konfiguracji
-
-    [08:21:22] Skipping tag "productValidationDialogTranslations = libraryLangTag({
-            title: "Inventory validation results",
-            description: "Summary of products with validation errors or warnings.",
-
-            invalidCount: "Invalid products: {{count}}",
-            warningCount: "Products with just warnings: {{count}}",
-
-            errorsOnly: "Errors only",
-            all: "All",
-
-            productDescriptors: "Product descriptors",
-            missingDescriptorsCount: "{{count}} products with missing descriptors",
-            missingDescriptorsShow: "Show products without descriptors",
-            invalidDescriptorsCount: "{{count}} products with invalid descriptors",
-            invalidDescriptorsShow: "Show invalid descriptors errors",
-
-            errors: "Errors",
-            errorsLabel: "Errors prevent catalog inclusion",
-            warnings: "Warnings",
-            warningsLabel: "Review recommended",
-
-            uuid: "UUID",
-            inventoryIndex: "Inventory index",
-
-            variantDependenciesErrors: "Product variants dependencies errors",
-            clickToExpand: "Click to expand",
-    })". Tag configuration not defined. (Check lang-tag config at collect.onCollectConfigFix)
-
-
---------------
-
-w package template cos jest ustawione ze to wymusza
-
-    w init-tag
-    wspierac verbalism modules cos tam
-    i generowac z "type" w import:
-
-    import {
-        type CallableTranslations,
-        type LangTagTranslations,
-        type LangTagTranslationsConfig,
-        type PartialFlexibleTranslations,
-        createCallableTranslations,
-        normalizeTranslations,
-        lookupTranslation
-    } from 'lang-tag';
-    import React, {
-
-
-
---------------
-
-moze biblioteki powinny miec langtagi z prefixem "_"
-    w sensie: "_lang" aby potem w .d.ts jak sie skompilują to nie były podpowiadane jak se ludzie biblioteki popiszą
-    i albo to w init-tag robic, albo w
-    configu przy generowaniu w
-        tagName: "_lang"
-        ale lepiej:
-        tagName: "lang"
-        i wygenerowany tag to "_lang", bo ktos na chama sobie config poprawi, a potem skompiluje biblioteke z widocznym na
-        zewnątrz lang-tagiem ktory nie powinien byc podpowiadany
+dodać komende która wyciąga powielone definicje w useTranslation|initTranslations|Type itd. robi na górze pliku typ jeden dla wszystkich i podmienia to we wszystkich miejscach

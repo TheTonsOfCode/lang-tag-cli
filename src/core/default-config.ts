@@ -4,6 +4,7 @@ import { LangTagCLIConfig } from '@/type';
 export const LANG_TAG_DEFAULT_CONFIG: LangTagCLIConfig = {
     tagName: 'lang',
     isLibrary: false,
+    enforceLibraryTagPrefix: true,
     includes: ['src/**/*.{js,ts,jsx,tsx}'],
     excludes: ['node_modules', 'dist', 'build'],
     localesDirectory: 'locales',
@@ -70,6 +71,7 @@ This will enable import of language tags from external packages.
         },
     },
     translationArgPosition: 1,
+    hideDistDir: 'dist',
     onConfigGeneration: async (event) => {
         event.logger.info(
             'Config generation event is not configured. Add onConfigGeneration handler to customize config generation.'

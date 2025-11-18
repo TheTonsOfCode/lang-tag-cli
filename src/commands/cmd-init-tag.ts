@@ -64,6 +64,27 @@ export async function $LT_CMD_InitTagFile(options: InitTagOptions = {}) {
             '2. Create your translation objects and use the tag function'
         );
         logger.info('3. Run "lang-tag collect" to extract translations');
+
+        if (
+            renderOptions.isLibrary &&
+            renderOptions.tagName.startsWith('_') &&
+            (config.enforceLibraryTagPrefix ?? true)
+        ) {
+            console.log('');
+            logger.info(
+                '📌 Important: Library tag prefix enforcement is enabled\n' +
+                    '\tYour tag uses "_" prefix: {tagName} (instead of {baseTagName})\n' +
+                    '\tThis prevents the tag from appearing in TypeScript autocomplete after compilation\n' +
+                    '\tAlways use {tagName} (with prefix) in your library code\n' +
+                    '\tThis is a best practice for library internals - it keeps your API clean\n' +
+                    '\tThe prefix is automatically added by the enforceLibraryTagPrefix option\n' +
+                    '\tTo disable this behavior, set enforceLibraryTagPrefix: false in your config',
+                {
+                    tagName: renderOptions.tagName,
+                    baseTagName: renderOptions.tagName.substring(1),
+                }
+            );
+        }
     } catch (error: any) {
         logger.error('Failed to write file: {error}', {
             error: error?.message,

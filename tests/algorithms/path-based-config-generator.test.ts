@@ -12,12 +12,13 @@ function createMockEvent(
     collectDefaultNamespace: string = 'common'
 ): LangTagCLIConfigGenerationEvent {
     let savedConfig: any = null;
+    const config: any = undefined;
 
-    return {
+    const event = {
         absolutePath: `/project/${relativePath}`,
         relativePath,
         isImportedLibrary: false,
-        config: undefined,
+        config,
         langTagConfig: {
             tagName: 'lang',
             includes,
@@ -43,7 +44,18 @@ function createMockEvent(
         get savedConfig() {
             return savedConfig;
         },
+        getCurrentConfig: () => {
+            if (savedConfig !== undefined && savedConfig !== null) {
+                return { ...savedConfig };
+            }
+            if (event.config) {
+                return { ...event.config };
+            }
+            return {};
+        },
     } as any;
+
+    return event;
 }
 
 describe('pathBasedConfigGenerator', () => {

@@ -6,6 +6,7 @@ import { sep } from 'path';
 
 import { $LT_FilterInvalidTags } from '@/core/collect/fillters';
 import { $LT_TagProcessor, $LT_TagReplaceData } from '@/core/processor';
+import { formatFileUrlForDisplay } from '@/core/utils';
 import { deepFreezeObject } from '@/core/utils';
 import { LangTagCLILogger } from '@/logger';
 import { LangTagCLIConfig } from '@/type';
@@ -65,13 +66,28 @@ export async function checkAndRegenerateFileLangTags(
                 event.isSaved = true;
                 event.savedConfig = updatedConfig;
                 logger.debug(
-                    'Called save for "{path}" with config "{config}" triggered by: ("{trigger}")',
+                    'Called save for "{path}"{varName} with config "{config}" triggered by: ("{trigger}")',
                     {
                         path,
                         config: JSON.stringify(updatedConfig),
                         trigger: triggerName || '-',
+                        varName: tag.variableName
+                            ? `(${tag.variableName})`
+                            : '',
                     }
                 );
+            },
+            getCurrentConfig: (): LangTagTranslationsConfig => {
+                if (
+                    event.savedConfig !== undefined &&
+                    event.savedConfig !== null
+                ) {
+                    return { ...event.savedConfig };
+                }
+                if (event.config) {
+                    return { ...event.config };
+                }
+                return {};
             },
         };
 
@@ -92,10 +108,10 @@ export async function checkAndRegenerateFileLangTags(
     if (replacements.length) {
         const newContent = processor.replaceTags(fileContent, replacements);
         await writeFile(file, newContent, 'utf-8');
-        const encodedFile = encodeURI(file);
+        const fileUrl = formatFileUrlForDisplay(file);
         logger.info(
-            'Lang tag configurations written for file "{path}" (file://{file}:{line})',
-            { path, file: encodedFile, line: lastUpdatedLine }
+            'Lang tag configurations written for file "{path}" ({url}:{line})',
+            { path, url: fileUrl, line: lastUpdatedLine }
         );
         return true;
     }

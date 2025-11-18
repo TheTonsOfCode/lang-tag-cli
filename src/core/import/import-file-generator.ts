@@ -9,6 +9,7 @@ import { resolve } from 'pathe';
 import { fileURLToPath } from 'url';
 
 import { $LT_EnsureDirectoryExists } from '@/core/io/file';
+import { formatFileUrlForDisplay } from '@/core/utils';
 import { LangTagCLILogger } from '@/logger';
 import {
     LangTagCLIConfig,
@@ -84,11 +85,11 @@ export async function generateImportFiles(
         await $LT_EnsureDirectoryExists(dirname(filePath));
         await writeFile(filePath, content, 'utf-8');
 
-        const encodedFilePath = encodeURI(filePath);
+        const fileUrl = formatFileUrlForDisplay(filePath);
 
         logger.success('Created tag file: "{file}"', {
             file: importedFile.pathRelativeToImportDir,
         });
-        logger.debug(' └── link: file://{path}', { path: encodedFilePath });
+        logger.debug(' └── link: {url}', { url: fileUrl });
     }
 }

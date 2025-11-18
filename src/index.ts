@@ -2,6 +2,7 @@
 import { program } from 'commander';
 
 import { $LT_CMD_Collect } from '@/commands/cmd-collect';
+import { $LT_CMD_HideCompiledExports } from '@/commands/cmd-hide-compiled-exports';
 import { $LT_ImportTranslations } from '@/commands/cmd-import';
 import { $LT_CMD_InitConfig } from '@/commands/cmd-init';
 import { $LT_CMD_InitTagFile } from '@/commands/cmd-init-tag';
@@ -72,6 +73,20 @@ export function createCli() {
         )
         .action(async (options) => {
             await $LT_CMD_InitTagFile(options);
+        });
+
+    program
+        .command('hide-compiled-exports')
+        .alias('hce')
+        .description(
+            'Hide compiled .d.ts exports of lang-tag variables (remove export modifier, keep type)'
+        )
+        .option(
+            '-d, --dist-dir <dir>',
+            'Dist directory to process (default: from config or "dist")'
+        )
+        .action(async (options) => {
+            await $LT_CMD_HideCompiledExports({ distDir: options.distDir });
         });
 
     return program;

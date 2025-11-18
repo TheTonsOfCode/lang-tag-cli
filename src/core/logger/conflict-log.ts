@@ -2,6 +2,7 @@ import * as path from 'path';
 
 import { LangTagCLIConflict, LangTagCLITagConflictInfo } from '../../type';
 import { $LT_ReadFileContent } from '../io/file';
+import { formatFileUrlForDisplay } from '../utils';
 import { colorizeFromAST } from './ast-colorizer';
 import { ASTNode, markConflictNodes, parseObjectAST } from './ast-parser';
 
@@ -295,10 +296,10 @@ async function logTagConflictInfo(
             }
         }
 
-        // Print file path with the updated line number (encode URI to handle special characters like [])
-        const encodedPath = encodeURI(filePath);
+        // Print file path with the updated line number
+        const fileUrl = formatFileUrlForDisplay(filePath);
         console.log(
-            `${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}file://${encodedPath}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`
+            `${ANSI.gray}${prefix}${ANSI.reset} ${ANSI.cyan}${fileUrl}${ANSI.reset}${ANSI.gray}:${lineNum}${ANSI.reset}`
         );
 
         printLines(colorizedWhole.split('\n'), startLine, errorLines, condense);

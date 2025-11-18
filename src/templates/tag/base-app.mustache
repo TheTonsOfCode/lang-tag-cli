@@ -1,8 +1,8 @@
 {{#isTypeScript}}
 import {
-    CallableTranslations,
-    LangTagTranslations,
-    LangTagTranslationsConfig,
+    type CallableTranslations,
+    type LangTagTranslations,
+    type LangTagTranslationsConfig,
     createCallableTranslations
 } from 'lang-tag';
 {{/isTypeScript}}
@@ -10,7 +10,7 @@ import {
 import { createCallableTranslations } from 'lang-tag';
 {{/isTypeScript}}
 {{#isReact}}
-import React, { ReactNode, useMemo } from 'react';
+import React, { type ReactNode, useMemo } from 'react';
 {{/isReact}}
 
 {{#isTypeScript}}

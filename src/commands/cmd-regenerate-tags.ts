@@ -2,8 +2,10 @@ import { globby } from 'globby';
 
 import { $LT_GetCommandEssentials } from '@/commands/setup';
 import { checkAndRegenerateFileLangTags } from '@/core/regenerate/regenerate-config';
+import { formatExecutionTime } from '@/core/utils';
 
 export async function $LT_CMD_RegenerateTags() {
+    const startTime = Date.now();
     const { config, logger } = await $LT_GetCommandEssentials();
 
     const files = await globby(config.includes, {
@@ -30,9 +32,13 @@ export async function $LT_CMD_RegenerateTags() {
         }
     }
 
+    const executionTime = formatExecutionTime(Date.now() - startTime);
+
     if (!dirty) {
         logger.info(
             'No changes were made based on the current configuration and files'
         );
     }
+
+    logger.debug('Regeneration completed ({time})', { time: executionTime });
 }

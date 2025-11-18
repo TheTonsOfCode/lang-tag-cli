@@ -49,6 +49,18 @@ export interface LangTagCLIConfig {
      */
     isLibrary: boolean;
 
+    /**
+     * When true and isLibrary is true, automatically adds "_" prefix to tagName
+     * to prevent the tag from being suggested in TypeScript autocomplete after compilation.
+     * This ensures that library tags remain internal and are not exposed in .d.ts files.
+     * @default true
+     * @example
+     * // With enforceLibraryTagPrefix: true and tagName: "lang"
+     * // Generated tag function will be: export function _lang(...)
+     * // Config tagName also will be automatically set to "_lang"
+     */
+    enforceLibraryTagPrefix?: boolean;
+
     collect?: {
         /**
          * Translation collector that defines how translation tags are organized into output files.
@@ -160,6 +172,13 @@ export interface LangTagCLIConfig {
      * @default 1
      */
     translationArgPosition: 1 | 2;
+
+    /**
+     * Directory containing compiled TypeScript declaration files (.d.ts) to remove export modifier.
+     * Used by the `hide-compiled-exports` command to remove exports of lang-tag variables.
+     * @default 'dist'
+     */
+    hideDistDir?: string;
 
     // /**
     //  * Whether to flatten the translation keys. (Currently unused)
@@ -314,6 +333,24 @@ export interface LangTagCLIConfigGenerationEvent {
      * null = means configuration will be removed
      **/
     save(config: LangTagTranslationsConfig | null, triggerName?: string): void;
+
+    /**
+     * Returns the current configuration object that should be used as a base for modifications.
+     * This method provides a reusable way to get the active configuration:
+     * - If `save()` was called, returns `savedConfig` (a mutable copy)
+     * - Otherwise, returns `config` (a mutable copy)
+     * - If neither exists, returns an empty object `{}`
+     *
+     * The returned object is always a shallow copy, so it can be safely modified.
+     *
+     * @example
+     * ```ts
+     * const currentConfig = event.getCurrentConfig();
+     * currentConfig.namespace = 'new-namespace';
+     * event.save(currentConfig);
+     * ```
+     */
+    getCurrentConfig(): LangTagTranslationsConfig;
 }
 
 export interface LangTagCLICollectConfigFixEvent {

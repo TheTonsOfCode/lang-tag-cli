@@ -56,6 +56,16 @@ export async function $LT_ReadConfig(
             throw new Error('Collector not found! (config.collect.collector)');
         }
 
+        // Automatically add "_" prefix to tagName for libraries if enforceLibraryTagPrefix is enabled
+        if (
+            config.isLibrary &&
+            (config.enforceLibraryTagPrefix ?? true) &&
+            config.tagName &&
+            !config.tagName.startsWith('_')
+        ) {
+            config.tagName = `_${config.tagName}`;
+        }
+
         return config;
     } catch (error) {
         throw error;

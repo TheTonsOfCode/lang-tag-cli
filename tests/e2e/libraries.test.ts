@@ -189,7 +189,7 @@ module.exports = config;`;
                 createCallableTranslations
             } from "lang-tag";
 
-            export function libTag<T extends LangTagTranslations>(
+            export function _libTag<T extends LangTagTranslations>(
                 translations: T,
                 config?: LangTagTranslationsConfig
             ) {
@@ -202,13 +202,13 @@ module.exports = config;`;
         // language=typescript
         const LIBRARY_SOURCE_FILE = `
             // @ts-ignore
-            import {libTag} from "./lang-tag"; // Relative import within the library
+            import {_libTag} from "./lang-tag"; // Relative import within the library
 
-            const libTranslations1 = libTag({"libraryHello": "Hello from Library"}, {
+            const libTranslations1 = _libTag({"libraryHello": "Hello from Library"}, {
                 "namespace": "conversational",
                 "path": "greetings"
             });
-            const libTranslations2 = libTag({"libraryBye": "Bye from Library"}, {
+            const libTranslations2 = _libTag({"libraryBye": "Bye from Library"}, {
                 "namespace": "conversational",
                 "path": "farewells"
             });
@@ -397,7 +397,7 @@ module.exports = config;`;
                 createCallableTranslations
             } from "lang-tag";
 
-            export function libTag<T extends LangTagTranslations>(
+            export function _libTag<T extends LangTagTranslations>(
                 translations: T,
                 config?: LangTagTranslationsConfig
             ) {
@@ -410,11 +410,11 @@ module.exports = config;`;
         // language=typescript
         const LIBRARY_SOURCE_FILE = `
             // @ts-ignore
-            import {libTag} from "./lang-tag"; // Relative import within the library
+            import {_libTag} from "./lang-tag"; // Relative import within the library
             // @ts-ignore
             import {FlexibleTranslations, normalizeTranslations} from "lang-tag";
 
-            const profileTranslations = libTag({
+            const profileTranslations = _libTag({
                 title: "Member profile",
                 welcomeMessage: "Hello, {{name}}!",
             }, {namespace: "profile"});

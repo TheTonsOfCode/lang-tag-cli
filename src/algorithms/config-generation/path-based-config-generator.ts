@@ -320,7 +320,7 @@ export function pathBasedConfigGenerator(
         }
 
         // Build the configuration object, preserving existing properties
-        const newConfig: any = event.config ? { ...event.config } : {};
+        const newConfig: any = event.getCurrentConfig();
 
         // Handle default namespace clearing
         if (clearOnDefaultNamespace && namespace === actualFallbackNamespace) {

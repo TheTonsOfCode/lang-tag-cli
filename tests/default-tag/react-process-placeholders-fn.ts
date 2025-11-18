@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 
 export function reactProcessPlaceholders(
     translation: string,
@@ -15,8 +15,16 @@ export function reactProcessPlaceholders(
         }
 
         const key = placeholder.trim();
-        if (params && key in params) {
-            parts.push(params[key]);
+        const value = params?.[key];
+
+        if (React.isValidElement(value)) {
+            parts.push(value);
+        } else if (
+            typeof value === 'string' ||
+            typeof value === 'number' ||
+            typeof value === 'boolean'
+        ) {
+            parts.push(String(value));
         } else {
             parts.push('');
         }
