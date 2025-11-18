@@ -74,6 +74,18 @@ export async function checkAndRegenerateFileLangTags(
                     }
                 );
             },
+            getCurrentConfig: (): LangTagTranslationsConfig => {
+                if (
+                    event.savedConfig !== undefined &&
+                    event.savedConfig !== null
+                ) {
+                    return { ...event.savedConfig };
+                }
+                if (event.config) {
+                    return { ...event.config };
+                }
+                return {};
+            },
         };
 
         await config.onConfigGeneration(event);

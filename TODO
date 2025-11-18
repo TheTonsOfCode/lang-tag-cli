@@ -5,13 +5,6 @@
 
 
 
-- pathBaseGenerator
-    - najpierw brac savedConfig, potem w alternatywie zwykly config aby latwiej mozna bylo kombinowac algorytmy
-
-
-
---------------
-
 -ma zbierac tez bez konfiguracji
 
     [08:21:22] Skipping tag "productValidationDialogTranslations = libraryLangTag({

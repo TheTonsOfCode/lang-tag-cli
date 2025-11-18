@@ -46,6 +46,15 @@ function createMockEvent(
         get isSaved() {
             return savedConfigValue !== undefined;
         },
+        getCurrentConfig: () => {
+            if (savedConfigValue !== undefined && savedConfigValue !== null) {
+                return { ...savedConfigValue };
+            }
+            if (config) {
+                return { ...config };
+            }
+            return {};
+        },
     } as any;
 }
 

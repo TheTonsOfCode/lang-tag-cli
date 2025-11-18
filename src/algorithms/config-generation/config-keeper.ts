@@ -100,16 +100,12 @@ export function configKeeper(
         }
 
         // Get the saved config - if null, start from old config without namespace and path
-        let restoredConfig: any;
+        let restoredConfig = event.getCurrentConfig();
 
         if (event.savedConfig === null) {
             // Algorithm wanted to remove config, so start from original but without namespace/path
-            restoredConfig = { ...event.config };
             delete restoredConfig.namespace;
             delete restoredConfig.path;
-        } else {
-            // Use what was saved by the algorithm
-            restoredConfig = { ...event.savedConfig };
         }
 
         // Track if any changes are needed

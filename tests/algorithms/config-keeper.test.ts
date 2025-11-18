@@ -33,6 +33,18 @@ describe('configKeeper', () => {
                 currentSavedConfig = config;
                 currentIsSaved = true;
             },
+            getCurrentConfig: () => {
+                if (
+                    currentSavedConfig !== undefined &&
+                    currentSavedConfig !== null
+                ) {
+                    return { ...currentSavedConfig };
+                }
+                if (originalConfig) {
+                    return { ...originalConfig };
+                }
+                return {};
+            },
         };
     };
 
