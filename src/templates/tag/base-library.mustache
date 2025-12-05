@@ -25,11 +25,27 @@ import React, {
 interface TagConfig extends LangTagTranslationsConfig {
     keep?: 'namespace' | 'path' | 'both'
 }
+
+/**
+* Ensures the Tag type compiles into a named alias rather than an expanded structural type,
+* preventing bloated .d.ts output during tag generation and keeping exported definitions clean.
+*/
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace {{tagName}} {
+    export type Tag<T extends LangTagTranslations> = {
+        useTranslations: () => CallableTranslations<T>;
+        initTranslations: (translations?: PartialFlexibleTranslations<T>) => CallableTranslations<T>;
+        Provider(props: { translations?: PartialFlexibleTranslations<T>; children: ReactNode }): ReactNode;
+        InputType: PartialFlexibleTranslations<T>;
+        Type: CallableTranslations<T>;
+    };
+}
+
 {{/isTypeScript}}
-export function {{tagName}}<T extends LangTagTranslations>(
+export function {{tagName}}{{#isTypeScript}}<T extends LangTagTranslations>{{/isTypeScript}}(
     baseTranslations: T,
     config?: TagConfig,
-) {
+){{#isTypeScript}}: {{tagName}}.Tag<T>{{/isTypeScript}} {
     const createTranslationHelper = (normalized{{#isTypeScript}}: CallableTranslations<T> | null{{/isTypeScript}}) =>
         createCallableTranslations(baseTranslations, config, {
             transform: ({unprefixedPath, value, params}) => {

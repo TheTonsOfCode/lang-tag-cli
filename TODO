@@ -1,7 +1,7 @@
 
 
-
-
-
-
-dodać komende która wyciąga powielone definicje w useTranslation|initTranslations|Type itd. robi na górze pliku typ jeden dla wszystkich i podmienia to we wszystkich miejscach
+dodać semantic versioning i rozpisać changeloga wstecz
+i wyłączyć pushowanie na maina
+ALBO NIE bo łatwo się będzie pomylić w feat itd.
+Dodevelopować wszystko co uznaję że jest potrzebne do 1.0.0, potem wstecz wszystko opisać zrobić docsy itd i wtedy wpiąć semantic.
+Np. to hide-compiled-exports mogłoby trafić do osobnej paczki z utilami do buildowania
