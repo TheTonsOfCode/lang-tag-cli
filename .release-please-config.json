@@ -1,0 +1,18 @@
+{
+    "monorepo-tags": true,
+    "changelog-path": "CHANGELOG.md",
+    "packages": {
+        "packages/cli": {
+            "component": "CLI",
+            "package-name": "@lang-tag/cli",
+            "release-type": "node",
+            "changelog-path": "CHANGELOG.md"
+        },
+        "packages/core": {
+            "component": "Core",
+            "package-name": "lang-tag",
+            "release-type": "node",
+            "changelog-path": "CHANGELOG.md"
+        }
+    }
+}

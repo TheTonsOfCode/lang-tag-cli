@@ -1,30 +1,9 @@
 {
-    "compilerOptions": {
-        "target": "ES2020",
-        "useDefineForClassFields": true,
-        "module": "ESNext",
-        "lib": ["ES2020", "DOM", "DOM.Iterable"],
-        "skipLibCheck": true,
-
-        /* Bundler mode */
-        "moduleResolution": "bundler",
-        "allowImportingTsExtensions": false,
-        "resolveJsonModule": true,
-        "isolatedModules": true,
-        "moduleDetection": "force",
-        "noEmit": true,
-
-        /* Linting */
-        "strict": true,
-        //    "noUnusedLocals": true,
-        //    "noUnusedParameters": true,
-        //    "noFallthroughCasesInSwitch": true,
-        //    "noUncheckedSideEffectImports": true,
-
-        "baseUrl": ".",
-        "paths": {
-            "@/*": ["src/*"]
-        }
-    },
-    "include": ["src", "tests"]
+    "files": [],
+    "references": [
+        { "path": "./packages/core" },
+        { "path": "./packages/presets" },
+        { "path": "./packages/cli" },
+        { "path": "./packages/docs" }
+    ]
 }

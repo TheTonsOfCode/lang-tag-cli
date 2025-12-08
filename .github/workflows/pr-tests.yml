@@ -11,7 +11,6 @@ on:
 jobs:
     test:
         runs-on: ubuntu-latest
-
         strategy:
             matrix:
                 node-version: [18.x, 20.x]
@@ -29,7 +28,13 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Run all tests (including e2e)
-              run: npm run test-full
+            - name: Run core tests
+              run: npm run test --workspace lang-tag
               env:
                   CI: true
+
+            - name: Run CLI tests (including e2e)
+              run: npm run test-full --workspace @lang-tag/cli
+              env:
+                  CI: true
+

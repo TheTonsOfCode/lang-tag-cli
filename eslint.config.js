@@ -5,7 +5,7 @@ import importPlugin from 'eslint-plugin-import';
 
 export default [
     {
-        files: ['**/*.ts'],
+        files: ['**/*.ts', '**/*.tsx'],
         languageOptions: {
             parser: tsparser,
             parserOptions: {
@@ -28,24 +28,30 @@ export default [
             import: importPlugin,
         },
         rules: {
-            // Enforce no .ts extensions in imports
+            // Enforce no .ts/.tsx extensions in imports
             'import/extensions': [
                 'error',
                 'never',
                 {
                     js: 'never',
                     ts: 'never',
+                    tsx: 'never',
                 },
             ],
         },
     },
     {
         ignores: [
-            'dist/**',
-            'node_modules/**',
-            'examples/**',
-            'vite.config.ts',
-            'vitest.config.ts',
+            '**/dist/**',
+            '**/node_modules/**',
+            '**/build/**',
+            '**/coverage/**',
+            '**/examples/**',
+            '**/*.min.js',
+            '**/*.bundle.js',
+            'todo/examples/monorepo/node_modules/**',
+            '**/vite.config.ts',
+            '**/vitest.config.ts',
         ],
     },
 ];

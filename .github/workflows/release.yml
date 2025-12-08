@@ -1,0 +1,50 @@
+name: Release
+
+on:
+    push:
+        branches:
+            - main
+
+permissions:
+    contents: write
+    pull-requests: write
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Run release-please
+              id: release
+              uses: googleapis/release-please-action@v4
+              with:
+                  token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+                  config-file: .release-please-config.json
+                  manifest-file: .release-please-manifest.json
+
+            - name: Setup Node.js
+              if: steps.release.outputs.release_created == 'true' || steps.release.outputs['packages/cli--release_created'] == 'true' || steps.release.outputs['packages/core--release_created'] == 'true' || steps.release.outputs['packages/presets--release_created'] == 'true'
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+                  registry-url: https://registry.npmjs.org
+
+            - name: Install dependencies
+              if: steps.release.outputs.release_created == 'true' || steps.release.outputs['packages/cli--release_created'] == 'true' || steps.release.outputs['packages/core--release_created'] == 'true' || steps.release.outputs['packages/presets--release_created'] == 'true'
+              run: npm ci
+
+            - name: Publish released packages
+              if: steps.release.outputs.release_created == 'true' || steps.release.outputs['packages/cli--release_created'] == 'true' || steps.release.outputs['packages/core--release_created'] == 'true' || steps.release.outputs['packages/presets--release_created'] == 'true'
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: |
+                  [ "${{ steps.release.outputs['packages/cli--release_created'] }}" = "true" ] && npm run publish --workspace @lang-tag/cli || true
+                  [ "${{ steps.release.outputs['packages/core--release_created'] }}" = "true" ] && npm run publish --workspace lang-tag || true
+                  [ "${{ steps.release.outputs['packages/presets--release_created'] }}" = "true" ] && npm run publish --workspace @lang-tag/presets || true
+
